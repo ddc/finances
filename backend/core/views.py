@@ -64,8 +64,14 @@ class DashboardView(APIView):
         settings.LOG.info(f"Dashboard requested by {request.user.username}: year={year}, month={month}")
         data = get_dashboard_data(year, month=month)
         ptax = get_ptax_rate()
-        data["ptax_usd_brl"] = float(ptax) if ptax else None
-        data["ptax_fetched_at"] = dt.now().isoformat() if ptax else None
+        if ptax:
+            data["ptax_compra"] = str(ptax["compra"])
+            data["ptax_venda"] = str(ptax["venda"])
+            data["ptax_fetched_at"] = dt.now().isoformat()
+        else:
+            data["ptax_compra"] = None
+            data["ptax_venda"] = None
+            data["ptax_fetched_at"] = None
         return Response(data)
 
 

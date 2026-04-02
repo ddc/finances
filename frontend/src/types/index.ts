@@ -57,7 +57,8 @@ export interface NfeSample {
 export interface DashboardData {
   year: number;
   month: number | null;
-  ptax_usd_brl: number | null;
+  ptax_compra: string | null;
+  ptax_venda: string | null;
   ptax_fetched_at: string | null;
   summary: {
     total_income_brl: number;

@@ -47,8 +47,11 @@ export default function Dashboard() {
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <Typography variant="h5">Dashboard — {filterLabel}</Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          {data.ptax_usd_brl && (
-            <Chip label={`PTAX: R$ ${data.ptax_usd_brl.toFixed(2)}`} color="success" variant="outlined" />
+          {data.ptax_compra && (
+            <Chip label={`USD Compra: R$ ${data.ptax_compra}`} color="success" variant="outlined" />
+          )}
+          {data.ptax_venda && (
+            <Chip label={`USD Venda: R$ ${data.ptax_venda}`} color="info" variant="outlined" />
           )}
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Month</InputLabel>
