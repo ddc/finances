@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PROJECT_USERNAME=ddc
-PROJECT_DIR=/opt/finances
+PROJECT_DIR=/opt/containers/finances
 
 pushd "$PROJECT_DIR" > /dev/null
 

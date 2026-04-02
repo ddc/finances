@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_DIR=/opt/finances
+PROJECT_DIR=/opt/containers/finances
 pushd "$PROJECT_DIR" > /dev/null
 
 docker compose down
