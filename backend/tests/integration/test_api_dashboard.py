@@ -10,13 +10,25 @@ class TestDashboard:
         response = admin_client.get("/api/v1/dashboard/?year=2026")
         assert response.status_code == 200
         assert response.data["year"] == 2026
+        assert response.data["ptax_compra"] is None
+        assert response.data["ptax_venda"] is None
         assert "summary" in response.data
         assert "monthly" in response.data
         assert "recent_activity" in response.data
 
+    @patch("core.views.get_ptax_rate", return_value={"compra": "5.2353", "venda": "5.2359"})
+    def test_dashboard_with_ptax(self, mock_ptax, admin_client):
+        response = admin_client.get("/api/v1/dashboard/?year=2026")
+        assert response.status_code == 200
+        assert response.data["ptax_compra"] == "5.2353"
+        assert response.data["ptax_venda"] == "5.2359"
+
     @patch("core.views.get_ptax_rate", return_value=None)
     def test_dashboard_with_data(self, mock_ptax, admin_client):
-        admin_client.post("/api/v1/expenses/", {"category": "IMPOSTOS", "amount": "100.00"})
+        admin_client.post(
+            "/api/v1/expenses/",
+            {"expense_date": "2026-01-05", "category": "IMPOSTOS", "amount": "100.00"},
+        )
         admin_client.post(
             "/api/v1/deposits/",
             {

@@ -13,23 +13,25 @@ class TestPtaxService:
     def setup_method(self):
         from core.services import ptax
 
-        ptax._cache["rate"] = None
+        ptax._cache["compra"] = None
+        ptax._cache["venda"] = None
         ptax._cache["fetched_at"] = 0.0
 
     @patch("core.services.ptax.requests.get")
     def test_get_ptax_rate_success(self, mock_get):
         mock_response = MagicMock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {"value": [{"cotacaoVenda": 5.54}]}
+        mock_response.json.return_value = {"value": [{"cotacaoCompra": 5.2353, "cotacaoVenda": 5.2359}]}
         mock_get.return_value = mock_response
-        rate = get_ptax_rate()
-        assert rate == Decimal("5.54")
+        result = get_ptax_rate()
+        assert result["compra"] == Decimal("5.2353")
+        assert result["venda"] == Decimal("5.2359")
 
     @patch("core.services.ptax.requests.get")
     def test_get_ptax_rate_api_error(self, mock_get):
         mock_get.side_effect = Exception("Connection error")
-        rate = get_ptax_rate()
-        assert rate is None
+        result = get_ptax_rate()
+        assert result is None
 
     @patch("core.services.ptax.requests.get")
     def test_get_ptax_rate_empty_response(self, mock_get):
@@ -37,8 +39,8 @@ class TestPtaxService:
         mock_response.status_code = 200
         mock_response.json.return_value = {"value": []}
         mock_get.return_value = mock_response
-        rate = get_ptax_rate()
-        assert rate is None
+        result = get_ptax_rate()
+        assert result is None
 
 
 class TestDashboardService:
