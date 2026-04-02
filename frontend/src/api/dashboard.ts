@@ -1,0 +1,9 @@
+import client from "./client";
+import type { DashboardData } from "../types";
+
+export const getDashboard = async (year: number, month?: number): Promise<DashboardData> => {
+  const params: Record<string, number> = { year };
+  if (month) params.month = month;
+  const { data } = await client.get<DashboardData>("/dashboard/", { params });
+  return data;
+};
