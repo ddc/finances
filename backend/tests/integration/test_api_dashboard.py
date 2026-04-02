@@ -1,0 +1,34 @@
+import pytest
+from unittest.mock import patch
+
+pytestmark = [pytest.mark.django_db, pytest.mark.integration]
+
+
+class TestDashboard:
+    @patch("core.views.get_ptax_rate", return_value=None)
+    def test_dashboard_empty(self, mock_ptax, admin_client):
+        response = admin_client.get("/api/v1/dashboard/?year=2026")
+        assert response.status_code == 200
+        assert response.data["year"] == 2026
+        assert "summary" in response.data
+        assert "monthly" in response.data
+        assert "recent_activity" in response.data
+
+    @patch("core.views.get_ptax_rate", return_value=None)
+    def test_dashboard_with_data(self, mock_ptax, admin_client):
+        admin_client.post("/api/v1/expenses/", {"category": "IMPOSTOS", "amount": "100.00"})
+        admin_client.post(
+            "/api/v1/deposits/",
+            {
+                "deposit_date": "2026-01-02",
+                "invoice_number": "INV-001",
+                "invoice_issue_date": "2025-12-26",
+                "period_start": "2025-12-21",
+                "period_end": "2025-12-27",
+                "amount_usd": "1115.00",
+                "amount_brl": "5894.49",
+            },
+        )
+        response = admin_client.get("/api/v1/dashboard/?year=2026")
+        assert response.status_code == 200
+        assert float(response.data["summary"]["total_income_brl"]) == 5894.49

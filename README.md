@@ -1,1 +1,1 @@
-# fiances
+# finances
