@@ -32,7 +32,7 @@ services:
     container_name: finances_frontend
     restart: always
     ports:
-      - "80:80"
+      - "${FINANCES_PORT:-80}:80"
     volumes:
       - static_files:/app/staticfiles:ro
     networks:
