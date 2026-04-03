@@ -14,10 +14,13 @@ services:
       - static_files:/app/staticfiles
     networks:
       - finances_network
-    command: >
-      sh -c "uv run --frozen --no-sync python manage.py migrate &&
-             uv run --frozen --no-sync python manage.py collectstatic --noinput &&
-             uv run --frozen --no-sync gunicorn finances.wsgi:application --bind 0.0.0.0:8000 --workers 2"
+    command:
+      - sh
+      - -c
+      - |
+        uv run --frozen --no-sync python manage.py migrate &&
+        uv run --frozen --no-sync python manage.py collectstatic --noinput &&
+        uv run --frozen --no-sync gunicorn finances.wsgi:application --bind 0.0.0.0:8000 --workers 2
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/admin/login/"]
       interval: 30s
