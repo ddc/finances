@@ -10,7 +10,8 @@ class ExpenseAdmin(admin.ModelAdmin):
 
 @admin.register(Deposit)
 class DepositAdmin(admin.ModelAdmin):
-    list_display = ("invoice_number", "deposit_date", "amount_usd", "amount_brl", "created_at")
+    list_display = ("invoice_number", "deposit_date", "currency", "amount_foreign", "amount_brl", "created_at")
+    list_filter = ("currency",)
 
 
 @admin.register(Transfer)

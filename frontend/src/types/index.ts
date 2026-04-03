@@ -27,7 +27,8 @@ export interface Deposit {
   invoice_issue_date: string;
   period_start: string;
   period_end: string;
-  amount_usd: number;
+  currency: "USD" | "EUR" | "GBP" | "CAD" | "AUD";
+  amount_foreign: number;
   amount_brl: number;
   created_by: string;
   created_at: string;
@@ -57,12 +58,13 @@ export interface NfeSample {
 export interface DashboardData {
   year: number;
   month: number | null;
+  currency: string;
   ptax_compra: string | null;
   ptax_venda: string | null;
   ptax_fetched_at: string | null;
   summary: {
+    income_by_currency: Record<string, number>;
     total_income_brl: number;
-    total_income_usd: number;
     total_expenses_brl: number;
     total_transferred_brl: number;
     net_balance_brl: number;
@@ -70,7 +72,7 @@ export interface DashboardData {
   monthly: Array<{
     month: number;
     income_brl: number;
-    income_usd: number;
+    income_foreign: number;
     expenses_brl: number;
     transferred_brl: number;
   }>;

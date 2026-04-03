@@ -1,3 +1,4 @@
+import "./i18n";
 import { useState, useEffect, useMemo } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
@@ -19,8 +20,9 @@ function buildTheme(mode: "light" | "dark") {
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
-  const [loading, setLoading] = useState(true);
+  const storedToken = localStorage.getItem("token");
+  const [token, setToken] = useState<string | null>(storedToken);
+  const [loading, setLoading] = useState(!!storedToken);
   const [mode, setMode] = useState<"light" | "dark">(
     () => (localStorage.getItem("themeMode") as "light" | "dark") || "light"
   );
@@ -44,8 +46,6 @@ export default function App() {
         setToken(null);
         localStorage.removeItem("token");
       }).finally(() => setLoading(false));
-    } else {
-      setLoading(false);
     }
   }, [token]);
 

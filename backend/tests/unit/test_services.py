@@ -13,9 +13,7 @@ class TestPtaxService:
     def setup_method(self):
         from core.services import ptax
 
-        ptax._cache["compra"] = None
-        ptax._cache["venda"] = None
-        ptax._cache["fetched_at"] = 0.0
+        ptax._cache.clear()
 
     @patch("core.services.ptax.requests.get")
     def test_get_ptax_rate_success(self, mock_get):
@@ -65,7 +63,7 @@ class TestDashboardService:
             invoice_issue_date=date(2025, 12, 26),
             period_start=date(2025, 12, 21),
             period_end=date(2025, 12, 27),
-            amount_usd=Decimal("1115.00"),
+            amount_foreign=Decimal("1115.00"),
             amount_brl=Decimal("5894.49"),
             created_by=user,
         )

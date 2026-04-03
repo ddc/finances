@@ -28,7 +28,7 @@ class TestDepositSerializer:
             "invoice_issue_date": "2025-12-26",
             "period_start": "2025-12-21",
             "period_end": "2025-12-27",
-            "amount_usd": "1115.00",
+            "amount_foreign": "1115.00",
             "amount_brl": "5894.49",
         }
         serializer = DepositSerializer(data=data)
@@ -46,7 +46,7 @@ class TestTransferSerializer:
             invoice_issue_date=date(2025, 12, 26),
             period_start=date(2025, 12, 21),
             period_end=date(2025, 12, 27),
-            amount_usd=Decimal("1115.00"),
+            amount_foreign=Decimal("1115.00"),
             amount_brl=Decimal("5894.49"),
             created_by=user,
         )

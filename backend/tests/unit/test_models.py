@@ -50,12 +50,12 @@ class TestDeposit:
             invoice_issue_date=date(2025, 12, 26),
             period_start=date(2025, 12, 21),
             period_end=date(2025, 12, 27),
-            amount_usd=Decimal("1115.00"),
+            amount_foreign=Decimal("1115.00"),
             amount_brl=Decimal("5894.49"),
             created_by=user,
         )
         assert deposit.id is not None
-        assert deposit.amount_usd == Decimal("1115.00")
+        assert deposit.amount_foreign == Decimal("1115.00")
         assert deposit.created_at is not None
 
 
@@ -68,7 +68,7 @@ class TestTransfer:
             invoice_issue_date=date(2025, 12, 26),
             period_start=date(2025, 12, 21),
             period_end=date(2025, 12, 27),
-            amount_usd=Decimal("1115.00"),
+            amount_foreign=Decimal("1115.00"),
             amount_brl=Decimal("5890.00"),
             created_by=user,
         )

@@ -1,8 +1,6 @@
+import { useTranslation } from "react-i18next";
 import { Button, Stack } from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 interface DataGridExportProps<T extends object> {
   rows: T[];
@@ -11,6 +9,7 @@ interface DataGridExportProps<T extends object> {
 }
 
 export default function DataGridExport<T extends object>({ rows, columns, filename }: DataGridExportProps<T>) {
+  const { t } = useTranslation();
   const headers = columns.map((c) => c.headerName || String(c.field));
   const fields = columns.map((c) => c.field);
   const data = rows as unknown as Record<string, unknown>[];
@@ -24,14 +23,24 @@ export default function DataGridExport<T extends object>({ rows, columns, filena
     a.click();
   };
 
-  const exportExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(data.map((r) => Object.fromEntries(fields.map((f, i) => [headers[i], r[f]]))));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, filename);
-    XLSX.writeFile(wb, `${filename}.xlsx`);
+  const exportExcel = async () => {
+    const ExcelJS = await import("exceljs");
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet(filename);
+    ws.addRow(headers);
+    data.forEach((r) => ws.addRow(fields.map((f) => r[f] ?? "")));
+    ws.getRow(1).font = { bold: true };
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${filename}.xlsx`;
+    a.click();
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
+    const { default: jsPDF } = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
     const doc = new jsPDF();
     autoTable(doc, {
       head: [headers],
@@ -42,9 +51,9 @@ export default function DataGridExport<T extends object>({ rows, columns, filena
 
   return (
     <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-      <Button size="small" variant="outlined" onClick={exportCSV}>Export CSV</Button>
-      <Button size="small" variant="outlined" onClick={exportExcel}>Export Excel</Button>
-      <Button size="small" variant="outlined" onClick={exportPDF}>Export PDF</Button>
+      <Button size="small" variant="outlined" onClick={exportCSV}>{t("common.exportCsv")}</Button>
+      <Button size="small" variant="outlined" onClick={exportExcel}>{t("common.exportExcel")}</Button>
+      <Button size="small" variant="outlined" onClick={exportPDF}>{t("common.exportPdf")}</Button>
     </Stack>
   );
 }

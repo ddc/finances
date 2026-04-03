@@ -30,17 +30,25 @@ dev = [
 ]
 
 [tool.poe.tasks]
-linter.shell = "uv run ruff check --fix . && uv run ruff format ."
-profile = "uv run python -m cProfile -o cprofile_unit.prof -m pytest tests/unit"
-profile-integration = "uv run python -m cProfile -o cprofile_integration.prof -m pytest tests/integration"
-test.sequence = [{ shell = "uv run coverage run -m pytest tests/unit" }, { shell = "uv run coverage report" }, { shell = "uv run coverage xml" }]
-test-integration = "uv run pytest tests/integration"
-test-docker = "uv run pytest tests/docker"
-hadolint.shell = "docker run --rm -i -v $(pwd)/../.hadolint.yml:/.config/hadolint.yml:ro hadolint/hadolint < Dockerfile"
-test-frontend.shell = "cd ../frontend && npm test"
-tests.sequence = ["linter", "hadolint", "test-docker", "test", "test-integration", "test-frontend"]
-updatedev.sequence = ["linter", {shell = "uv lock --upgrade && uv sync --all-extras --all-groups"}]
-migration = "uv run --frozen python manage.py migrate"
+# --- Backend ---
+linter-backend.shell = "uv run ruff check --fix . && uv run ruff format ."
+profile-backend = "uv run python -m cProfile -o cprofile_unit.prof -m pytest tests/unit"
+profile-backend-integration = "uv run python -m cProfile -o cprofile_integration.prof -m pytest tests/integration"
+test-backend.shell = "uv run coverage run -m pytest tests/unit && uv run coverage report && uv run coverage xml"
+test-backend-integration = "uv run pytest tests/integration"
+test-backend-docker = "uv run pytest tests/docker"
+hadolint-backend.shell = "docker run --rm -i -v $(pwd)/../.hadolint.yml:/.config/hadolint.yml:ro hadolint/hadolint < Dockerfile"
+update-backend.shell = "uv run ruff check --fix . && uv run ruff format . && uv lock --upgrade && uv sync --all-extras --all-groups"
+migration-backend = "uv run --frozen python manage.py migrate"
+# --- Frontend ---
+linter-frontend.shell = "cd ../frontend && npm run lint"
+test-frontend.shell = "cd ../frontend && npx vitest run src/test/unit"
+test-frontend-integration.shell = "cd ../frontend && npx vitest run src/test/integration"
+update-frontend.shell = "cd ../frontend && npm update && npm run build"
+# --- All ---
+linter.sequence = ["linter-backend", "linter-frontend"]
+updatedev.sequence = ["update-backend", "update-frontend"]
+tests.sequence = ["linter-backend", "linter-frontend", "hadolint-backend", "test-backend-docker", "test-backend", "test-backend-integration", "test-frontend", "test-frontend-integration"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "finances.test_settings"
@@ -52,7 +60,10 @@ markers = [
 ]
 
 [tool.coverage.run]
-omit = ["tests/*", "*/__init__.py"]
+omit = [
+  "tests/*",
+  "*/__init__.py"
+]
 
 [tool.coverage.report]
 show_missing = true

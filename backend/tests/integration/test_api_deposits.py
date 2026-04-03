@@ -10,7 +10,7 @@ VALID_DEPOSIT = {
     "invoice_issue_date": "2025-12-26",
     "period_start": "2025-12-21",
     "period_end": "2025-12-27",
-    "amount_usd": "1115.00",
+    "amount_foreign": "1115.00",
     "amount_brl": "5894.49",
 }
 

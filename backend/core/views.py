@@ -13,6 +13,7 @@ from core.services.ptax import get_ptax_rate
 from datetime import datetime as dt
 from django.conf import settings
 from django.contrib.auth import authenticate
+from importlib.metadata import version
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -54,6 +55,13 @@ class MeView(APIView):
         return Response(UserSerializer(request.user).data)
 
 
+class VersionView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({"version": version("finances")})
+
+
 class DashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -61,9 +69,13 @@ class DashboardView(APIView):
         year = int(request.query_params.get("year", dt.now().year))
         month_param = request.query_params.get("month")
         month = int(month_param) if month_param else None
-        settings.LOG.info(f"Dashboard requested by {request.user.username}: year={year}, month={month}")
+        currency = request.query_params.get("currency", "USD").upper()
+        settings.LOG.info(
+            f"Dashboard requested by {request.user.username}: year={year}, month={month}, currency={currency}"
+        )
         data = get_dashboard_data(year, month=month)
-        ptax = get_ptax_rate()
+        ptax = get_ptax_rate(currency)
+        data["currency"] = currency
         if ptax:
             data["ptax_compra"] = str(ptax["compra"])
             data["ptax_venda"] = str(ptax["venda"])
@@ -118,7 +130,7 @@ class DepositViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         instance = serializer.save(created_by=self.request.user)
         settings.LOG.info(
-            f"Deposit created by {self.request.user.username}: {instance.invoice_number} ${instance.amount_usd}"
+            f"Deposit created by {self.request.user.username}: {instance.invoice_number} {instance.currency} {instance.amount_foreign}"
         )
 
     def perform_update(self, serializer):

@@ -1,27 +1,31 @@
 from pathlib import Path
-from pydantic_settings import BaseSettings
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pythonlogs import TimedRotatingLog
 
 
 class AppSettings(BaseSettings):
     # Database
-    POSTGRES_HOST: str = "localhost"
-    POSTGRES_PORT: int = 5432
-    POSTGRES_DB: str = "finances"
-    POSTGRES_USER: str = "finances"
-    POSTGRES_PASSWORD: str = ""
+    POSTGRES_HOST: str = Field(default="localhost")
+    POSTGRES_PORT: int = Field(default=5432)
+    POSTGRES_DB: str = Field(default="finances")
+    POSTGRES_USER: str = Field(default="finances")
+    POSTGRES_PASSWORD: str = Field(default="finances")
+
+    # Frontend App Port
+    FINANCES_PORT: int = Field(default=8888)
 
     # Django
-    DJANGO_SECRET_KEY: str = "dev-insecure-key"
-    DJANGO_DEBUG: bool = True
-    DJANGO_ALLOWED_HOSTS: str = "localhost,127.0.0.1"
-    DJANGO_TIME_ZONE: str = "UTC"
+    DJANGO_DEBUG: bool = Field(default=True)
+    DJANGO_SECRET_KEY: str = Field(default="dev-insecure-key")
+    DJANGO_ALLOWED_HOSTS: str = Field(default="localhost,127.0.0.1")
+    DJANGO_TIME_ZONE: str = Field(default="UTC")
 
     # PTAX
-    PTAX_API_URL: str = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia"
-    PTAX_CACHE_TTL_SECONDS: int = 3600
+    PTAX_CACHE_TTL_SECONDS: int = Field(default=3600)
+    PTAX_API_URL: str = Field(default="https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata")
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="allow")
 
 
 env = AppSettings()

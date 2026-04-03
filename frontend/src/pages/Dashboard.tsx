@@ -1,33 +1,43 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box, Card, CardContent, Typography, FormControl, InputLabel, Select, MenuItem, Grid,
-  List, ListItem, ListItemText, Chip,
+  List, ListItem, ListItemText, Chip, IconButton, Tooltip,
 } from "@mui/material";
+import { Refresh } from "@mui/icons-material";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 import { getDashboard } from "../api/dashboard";
 import type { DashboardData } from "../types";
 
-const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const PIE_COLORS = ["#6366f1", "#ef4444", "#3b82f6", "#22c55e"];
+const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD"];
+const CURRENCY_COLORS: Record<string, string> = {
+  USD: "#8b5cf6", EUR: "#6366f1", GBP: "#3b82f6", CAD: "#22c55e", AUD: "#f59e0b",
+};
 
 export default function Dashboard() {
+  const { t } = useTranslation();
+  const monthKeys = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+  const MONTH_NAMES = monthKeys.map((k) => t(`months.${k}`));
+
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
   const [month, setMonth] = useState<number | "">("");
+  const [currency, setCurrency] = useState("USD");
   const [data, setData] = useState<DashboardData | null>(null);
 
-  useEffect(() => {
-    getDashboard(year, month || undefined).then(setData);
-  }, [year, month]);
+  const fetchData = useCallback(() => {
+    getDashboard(year, month || undefined, currency).then(setData);
+  }, [year, month, currency]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   if (!data) return null;
 
-  const filterLabel = month
-    ? `${MONTH_NAMES[month - 1]} ${year}`
-    : `${year}`;
+  const filterLabel = month ? `${MONTH_NAMES[month - 1]} ${year}` : `${year}`;
 
   const pieData = [
     { name: "Income", value: Number(data.summary.total_income_brl) },
@@ -45,26 +55,46 @@ export default function Dashboard() {
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Typography variant="h5">Dashboard — {filterLabel}</Typography>
+        <Typography variant="h5">{t("nav.dashboard")} — {filterLabel}</Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
           {data.ptax_compra && (
-            <Chip label={`USD Compra: R$ ${data.ptax_compra}`} color="success" variant="outlined" />
+            <Chip label={`${currency} ${t("dashboard.buy")}: R$ ${data.ptax_compra}`} color="success" variant="outlined" />
           )}
           {data.ptax_venda && (
-            <Chip label={`USD Venda: R$ ${data.ptax_venda}`} color="info" variant="outlined" />
+            <Chip label={`${currency} ${t("dashboard.sell")}: R$ ${data.ptax_venda}`} color="info" variant="outlined" />
           )}
+          <Tooltip title="Refresh">
+            <IconButton onClick={fetchData} size="small">
+              <Refresh />
+            </IconButton>
+          </Tooltip>
+          <FormControl size="small" sx={{ minWidth: 100 }}>
+            <InputLabel>{t("filters.currency")}</InputLabel>
+            <Select value={currency} label={t("filters.currency")} onChange={(e) => setCurrency(e.target.value)}>
+              {CURRENCIES.map((c) => (
+                <MenuItem key={c} value={c}>{c}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Month</InputLabel>
-            <Select value={month} label="Month" onChange={(e) => setMonth(e.target.value as number | "")}>
-              <MenuItem value="">All</MenuItem>
+            <InputLabel>{t("filters.month")}</InputLabel>
+            <Select
+              value={month}
+              label={t("filters.month")}
+              onChange={(e) => {
+                const val = e.target.value as string | number;
+                setMonth(val === "" ? "" : Number(val));
+              }}
+            >
+              <MenuItem value="">{t("filters.all")}</MenuItem>
               {MONTH_NAMES.map((name, i) => (
                 <MenuItem key={i + 1} value={i + 1}>{name}</MenuItem>
               ))}
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 100 }}>
-            <InputLabel>Year</InputLabel>
-            <Select value={year} label="Year" onChange={(e) => setYear(Number(e.target.value))}>
+            <InputLabel>{t("filters.year")}</InputLabel>
+            <Select value={year} label={t("filters.year")} onChange={(e) => setYear(Number(e.target.value))}>
               {Array.from({ length: 5 }, (_, i) => currentYear - i).map((y) => (
                 <MenuItem key={y} value={y}>{y}</MenuItem>
               ))}
@@ -73,15 +103,33 @@ export default function Dashboard() {
         </Box>
       </Box>
 
+      {/* Row 1: Income by currency */}
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        {CURRENCIES.map((curr) => (
+          <Grid key={curr} size={{ xs: 12, sm: 6, md: 2.4 }}>
+            <Card>
+              <CardContent>
+                <Typography color="text.secondary" gutterBottom>
+                  {t("dashboard.totalIncomeForeign", { currency: curr })}
+                </Typography>
+                <Typography variant="h5" sx={{ color: CURRENCY_COLORS[curr] }}>
+                  {Number(data.summary.income_by_currency[curr] || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Row 2: BRL totals */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {[
-          { label: "Total Income (USD)", value: data.summary.total_income_usd, color: "#8b5cf6", prefix: "$" },
-          { label: "Total Income (BRL)", value: data.summary.total_income_brl, color: "#6366f1", prefix: "R$" },
-          { label: "Total Expenses", value: data.summary.total_expenses_brl, color: "#ef4444", prefix: "R$" },
-          { label: "Total Transferred", value: data.summary.total_transferred_brl, color: "#3b82f6", prefix: "R$" },
-          { label: "Net Balance", value: data.summary.net_balance_brl, color: "#22c55e", prefix: "R$" },
+          { label: t("dashboard.totalIncomeBrl"), value: data.summary.total_income_brl, color: "#6366f1", prefix: "R$" },
+          { label: t("dashboard.totalExpenses"), value: data.summary.total_expenses_brl, color: "#ef4444", prefix: "R$" },
+          { label: t("dashboard.totalTransferred"), value: data.summary.total_transferred_brl, color: "#3b82f6", prefix: "R$" },
+          { label: t("dashboard.netBalance"), value: data.summary.net_balance_brl, color: "#22c55e", prefix: "R$" },
         ].map((card) => (
-          <Grid key={card.label} size={{ xs: 12, sm: 6, md: 2.4 }}>
+          <Grid key={card.label} size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Typography color="text.secondary" gutterBottom>{card.label}</Typography>
@@ -98,7 +146,7 @@ export default function Dashboard() {
         <Grid size={{ xs: 12, md: 8 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Overview</Typography>
+              <Typography variant="h6" gutterBottom>{t("dashboard.overview")}</Typography>
               <ResponsiveContainer width="100%" height={300}>
                 {month ? (
                   <PieChart>
@@ -114,7 +162,7 @@ export default function Dashboard() {
                         <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
+                    <RechartsTooltip formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
                     <Legend />
                   </PieChart>
                 ) : (
@@ -122,7 +170,7 @@ export default function Dashboard() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <Tooltip />
+                    <RechartsTooltip />
                     <Legend />
                     <Bar dataKey="Income" fill="#6366f1" />
                     <Bar dataKey="Expenses" fill="#ef4444" />
@@ -135,7 +183,7 @@ export default function Dashboard() {
         <Grid size={{ xs: 12, md: 4 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>Recent Activity</Typography>
+              <Typography variant="h6" gutterBottom>{t("dashboard.recentActivity")}</Typography>
               <List dense>
                 {data.recent_activity.map((item, i) => (
                   <ListItem key={i}>

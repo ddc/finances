@@ -5,6 +5,8 @@ import {
   Card, CardContent,
 } from "@mui/material";
 import { Add, Edit, Delete } from "@mui/icons-material";
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
+import { useTranslation } from "react-i18next";
 import type { GridColDef } from "@mui/x-data-grid";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
@@ -13,8 +15,11 @@ import { listDeposits } from "../api/deposits";
 import DataGridExport from "../components/DataGridExport";
 import type { Transfer, Deposit } from "../types";
 
-const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const BANKS = ["SANTANDER"] as const;
+
+const BANK_COLORS: Record<string, string> = {
+  SANTANDER: "#3b82f6",
+};
 
 const EMPTY_FORM = {
   transfer_date: "",
@@ -24,6 +29,10 @@ const EMPTY_FORM = {
 };
 
 export default function Transfers() {
+  const { t } = useTranslation();
+  const monthKeys = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  const MONTH_NAMES = monthKeys.map(k => t(`months.${k}`));
+
   const { isAdmin } = useAuth();
   const currentYear = new Date().getFullYear();
   const [rows, setRows] = useState<Transfer[]>([]);
@@ -93,12 +102,12 @@ export default function Transfers() {
   };
 
   const columns: GridColDef[] = [
-    { field: "transfer_date", headerName: "Transfer Date", flex: 1 },
-    { field: "bank_name", headerName: "Bank", flex: 1 },
-    { field: "amount_brl", headerName: "Amount (BRL)", flex: 1, type: "number" },
+    { field: "transfer_date", headerName: t("transfers.transferDate"), flex: 1 },
+    { field: "bank_name", headerName: t("transfers.bank"), flex: 1 },
+    { field: "amount_brl", headerName: t("transfers.amountBrl"), flex: 1, type: "number" },
     {
       field: "deposit",
-      headerName: "Deposit",
+      headerName: t("transfers.deposit"),
       flex: 2,
       valueGetter: (value: string) => depositLabel(value),
     },
@@ -106,7 +115,7 @@ export default function Transfers() {
       ? [
           {
             field: "actions",
-            headerName: "Actions",
+            headerName: t("common.actions"),
             width: 120,
             sortable: false,
             filterable: false,
@@ -121,35 +130,42 @@ export default function Transfers() {
       : []),
   ];
 
+  // Pie chart data: breakdown by bank
+  const bankTotals = BANKS.map((bank) => ({
+    name: bank,
+    value: rows.filter((r) => r.bank_name === bank).reduce((sum, r) => sum + Number(r.amount_brl), 0),
+    color: BANK_COLORS[bank] || "#94a3b8",
+  })).filter((d) => d.value > 0);
+
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <Typography variant="h5">
-          Transfers{monthFilter ? ` — ${MONTH_NAMES[Number(monthFilter) - 1]}` : ""}{yearFilter ? ` ${yearFilter}` : ""}
+          {t("transfers.title")}{monthFilter ? ` — ${MONTH_NAMES[Number(monthFilter) - 1]}` : ""}{yearFilter ? ` ${yearFilter}` : ""}
         </Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
           <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Month</InputLabel>
-            <Select value={monthFilter} label="Month" onChange={(e) => setMonthFilter(e.target.value)}>
-              <MenuItem value="">All</MenuItem>
+            <InputLabel>{t("filters.month")}</InputLabel>
+            <Select value={monthFilter} label={t("filters.month")} onChange={(e) => setMonthFilter(e.target.value)}>
+              <MenuItem value="">{t("filters.all")}</MenuItem>
               {MONTH_NAMES.map((name, i) => (
                 <MenuItem key={i + 1} value={String(i + 1)}>{name}</MenuItem>
               ))}
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 100 }}>
-            <InputLabel>Year</InputLabel>
-            <Select value={yearFilter} label="Year" onChange={(e) => setYearFilter(e.target.value)}>
-              <MenuItem value="">All</MenuItem>
+            <InputLabel>{t("filters.year")}</InputLabel>
+            <Select value={yearFilter} label={t("filters.year")} onChange={(e) => setYearFilter(e.target.value)}>
+              <MenuItem value="">{t("filters.all")}</MenuItem>
               {Array.from({ length: 5 }, (_, i) => currentYear - i).map((y) => (
                 <MenuItem key={y} value={String(y)}>{y}</MenuItem>
               ))}
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel>Bank</InputLabel>
-            <Select value={bankFilter} label="Bank" onChange={(e) => setBankFilter(e.target.value)}>
-              <MenuItem value="">All</MenuItem>
+            <InputLabel>{t("filters.bank")}</InputLabel>
+            <Select value={bankFilter} label={t("filters.bank")} onChange={(e) => setBankFilter(e.target.value)}>
+              <MenuItem value="">{t("filters.all")}</MenuItem>
               {BANKS.map((b) => (
                 <MenuItem key={b} value={b}>{b}</MenuItem>
               ))}
@@ -157,7 +173,7 @@ export default function Transfers() {
           </FormControl>
           {isAdmin && (
             <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
-              Add Transfer
+              {t("transfers.addTransfer")}
             </Button>
           )}
         </Box>
@@ -166,7 +182,7 @@ export default function Transfers() {
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <Card sx={{ minWidth: 200 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-            <Typography color="text.secondary" variant="body2">Total</Typography>
+            <Typography color="text.secondary" variant="body2">{t("transfers.total")}</Typography>
             <Typography variant="h6" sx={{ color: "#3b82f6" }}>
               R$ {rows.reduce((sum, r) => sum + Number(r.amount_brl), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </Typography>
@@ -174,6 +190,32 @@ export default function Transfers() {
         </Card>
         <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="transfers" />
       </Box>
+
+      {monthFilter && bankTotals.length > 0 && (
+        <Card sx={{ mb: 2 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>{t("dashboard.overview")}</Typography>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={bankTotals}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                >
+                  {bankTotals.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+                <RechartsTooltip formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       <StyledDataGrid
         rows={rows}
@@ -185,48 +227,48 @@ export default function Transfers() {
       />
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingId ? "Edit Transfer" : "Add Transfer"}</DialogTitle>
+        <DialogTitle>{editingId ? t("transfers.editTransfer") : t("transfers.addTransfer")}</DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: "16px !important" }}>
           <TextField
-            label="Transfer Date" type="date" value={form.transfer_date}
+            label={t("transfers.transferDate")} type="date" value={form.transfer_date}
             onChange={(e) => setForm({ ...form, transfer_date: e.target.value })}
             slotProps={{ inputLabel: { shrink: true } }}
           />
           <FormControl fullWidth>
-            <InputLabel>Deposit</InputLabel>
-            <Select value={form.deposit} label="Deposit" onChange={(e) => setForm({ ...form, deposit: e.target.value })}>
+            <InputLabel>{t("transfers.deposit")}</InputLabel>
+            <Select value={form.deposit} label={t("transfers.deposit")} onChange={(e) => setForm({ ...form, deposit: e.target.value })}>
               {deposits.map((d) => (
                 <MenuItem key={d.id} value={d.id}>{d.invoice_number} ({d.deposit_date})</MenuItem>
               ))}
             </Select>
           </FormControl>
           <FormControl fullWidth>
-            <InputLabel>Bank</InputLabel>
-            <Select value={form.bank_name} label="Bank" onChange={(e) => setForm({ ...form, bank_name: e.target.value })}>
+            <InputLabel>{t("transfers.bank")}</InputLabel>
+            <Select value={form.bank_name} label={t("transfers.bank")} onChange={(e) => setForm({ ...form, bank_name: e.target.value })}>
               {BANKS.map((b) => (
                 <MenuItem key={b} value={b}>{b}</MenuItem>
               ))}
             </Select>
           </FormControl>
           <TextField
-            label="Amount (BRL)" type="number" value={form.amount_brl}
+            label={t("transfers.amountBrl")} type="number" value={form.amount_brl}
             onChange={(e) => setForm({ ...form, amount_brl: e.target.value })}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSave}>Save</Button>
+          <Button onClick={() => setDialogOpen(false)}>{t("common.cancel")}</Button>
+          <Button variant="contained" onClick={handleSave}>{t("common.save")}</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={Boolean(deleteId)} onClose={() => setDeleteId(null)}>
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle>{t("common.confirmDelete")}</DialogTitle>
         <DialogContent>
-          <Typography>Are you sure you want to delete this transfer?</Typography>
+          <Typography>{t("deleteConfirm.transfer")}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>Cancel</Button>
-          <Button variant="contained" color="error" onClick={handleDelete}>Delete</Button>
+          <Button onClick={() => setDeleteId(null)}>{t("common.cancel")}</Button>
+          <Button variant="contained" color="error" onClick={handleDelete}>{t("common.delete")}</Button>
         </DialogActions>
       </Dialog>
     </Box>

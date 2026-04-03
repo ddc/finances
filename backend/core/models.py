@@ -35,17 +35,25 @@ class Expense(BaseModel):
 
 
 class Deposit(BaseModel):
+    class CurrencyChoices(models.TextChoices):
+        USD = "USD", "USD"
+        EUR = "EUR", "EUR"
+        GBP = "GBP", "GBP"
+        CAD = "CAD", "CAD"
+        AUD = "AUD", "AUD"
+
     deposit_date = models.DateField()
     invoice_number = models.CharField(max_length=100)
     invoice_issue_date = models.DateField()
     period_start = models.DateField()
     period_end = models.DateField()
-    amount_usd = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, choices=CurrencyChoices.choices, default="USD")
+    amount_foreign = models.DecimalField(max_digits=10, decimal_places=2)
     amount_brl = models.DecimalField(max_digits=10, decimal_places=2)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="deposits")
 
     def __str__(self):
-        return f"{self.invoice_number} - ${self.amount_usd}"
+        return f"{self.invoice_number} - {self.currency} {self.amount_foreign}"
 
 
 class Transfer(BaseModel):

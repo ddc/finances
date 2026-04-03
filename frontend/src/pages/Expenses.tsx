@@ -5,6 +5,8 @@ import {
   Card, CardContent,
 } from "@mui/material";
 import { Add, Edit, Delete } from "@mui/icons-material";
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
+import { useTranslation } from "react-i18next";
 import type { GridColDef } from "@mui/x-data-grid";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
@@ -14,18 +16,22 @@ import type { Expense } from "../types";
 
 const CATEGORIES = ["IMPOSTOS", "PLANO_SAUDE", "CONTABILIDADE", "OTHER"] as const;
 
-const CATEGORY_LABELS: Record<string, string> = {
-  IMPOSTOS: "Impostos",
-  PLANO_SAUDE: "Plano de Saude",
-  CONTABILIDADE: "Contabilidade",
-  OTHER: "Other",
+const CATEGORY_COLORS: Record<string, string> = {
+  IMPOSTOS: "#6366f1",
+  PLANO_SAUDE: "#8b5cf6",
+  CONTABILIDADE: "#3b82f6",
+  OTHER: "#22c55e",
 };
-
-const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const EMPTY_FORM = { expense_date: "", category: "OTHER" as string, description: "", amount: "" };
 
 export default function Expenses() {
+  const { t } = useTranslation();
+  const monthKeys = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  const MONTH_NAMES = monthKeys.map(k => t(`months.${k}`));
+
+  const categoryLabel = (cat: string) => t(`expenses.categories.${cat}`) || cat;
+
   const { isAdmin } = useAuth();
   const currentYear = new Date().getFullYear();
   const [rows, setRows] = useState<Expense[]>([]);
@@ -83,15 +89,15 @@ export default function Expenses() {
   };
 
   const columns: GridColDef[] = [
-    { field: "expense_date", headerName: "Date", flex: 1 },
-    { field: "category", headerName: "Category", flex: 1, valueGetter: (value: string) => CATEGORY_LABELS[value] || value },
-    { field: "description", headerName: "Description", flex: 2 },
-    { field: "amount", headerName: "Amount (R$)", flex: 1, type: "number" },
+    { field: "expense_date", headerName: t("expenses.date"), flex: 1 },
+    { field: "category", headerName: t("expenses.category"), flex: 1, valueGetter: (value: string) => categoryLabel(value) },
+    { field: "description", headerName: t("expenses.description"), flex: 2 },
+    { field: "amount", headerName: t("expenses.amount"), flex: 1, type: "number" },
     ...(isAdmin
       ? [
           {
             field: "actions",
-            headerName: "Actions",
+            headerName: t("common.actions"),
             width: 120,
             sortable: false,
             filterable: false,
@@ -106,43 +112,50 @@ export default function Expenses() {
       : []),
   ];
 
+  // Pie chart data: breakdown by category
+  const pieData = CATEGORIES.map((cat) => ({
+    name: categoryLabel(cat),
+    value: rows.filter((r) => r.category === cat).reduce((sum, r) => sum + Number(r.amount), 0),
+    color: CATEGORY_COLORS[cat],
+  })).filter((d) => d.value > 0);
+
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <Typography variant="h5">
-          Expenses{monthFilter ? ` — ${MONTH_NAMES[Number(monthFilter) - 1]}` : ""}{yearFilter ? ` ${yearFilter}` : ""}
+          {t("expenses.title")}{monthFilter ? ` — ${MONTH_NAMES[Number(monthFilter) - 1]}` : ""}{yearFilter ? ` ${yearFilter}` : ""}
         </Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
           <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Month</InputLabel>
-            <Select value={monthFilter} label="Month" onChange={(e) => setMonthFilter(e.target.value)}>
-              <MenuItem value="">All</MenuItem>
+            <InputLabel>{t("filters.month")}</InputLabel>
+            <Select value={monthFilter} label={t("filters.month")} onChange={(e) => setMonthFilter(e.target.value)}>
+              <MenuItem value="">{t("filters.all")}</MenuItem>
               {MONTH_NAMES.map((name, i) => (
                 <MenuItem key={i + 1} value={String(i + 1)}>{name}</MenuItem>
               ))}
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 100 }}>
-            <InputLabel>Year</InputLabel>
-            <Select value={yearFilter} label="Year" onChange={(e) => setYearFilter(e.target.value)}>
-              <MenuItem value="">All</MenuItem>
+            <InputLabel>{t("filters.year")}</InputLabel>
+            <Select value={yearFilter} label={t("filters.year")} onChange={(e) => setYearFilter(e.target.value)}>
+              <MenuItem value="">{t("filters.all")}</MenuItem>
               {Array.from({ length: 5 }, (_, i) => currentYear - i).map((y) => (
                 <MenuItem key={y} value={String(y)}>{y}</MenuItem>
               ))}
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Category</InputLabel>
-            <Select value={categoryFilter} label="Category" onChange={(e) => setCategoryFilter(e.target.value)}>
-              <MenuItem value="">All</MenuItem>
+            <InputLabel>{t("filters.category")}</InputLabel>
+            <Select value={categoryFilter} label={t("filters.category")} onChange={(e) => setCategoryFilter(e.target.value)}>
+              <MenuItem value="">{t("filters.all")}</MenuItem>
               {CATEGORIES.map((c) => (
-                <MenuItem key={c} value={c}>{CATEGORY_LABELS[c]}</MenuItem>
+                <MenuItem key={c} value={c}>{categoryLabel(c)}</MenuItem>
               ))}
             </Select>
           </FormControl>
           {isAdmin && (
             <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
-              Add Expense
+              {t("expenses.addExpense")}
             </Button>
           )}
         </Box>
@@ -151,7 +164,7 @@ export default function Expenses() {
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <Card sx={{ minWidth: 200 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-            <Typography color="text.secondary" variant="body2">Total</Typography>
+            <Typography color="text.secondary" variant="body2">{t("expenses.total")}</Typography>
             <Typography variant="h6" sx={{ color: "#ef4444" }}>
               R$ {rows.reduce((sum, r) => sum + Number(r.amount), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </Typography>
@@ -159,6 +172,32 @@ export default function Expenses() {
         </Card>
         <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="expenses" />
       </Box>
+
+      {monthFilter && pieData.length > 0 && (
+        <Card sx={{ mb: 2 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>{t("dashboard.overview")}</Typography>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                >
+                  {pieData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+                <RechartsTooltip formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       <StyledDataGrid
         rows={rows}
@@ -170,38 +209,38 @@ export default function Expenses() {
       />
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingId ? "Edit Expense" : "Add Expense"}</DialogTitle>
+        <DialogTitle>{editingId ? t("expenses.editExpense") : t("expenses.addExpense")}</DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: "16px !important" }}>
           <TextField
-            label="Date" type="date" value={form.expense_date}
+            label={t("expenses.date")} type="date" value={form.expense_date}
             onChange={(e) => setForm({ ...form, expense_date: e.target.value })}
             slotProps={{ inputLabel: { shrink: true } }}
           />
           <FormControl fullWidth>
-            <InputLabel>Category</InputLabel>
-            <Select value={form.category} label="Category" onChange={(e) => setForm({ ...form, category: e.target.value })}>
+            <InputLabel>{t("expenses.category")}</InputLabel>
+            <Select value={form.category} label={t("expenses.category")} onChange={(e) => setForm({ ...form, category: e.target.value })}>
               {CATEGORIES.map((c) => (
-                <MenuItem key={c} value={c}>{CATEGORY_LABELS[c]}</MenuItem>
+                <MenuItem key={c} value={c}>{categoryLabel(c)}</MenuItem>
               ))}
             </Select>
           </FormControl>
-          <TextField label="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-          <TextField label="Amount (R$)" type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+          <TextField label={t("expenses.description")} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <TextField label={t("expenses.amount")} type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSave}>Save</Button>
+          <Button onClick={() => setDialogOpen(false)}>{t("common.cancel")}</Button>
+          <Button variant="contained" onClick={handleSave}>{t("common.save")}</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={Boolean(deleteId)} onClose={() => setDeleteId(null)}>
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle>{t("common.confirmDelete")}</DialogTitle>
         <DialogContent>
-          <Typography>Are you sure you want to delete this expense?</Typography>
+          <Typography>{t("deleteConfirm.expense")}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>Cancel</Button>
-          <Button variant="contained" color="error" onClick={handleDelete}>Delete</Button>
+          <Button onClick={() => setDeleteId(null)}>{t("common.cancel")}</Button>
+          <Button variant="contained" color="error" onClick={handleDelete}>{t("common.delete")}</Button>
         </DialogActions>
       </Dialog>
     </Box>

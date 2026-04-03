@@ -5,6 +5,8 @@ import {
   Card, CardContent,
 } from "@mui/material";
 import { Add, Edit, Delete } from "@mui/icons-material";
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
+import { useTranslation } from "react-i18next";
 import type { GridColDef } from "@mui/x-data-grid";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
@@ -12,7 +14,7 @@ import { listDeposits, createDeposit, updateDeposit, deleteDeposit } from "../ap
 import DataGridExport from "../components/DataGridExport";
 import type { Deposit } from "../types";
 
-const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DEPOSIT_CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD"] as const;
 
 const EMPTY_FORM = {
   deposit_date: "",
@@ -20,11 +22,16 @@ const EMPTY_FORM = {
   invoice_issue_date: "",
   period_start: "",
   period_end: "",
-  amount_usd: "",
+  currency: "USD" as string,
+  amount_foreign: "",
   amount_brl: "",
 };
 
 export default function Deposits() {
+  const { t } = useTranslation();
+  const monthKeys = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  const MONTH_NAMES = monthKeys.map(k => t(`months.${k}`));
+
   const { isAdmin } = useAuth();
   const currentYear = new Date().getFullYear();
   const [rows, setRows] = useState<Deposit[]>([]);
@@ -53,7 +60,8 @@ export default function Deposits() {
         invoice_issue_date: deposit.invoice_issue_date,
         period_start: deposit.period_start,
         period_end: deposit.period_end,
-        amount_usd: String(deposit.amount_usd),
+        currency: deposit.currency,
+        amount_foreign: String(deposit.amount_foreign),
         amount_brl: String(deposit.amount_brl),
       });
     } else {
@@ -70,7 +78,8 @@ export default function Deposits() {
       invoice_issue_date: form.invoice_issue_date,
       period_start: form.period_start,
       period_end: form.period_end,
-      amount_usd: Number(form.amount_usd),
+      currency: form.currency as Deposit["currency"],
+      amount_foreign: Number(form.amount_foreign),
       amount_brl: Number(form.amount_brl),
     };
     if (editingId) {
@@ -91,18 +100,19 @@ export default function Deposits() {
   };
 
   const columns: GridColDef[] = [
-    { field: "deposit_date", headerName: "Deposit Date", flex: 1 },
-    { field: "invoice_issue_date", headerName: "Issue Date", flex: 1 },
-    { field: "invoice_number", headerName: "Invoice #", flex: 1 },
-    { field: "period_start", headerName: "Period Start", flex: 1 },
-    { field: "period_end", headerName: "Period End", flex: 1 },
-    { field: "amount_usd", headerName: "Amount (USD)", flex: 1, type: "number" },
-    { field: "amount_brl", headerName: "Amount (BRL)", flex: 1, type: "number" },
+    { field: "deposit_date", headerName: t("deposits.depositDate"), flex: 1 },
+    { field: "invoice_issue_date", headerName: t("deposits.issueDate"), flex: 1 },
+    { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 1 },
+    { field: "currency", headerName: t("deposits.currency"), flex: 0.5 },
+    { field: "period_start", headerName: t("deposits.periodStart"), flex: 1 },
+    { field: "period_end", headerName: t("deposits.periodEnd"), flex: 1 },
+    { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1, type: "number" },
+    { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number" },
     ...(isAdmin
       ? [
           {
             field: "actions",
-            headerName: "Actions",
+            headerName: t("common.actions"),
             width: 120,
             sortable: false,
             filterable: false,
@@ -117,26 +127,34 @@ export default function Deposits() {
       : []),
   ];
 
+  // Pie chart data: USD vs BRL totals
+  const totalForeign = rows.reduce((sum, r) => sum + Number(r.amount_foreign), 0);
+  const totalBrl = rows.reduce((sum, r) => sum + Number(r.amount_brl), 0);
+  const pieData = [
+    { name: "Foreign", value: totalForeign, color: "#8b5cf6" },
+    { name: "BRL", value: totalBrl, color: "#6366f1" },
+  ].filter((d) => d.value > 0);
+
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <Typography variant="h5">
-          Deposits{monthFilter ? ` — ${MONTH_NAMES[Number(monthFilter) - 1]}` : ""}{yearFilter ? ` ${yearFilter}` : ""}
+          {t("deposits.title")}{monthFilter ? ` — ${MONTH_NAMES[Number(monthFilter) - 1]}` : ""}{yearFilter ? ` ${yearFilter}` : ""}
         </Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
           <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Month</InputLabel>
-            <Select value={monthFilter} label="Month" onChange={(e) => setMonthFilter(e.target.value)}>
-              <MenuItem value="">All</MenuItem>
+            <InputLabel>{t("filters.month")}</InputLabel>
+            <Select value={monthFilter} label={t("filters.month")} onChange={(e) => setMonthFilter(e.target.value)}>
+              <MenuItem value="">{t("filters.all")}</MenuItem>
               {MONTH_NAMES.map((name, i) => (
                 <MenuItem key={i + 1} value={String(i + 1)}>{name}</MenuItem>
               ))}
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 100 }}>
-            <InputLabel>Year</InputLabel>
-            <Select value={yearFilter} label="Year" onChange={(e) => setYearFilter(e.target.value)}>
-              <MenuItem value="">All</MenuItem>
+            <InputLabel>{t("filters.year")}</InputLabel>
+            <Select value={yearFilter} label={t("filters.year")} onChange={(e) => setYearFilter(e.target.value)}>
+              <MenuItem value="">{t("filters.all")}</MenuItem>
               {Array.from({ length: 5 }, (_, i) => currentYear - i).map((y) => (
                 <MenuItem key={y} value={String(y)}>{y}</MenuItem>
               ))}
@@ -144,7 +162,7 @@ export default function Deposits() {
           </FormControl>
           {isAdmin && (
             <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
-              Add Deposit
+              {t("deposits.addDeposit")}
             </Button>
           )}
         </Box>
@@ -154,23 +172,55 @@ export default function Deposits() {
         <Box sx={{ display: "flex", gap: 2 }}>
           <Card sx={{ minWidth: 200 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-              <Typography color="text.secondary" variant="body2">Total (USD)</Typography>
+              <Typography color="text.secondary" variant="body2">{t("deposits.totalForeign")}</Typography>
               <Typography variant="h6" sx={{ color: "#8b5cf6" }}>
-                $ {rows.reduce((sum, r) => sum + Number(r.amount_usd), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                $ {totalForeign.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </Typography>
             </CardContent>
           </Card>
           <Card sx={{ minWidth: 200 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-              <Typography color="text.secondary" variant="body2">Total (BRL)</Typography>
+              <Typography color="text.secondary" variant="body2">{t("deposits.totalBrl")}</Typography>
               <Typography variant="h6" sx={{ color: "#6366f1" }}>
-                R$ {rows.reduce((sum, r) => sum + Number(r.amount_brl), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                R$ {totalBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </Typography>
             </CardContent>
           </Card>
         </Box>
         <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="deposits" />
       </Box>
+
+      {monthFilter && pieData.length > 0 && (
+        <Card sx={{ mb: 2 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>{t("dashboard.overview")}</Typography>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  dataKey="value"
+                  label={({ name, value }) => {
+                    const prefix = name === "USD" ? "$" : "R$";
+                    return `${name}: ${prefix} ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+                  }}
+                >
+                  {pieData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+                <RechartsTooltip formatter={(value, name) => {
+                  const prefix = name === "USD" ? "$" : "R$";
+                  return `${prefix} ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+                }} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       <StyledDataGrid
         rows={rows}
@@ -182,55 +232,63 @@ export default function Deposits() {
       />
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingId ? "Edit Deposit" : "Add Deposit"}</DialogTitle>
+        <DialogTitle>{editingId ? t("deposits.editDeposit") : t("deposits.addDeposit")}</DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: "16px !important" }}>
           <TextField
-            label="Deposit Date" type="date" value={form.deposit_date}
+            label={t("deposits.depositDate")} type="date" value={form.deposit_date}
             onChange={(e) => setForm({ ...form, deposit_date: e.target.value })}
             slotProps={{ inputLabel: { shrink: true } }}
           />
           <TextField
-            label="Invoice Number" value={form.invoice_number}
+            label={t("deposits.invoiceNumber")} value={form.invoice_number}
             onChange={(e) => setForm({ ...form, invoice_number: e.target.value })}
           />
           <TextField
-            label="Invoice Issue Date" type="date" value={form.invoice_issue_date}
+            label={t("deposits.issueDate")} type="date" value={form.invoice_issue_date}
             onChange={(e) => setForm({ ...form, invoice_issue_date: e.target.value })}
             slotProps={{ inputLabel: { shrink: true } }}
           />
           <TextField
-            label="Period Start" type="date" value={form.period_start}
+            label={t("deposits.periodStart")} type="date" value={form.period_start}
             onChange={(e) => setForm({ ...form, period_start: e.target.value })}
             slotProps={{ inputLabel: { shrink: true } }}
           />
           <TextField
-            label="Period End" type="date" value={form.period_end}
+            label={t("deposits.periodEnd")} type="date" value={form.period_end}
             onChange={(e) => setForm({ ...form, period_end: e.target.value })}
             slotProps={{ inputLabel: { shrink: true } }}
           />
+          <FormControl fullWidth>
+            <InputLabel>{t("deposits.currency")}</InputLabel>
+            <Select value={form.currency} label={t("deposits.currency")} onChange={(e) => setForm({ ...form, currency: e.target.value })}>
+              {DEPOSIT_CURRENCIES.map((c) => (
+                <MenuItem key={c} value={c}>{c}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
-            label="Amount (USD)" type="number" value={form.amount_usd}
-            onChange={(e) => setForm({ ...form, amount_usd: e.target.value })}
+            label={t("deposits.amountForeign")} type="number" value={form.amount_foreign}
+            onChange={(e) => setForm({ ...form, amount_foreign: e.target.value })}
           />
           <TextField
-            label="Amount (BRL)" type="number" value={form.amount_brl}
+            label={t("deposits.amountBrl")} type="number" value={form.amount_brl}
             onChange={(e) => setForm({ ...form, amount_brl: e.target.value })}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSave}>Save</Button>
+          <Button onClick={() => setDialogOpen(false)}>{t("common.cancel")}</Button>
+          <Button variant="contained" onClick={handleSave}>{t("common.save")}</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={Boolean(deleteId)} onClose={() => setDeleteId(null)}>
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle>{t("common.confirmDelete")}</DialogTitle>
         <DialogContent>
-          <Typography>Are you sure you want to delete this deposit?</Typography>
+          <Typography>{t("deleteConfirm.deposit")}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>Cancel</Button>
-          <Button variant="contained" color="error" onClick={handleDelete}>Delete</Button>
+          <Button onClick={() => setDeleteId(null)}>{t("common.cancel")}</Button>
+          <Button variant="contained" color="error" onClick={handleDelete}>{t("common.delete")}</Button>
         </DialogActions>
       </Dialog>
     </Box>

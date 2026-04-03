@@ -4,6 +4,8 @@ from django.conf import settings
 from django.db.models import Sum
 from django.db.models.functions import ExtractMonth
 
+CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD"]
+
 
 def get_dashboard_data(year, month=None):
     settings.LOG.info(f"Building dashboard data: year={year}, month={month}")
@@ -16,15 +18,20 @@ def get_dashboard_data(year, month=None):
         expense_qs = expense_qs.filter(expense_date__month=month)
         transfer_qs = transfer_qs.filter(transfer_date__month=month)
 
+    # Income per currency
+    income_by_currency = {}
+    for curr in CURRENCIES:
+        total = deposit_qs.filter(currency=curr).aggregate(total=Sum("amount_foreign"))["total"] or Decimal("0")
+        income_by_currency[curr] = total
+
     total_income_brl = deposit_qs.aggregate(total=Sum("amount_brl"))["total"] or Decimal("0")
-    total_income_usd = deposit_qs.aggregate(total=Sum("amount_usd"))["total"] or Decimal("0")
     total_expenses = expense_qs.aggregate(total=Sum("amount"))["total"] or Decimal("0")
     total_transferred = transfer_qs.aggregate(total=Sum("amount_brl"))["total"] or Decimal("0")
 
     monthly_income = (
         deposit_qs.annotate(month=ExtractMonth("deposit_date"))
         .values("month")
-        .annotate(income_brl=Sum("amount_brl"), income_usd=Sum("amount_usd"))
+        .annotate(income_brl=Sum("amount_brl"), income_foreign=Sum("amount_foreign"))
         .order_by("month")
     )
     monthly_expenses = (
@@ -43,7 +50,7 @@ def get_dashboard_data(year, month=None):
     months = {}
     for row in monthly_income:
         months.setdefault(row["month"], {})["income_brl"] = row["income_brl"]
-        months.setdefault(row["month"], {})["income_usd"] = row["income_usd"]
+        months.setdefault(row["month"], {})["income_foreign"] = row["income_foreign"]
     for row in monthly_expenses:
         months.setdefault(row["month"], {})["expenses_brl"] = row["expenses_brl"]
     for row in monthly_transferred:
@@ -53,7 +60,7 @@ def get_dashboard_data(year, month=None):
         {
             "month": m,
             "income_brl": data.get("income_brl", Decimal("0")),
-            "income_usd": data.get("income_usd", Decimal("0")),
+            "income_foreign": data.get("income_foreign", Decimal("0")),
             "expenses_brl": data.get("expenses_brl", Decimal("0")),
             "transferred_brl": data.get("transferred_brl", Decimal("0")),
         }
@@ -94,7 +101,7 @@ def get_dashboard_data(year, month=None):
     )[:10]
 
     settings.LOG.info(
-        f"Dashboard data: income_brl={total_income_brl}, income_usd={total_income_usd}, "
+        f"Dashboard data: income_brl={total_income_brl}, "
         f"expenses={total_expenses}, transferred={total_transferred}, "
         f"months={len(monthly)}, recent_activity={len(recent_activity)}"
     )
@@ -103,8 +110,8 @@ def get_dashboard_data(year, month=None):
         "year": year,
         "month": month,
         "summary": {
+            "income_by_currency": income_by_currency,
             "total_income_brl": total_income_brl,
-            "total_income_usd": total_income_usd,
             "total_expenses_brl": total_expenses,
             "total_transferred_brl": total_transferred,
             "net_balance_brl": total_income_brl - total_expenses,
