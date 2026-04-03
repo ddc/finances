@@ -4,6 +4,7 @@ from core.services.ptax import get_ptax_rate
 from datetime import date
 from decimal import Decimal
 from django.contrib.auth.models import User
+from tests.conftest import TEST_USER_PASSWORD
 from unittest.mock import MagicMock, patch
 
 pytestmark = pytest.mark.django_db
@@ -53,9 +54,9 @@ class TestDashboardService:
     def test_dashboard_data_with_records(self):
         from core.models import Deposit, Expense
 
-        user = User.objects.create_user(username="testuser", password="testpass123")
+        user = User.objects.create_user(username="testuser", password=TEST_USER_PASSWORD)
         Expense.objects.create(
-            expense_date=date(2026, 1, 5), category="IMPOSTOS", amount=Decimal("4380.59"), created_by=user
+            expense_date=date(2026, 1, 5), category="TAXES", amount=Decimal("4380.59"), created_by=user
         )
         Deposit.objects.create(
             deposit_date=date(2026, 1, 2),

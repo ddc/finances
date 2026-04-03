@@ -1,4 +1,5 @@
 import pytest
+from tests.conftest import TEST_USER_PASSWORD
 
 pytestmark = [pytest.mark.django_db, pytest.mark.integration]
 
@@ -10,7 +11,7 @@ class TestLogin:
         from rest_framework.test import APIClient
 
         client = APIClient()
-        response = client.post(f"{BASE_URL}/login/", {"username": "admin", "password": "admin123"})
+        response = client.post(f"{BASE_URL}/login/", {"username": "admin", "password": TEST_USER_PASSWORD})
         assert response.status_code == 200
         assert "token" in response.data
         assert response.data["user"]["role"] == "admin"
@@ -19,7 +20,7 @@ class TestLogin:
         from rest_framework.test import APIClient
 
         client = APIClient()
-        response = client.post(f"{BASE_URL}/login/", {"username": "wrong", "password": "wrong"})
+        response = client.post(f"{BASE_URL}/login/", {"username": "wrong", "password": "wrong-not-real"})
         assert response.status_code == 401
 
     def test_me(self, admin_client):

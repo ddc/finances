@@ -158,8 +158,8 @@ export default function Dashboard() {
                       dataKey="value"
                       label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                     >
-                      {pieData.map((_, i) => (
-                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      {pieData.map((entry, i) => (
+                        <Cell key={entry.name} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                       ))}
                     </Pie>
                     <RechartsTooltip formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
@@ -185,8 +185,8 @@ export default function Dashboard() {
             <CardContent>
               <Typography variant="h6" gutterBottom>{t("dashboard.recentActivity")}</Typography>
               <List dense>
-                {data.recent_activity.map((item, i) => (
-                  <ListItem key={i}>
+                {data.recent_activity.map((item) => (
+                  <ListItem key={`${item.type}-${item.date}-${item.description}`}>
                     <ListItemText
                       primary={`${item.description} — R$ ${Number(item.amount_brl).toFixed(2)}`}
                       secondary={`${item.type} • ${item.date}`}

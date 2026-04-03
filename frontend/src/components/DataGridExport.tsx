@@ -3,9 +3,9 @@ import { Button, Stack } from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
 
 interface DataGridExportProps<T extends object> {
-  rows: T[];
-  columns: GridColDef[];
-  filename: string;
+  readonly rows: T[];
+  readonly columns: GridColDef[];
+  readonly filename: string;
 }
 
 export default function DataGridExport<T extends object>({ rows, columns, filename }: DataGridExportProps<T>) {
@@ -15,7 +15,7 @@ export default function DataGridExport<T extends object>({ rows, columns, filena
   const data = rows as unknown as Record<string, unknown>[];
 
   const exportCSV = () => {
-    const csv = [headers.join(","), ...data.map((r) => fields.map((f) => r[f] ?? "").join(","))].join("\n");
+    const csv = [headers.join(","), ...data.map((r) => fields.map((f) => String(r[f] ?? "")).join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);

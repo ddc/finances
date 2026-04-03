@@ -12,14 +12,18 @@ import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
 import { listExpenses, createExpense, updateExpense, deleteExpense } from "../api/expenses";
 import DataGridExport from "../components/DataGridExport";
+import { MonthFilter, YearFilter } from "../components/PageFilters";
+import DeleteDialog from "../components/DeleteDialog";
+import PageHeader from "../components/PageHeader";
 import type { Expense } from "../types";
 
-const CATEGORIES = ["IMPOSTOS", "PLANO_SAUDE", "CONTABILIDADE", "OTHER"] as const;
+const CATEGORIES = ["TAXES", "HEALTH_INSURANCE", "ACCOUNTING", "TFE", "OTHER"] as const;
 
 const CATEGORY_COLORS: Record<string, string> = {
-  IMPOSTOS: "#6366f1",
-  PLANO_SAUDE: "#8b5cf6",
-  CONTABILIDADE: "#3b82f6",
+  TAXES: "#6366f1",
+  HEALTH_INSURANCE: "#8b5cf6",
+  ACCOUNTING: "#3b82f6",
+  TFE: "#f59e0b",
   OTHER: "#22c55e",
 };
 
@@ -27,15 +31,12 @@ const EMPTY_FORM = { expense_date: "", category: "OTHER" as string, description:
 
 export default function Expenses() {
   const { t } = useTranslation();
-  const monthKeys = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
-  const MONTH_NAMES = monthKeys.map(k => t(`months.${k}`));
 
   const categoryLabel = (cat: string) => t(`expenses.categories.${cat}`) || cat;
 
   const { isAdmin } = useAuth();
-  const currentYear = new Date().getFullYear();
   const [rows, setRows] = useState<Expense[]>([]);
-  const [yearFilter, setYearFilter] = useState(String(currentYear));
+  const [yearFilter, setYearFilter] = useState(String(new Date().getFullYear()));
   const [monthFilter, setMonthFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -121,45 +122,24 @@ export default function Expenses() {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h5">
-          {t("expenses.title")}{monthFilter ? ` — ${MONTH_NAMES[Number(monthFilter) - 1]}` : ""}{yearFilter ? ` ${yearFilter}` : ""}
-        </Typography>
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>{t("filters.month")}</InputLabel>
-            <Select value={monthFilter} label={t("filters.month")} onChange={(e) => setMonthFilter(e.target.value)}>
-              <MenuItem value="">{t("filters.all")}</MenuItem>
-              {MONTH_NAMES.map((name, i) => (
-                <MenuItem key={i + 1} value={String(i + 1)}>{name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 100 }}>
-            <InputLabel>{t("filters.year")}</InputLabel>
-            <Select value={yearFilter} label={t("filters.year")} onChange={(e) => setYearFilter(e.target.value)}>
-              <MenuItem value="">{t("filters.all")}</MenuItem>
-              {Array.from({ length: 5 }, (_, i) => currentYear - i).map((y) => (
-                <MenuItem key={y} value={String(y)}>{y}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>{t("filters.category")}</InputLabel>
-            <Select value={categoryFilter} label={t("filters.category")} onChange={(e) => setCategoryFilter(e.target.value)}>
-              <MenuItem value="">{t("filters.all")}</MenuItem>
-              {CATEGORIES.map((c) => (
-                <MenuItem key={c} value={c}>{categoryLabel(c)}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {isAdmin && (
-            <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
-              {t("expenses.addExpense")}
-            </Button>
-          )}
-        </Box>
-      </Box>
+      <PageHeader title={t("expenses.title")} monthFilter={monthFilter} yearFilter={yearFilter}>
+        <MonthFilter value={monthFilter} onChange={setMonthFilter} />
+        <YearFilter value={yearFilter} onChange={setYearFilter} />
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <InputLabel>{t("filters.category")}</InputLabel>
+          <Select value={categoryFilter} label={t("filters.category")} onChange={(e) => setCategoryFilter(e.target.value)}>
+            <MenuItem value="">{t("filters.all")}</MenuItem>
+            {CATEGORIES.map((c) => (
+              <MenuItem key={c} value={c}>{categoryLabel(c)}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        {isAdmin && (
+          <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
+            {t("expenses.addExpense")}
+          </Button>
+        )}
+      </PageHeader>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <Card sx={{ minWidth: 200 }}>
@@ -187,8 +167,8 @@ export default function Expenses() {
                   dataKey="value"
                   label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                 >
-                  {pieData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
+                  {pieData.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
                 <RechartsTooltip formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
@@ -233,16 +213,12 @@ export default function Expenses() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={Boolean(deleteId)} onClose={() => setDeleteId(null)}>
-        <DialogTitle>{t("common.confirmDelete")}</DialogTitle>
-        <DialogContent>
-          <Typography>{t("deleteConfirm.expense")}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>{t("common.cancel")}</Button>
-          <Button variant="contained" color="error" onClick={handleDelete}>{t("common.delete")}</Button>
-        </DialogActions>
-      </Dialog>
+      <DeleteDialog
+        open={Boolean(deleteId)}
+        message={t("deleteConfirm.expense")}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+      />
     </Box>
   );
 }

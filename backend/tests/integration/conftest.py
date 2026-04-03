@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from testcontainers.postgres import PostgresContainer
+from tests.conftest import TEST_USER_PASSWORD
 
 
 @pytest.fixture(scope="session")
@@ -38,13 +39,13 @@ def _setup_db(postgres_container, settings):
 
 @pytest.fixture
 def admin_user(db):
-    user = User.objects.create_user(username="admin", password="admin123", is_staff=True)
+    user = User.objects.create_user(username="admin", password=TEST_USER_PASSWORD, is_staff=True)
     return user
 
 
 @pytest.fixture
 def viewer_user(db):
-    user = User.objects.create_user(username="viewer", password="viewer123", is_staff=False)
+    user = User.objects.create_user(username="viewer", password=TEST_USER_PASSWORD, is_staff=False)
     return user
 
 

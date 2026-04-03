@@ -12,7 +12,7 @@ export interface AuthResponse {
 export interface Expense {
   id: string;
   expense_date: string;
-  category: "IMPOSTOS" | "PLANO_SAUDE" | "CONTABILIDADE" | "OTHER";
+  category: "TAXES" | "HEALTH_INSURANCE" | "ACCOUNTING" | "TFE" | "OTHER";
   description: string;
   amount: number;
   created_by: string;

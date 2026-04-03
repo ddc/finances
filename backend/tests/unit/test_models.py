@@ -3,47 +3,48 @@ from core.models import Deposit, Expense, Transfer
 from datetime import date
 from decimal import Decimal
 from django.contrib.auth.models import User
+from tests.conftest import TEST_USER_PASSWORD
 
 pytestmark = pytest.mark.django_db
 
 
 class TestExpense:
     def test_create_expense(self):
-        user = User.objects.create_user(username="testuser", password="testpass123")
+        user = User.objects.create_user(username="testuser", password=TEST_USER_PASSWORD)
         expense = Expense.objects.create(
             expense_date=date(2026, 1, 5),
-            category="IMPOSTOS",
+            category="TAXES",
             description="Tax payment",
             amount=Decimal("4380.59"),
             created_by=user,
         )
         assert expense.id is not None
-        assert expense.category == "IMPOSTOS"
+        assert expense.category == "TAXES"
         assert expense.amount == Decimal("4380.59")
         assert expense.created_at is not None
         assert expense.updated_at is not None
 
     def test_expense_category_choices(self):
         choices = dict(Expense.CategoryChoices.choices)
-        assert "IMPOSTOS" in choices
-        assert "PLANO_SAUDE" in choices
-        assert "CONTABILIDADE" in choices
+        assert "TAXES" in choices
+        assert "HEALTH_INSURANCE" in choices
+        assert "ACCOUNTING" in choices
         assert "OTHER" in choices
 
     def test_expense_str(self):
-        user = User.objects.create_user(username="testuser2", password="testpass123")
+        user = User.objects.create_user(username="testuser2", password=TEST_USER_PASSWORD)
         expense = Expense.objects.create(
             expense_date=date(2026, 1, 10),
-            category="PLANO_SAUDE",
+            category="HEALTH_INSURANCE",
             amount=Decimal("889.64"),
             created_by=user,
         )
-        assert "PLANO_SAUDE" in str(expense)
+        assert "HEALTH_INSURANCE" in str(expense)
 
 
 class TestDeposit:
     def test_create_deposit(self):
-        user = User.objects.create_user(username="testuser3", password="testpass123")
+        user = User.objects.create_user(username="testuser3", password=TEST_USER_PASSWORD)
         deposit = Deposit.objects.create(
             deposit_date=date(2026, 1, 2),
             invoice_number="INV-ne3wdd4-2026-1",
@@ -61,7 +62,7 @@ class TestDeposit:
 
 class TestTransfer:
     def test_create_transfer_linked_to_deposit(self):
-        user = User.objects.create_user(username="testuser4", password="testpass123")
+        user = User.objects.create_user(username="testuser4", password=TEST_USER_PASSWORD)
         deposit = Deposit.objects.create(
             deposit_date=date(2026, 1, 2),
             invoice_number="INV-53",

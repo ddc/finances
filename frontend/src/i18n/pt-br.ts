@@ -56,9 +56,10 @@ export default {
     amount: "Valor (R$)",
     total: "Total",
     categories: {
-      IMPOSTOS: "Impostos",
-      PLANO_SAUDE: "Plano de Saúde",
-      CONTABILIDADE: "Contabilidade",
+      TAXES: "Impostos",
+      HEALTH_INSURANCE: "Plano de Saúde",
+      ACCOUNTING: "Contabilidade",
+      TFE: "TFE",
       OTHER: "Outros",
     },
   },

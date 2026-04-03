@@ -23,35 +23,182 @@
     <a href="https://actions-badge.atrox.dev/ddc/finances/goto?ref=main"><img src="https://img.shields.io/endpoint.svg?url=https%3A//actions-badge.atrox.dev/ddc/finances/badge?ref=main&label=build&logo=github&style=plastic" alt="Build Status"/></a>
 </p>
 
+## Table of Contents
 
-# Create finances user and database
+- [Stack](#stack)
+- [Timezone Handling](#timezone-handling)
+- [Setup](#setup)
+- [Development](#development)
+- [Running Tests](#running-tests)
+- [Deployment](#deployment)
+- [Local Development with Database](#local-development-with-database)
+- [License](#license)
+- [Support](#support)
+---
+
+## Stack
+
+| Layer           | Technology                                           |
+|-----------------|------------------------------------------------------|
+| Backend         | Django 6.0 + Django REST Framework                   |
+| Frontend        | React 19 + Vite + MUI + Recharts                     |
+| Database        | PostgreSQL                                           |
+| Auth            | Token-based (DRF TokenAuthentication)                |
+| i18n            | EN-US, PT-BR                                         |
+| Package Manager | uv (backend), npm (frontend)                         |
+| Linting         | ruff (backend), eslint (frontend)                    |
+| Testing         | pytest + testcontainers (backend), vitest (frontend) |
+| Deploy          | Docker Compose                                       |
+
+## Timezone Handling
+
+| Layer              | Timezone                                                        |
+|--------------------|-----------------------------------------------------------------|
+| **Database**       | UTC (always)                                                    |
+| **Django API**     | Returns UTC strings                                             |
+| **React frontend** | Converts to browser's local timezone via `toLocaleDateString()` |
+| **Django admin**   | Uses `DJANGO_TIME_ZONE` from `.env`                             |
+
+Timestamps are always stored in UTC. The frontend displays them in the user's browser timezone automatically. The
+`DJANGO_TIME_ZONE` env var only affects the Django admin panel.
+
+## Setup
+
+### 1. Create database user and database
+
 ```sql
-SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'finances' AND pid <> pg_backend_pid();
-DROP DATABASE IF EXISTS finances;
-DROP ROLE IF EXISTS finances;
-CREATE USER finances WITH PASSWORD 'finances';
-CREATE DATABASE finances OWNER finances;
-GRANT ALL PRIVILEGES ON DATABASE finances TO finances;
-\q
+SELECT pg_terminate_backend(pid)
+  FROM pg_stat_activity
+ WHERE datname = 'finances'
+   AND pid <> pg_backend_pid();
+DROP
+DATABASE IF EXISTS finances;
+DROP ROLE if EXISTS finances;
+CREATE
+USER finances WITH PASSWORD 'finances';
+CREATE
+DATABASE finances OWNER finances;
+GRANT ALL PRIVILEGES ON DATABASE
+finances TO finances;
 ```
 
+### 2. Configure environment
 
-# Create DJANGO_SECRET_KEY
+```bash
+cp .env.example .env
+# Edit .env with your values
+```
+
+Generate a secret key:
+
 ```bash
 python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
+### 3. Start the application
 
-# Create admin user
+```bash
+docker compose up -d --build
+```
+
+### 4. Create admin user
+
 ```bash
 docker compose exec backend uv run --frozen --no-sync python manage.py seed_data
 ```
 
-That creates:
-- Username: admin
-- Password: admin123
+Default credentials:
+
+- **Username:** admin
+- **Password:** admin123
 
 Or create one manually:
+
 ```bash
 docker compose exec backend uv run --frozen --no-sync python manage.py createsuperuser
 ```
+
+## Development
+
+### Backend
+
+Requires [UV](https://docs.astral.sh/uv/getting-started/installation/) to be installed.
+
+```bash
+cd backend
+uv sync --all-groups
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Running tests
+
+From the `backend/` directory:
+
+```bash
+# All tests
+uv run poe tests
+
+# Backend only
+uv run poe test-backend              # unit tests + coverage
+uv run poe test-backend-integration  # integration tests (testcontainers)
+uv run poe test-backend-docker       # docker tests (hadolint, compose)
+
+# Frontend only
+uv run poe test-frontend             # unit tests
+uv run poe test-frontend-integration # integration tests
+
+# Linting
+uv run poe linter-backend            # ruff
+uv run poe linter-frontend           # eslint
+
+# Update dependencies
+uv run poe update-backend
+uv run poe update-frontend
+```
+
+## Deployment
+
+### Update and restart
+
+```bash
+./utilities/update.sh
+```
+
+### Start / Stop
+
+```bash
+./utilities/start.sh
+./utilities/stop.sh
+```
+
+## Local development with database
+
+For local development with a containerized PostgreSQL:
+
+```bash
+docker compose -f docker-compose-localdb.yml up -d
+```
+
+Set `.env`:
+
+```
+POSTGRES_HOST=finances_database
+```
+
+## License
+Released under the [MIT License](LICENSE)
+
+
+## Support
+If you find this project helpful, consider supporting development.
+
+<a href='https://github.com/sponsors/ddc' target='_blank'><img height='24' style='border:0px;height:24px;' src='https://img.shields.io/badge/Sponsor-❤-ea4aaa?style=plastic&logo=github&logoColor=white' border='0' alt='Sponsor on GitHub' /></a>
+<a href='https://ko-fi.com/ddc' target='_blank'><img height='30' style='border:0px;height:30px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+<a href='https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ' target='_blank'><img height='30' style='border:0px;height:30px;' src='https://www.paypalobjects.com/digitalassets/c/website/marketing/apac/C2/logos-buttons/optimize/44_Yellow_PayPal_Pill_Button.png' border='0' alt='Donate via PayPal' /></a>
