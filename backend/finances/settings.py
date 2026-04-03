@@ -15,6 +15,7 @@ class AppSettings(BaseSettings):
     DJANGO_SECRET_KEY: str = "dev-insecure-key"
     DJANGO_DEBUG: bool = True
     DJANGO_ALLOWED_HOSTS: str = "localhost,127.0.0.1"
+    DJANGO_TIME_ZONE: str = "UTC"
 
     # PTAX
     PTAX_API_URL: str = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia"
@@ -91,7 +92,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+TIME_ZONE = env.DJANGO_TIME_ZONE
 USE_I18N = True
 USE_TZ = True
 
