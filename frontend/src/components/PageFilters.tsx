@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 const MONTH_KEYS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
 interface MonthFilterProps {
-  value: string;
-  onChange: (value: string) => void;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
 }
 
 export function MonthFilter({ value, onChange }: MonthFilterProps) {
@@ -26,9 +26,9 @@ export function MonthFilter({ value, onChange }: MonthFilterProps) {
 }
 
 interface YearFilterProps {
-  value: string;
-  onChange: (value: string) => void;
-  years?: number;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+  readonly years?: number;
 }
 
 export function YearFilter({ value, onChange, years = 5 }: YearFilterProps) {

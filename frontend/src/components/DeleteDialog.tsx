@@ -2,10 +2,10 @@ import { Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography }
 import { useTranslation } from "react-i18next";
 
 interface DeleteDialogProps {
-  open: boolean;
-  message: string;
-  onClose: () => void;
-  onConfirm: () => void;
+  readonly open: boolean;
+  readonly message: string;
+  readonly onClose: () => void;
+  readonly onConfirm: () => void;
 }
 
 export default function DeleteDialog({ open, message, onClose, onConfirm }: DeleteDialogProps) {

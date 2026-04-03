@@ -28,7 +28,7 @@ export default function DataGridExport<T extends object>({ rows, columns, filena
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet(filename);
     ws.addRow(headers);
-    data.forEach((r) => ws.addRow(fields.map((f) => r[f] ?? "")));
+    data.forEach((r) => ws.addRow(fields.map((f) => String(r[f] ?? ""))));
     ws.getRow(1).font = { bold: true };
     const buffer = await wb.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
