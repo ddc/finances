@@ -16,7 +16,7 @@ export default function StyledDataGrid(props: DataGridProps) {
         "& .MuiDataGrid-row:nth-of-type(even)": {
           backgroundColor: "action.hover",
         },
-        ...((props.sx as object) || {}),
+        ...(props.sx ? (props.sx as object) : undefined),
       }}
     />
   );

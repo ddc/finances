@@ -3,13 +3,14 @@ from core.serializers import DepositSerializer, ExpenseSerializer, TransferSeria
 from datetime import date
 from decimal import Decimal
 from django.contrib.auth.models import User
+from tests.conftest import TEST_USER_PASSWORD
 
 pytestmark = pytest.mark.django_db
 
 
 class TestExpenseSerializer:
     def test_valid_expense(self):
-        data = {"expense_date": "2026-01-05", "category": "IMPOSTOS", "amount": "4380.59", "description": "Tax"}
+        data = {"expense_date": "2026-01-05", "category": "TAXES", "amount": "4380.59", "description": "Tax"}
         serializer = ExpenseSerializer(data=data)
         assert serializer.is_valid(), serializer.errors
 
@@ -37,7 +38,7 @@ class TestDepositSerializer:
 
 class TestTransferSerializer:
     def test_valid_transfer(self):
-        user = User.objects.create_user(username="testuser2", password="testpass123")
+        user = User.objects.create_user(username="testuser2", password=TEST_USER_PASSWORD)
         from core.models import Deposit
 
         deposit = Deposit.objects.create(

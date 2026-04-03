@@ -19,9 +19,10 @@ class BaseModel(models.Model):
 
 class Expense(BaseModel):
     class CategoryChoices(models.TextChoices):
-        IMPOSTOS = "IMPOSTOS", "Impostos"
-        PLANO_SAUDE = "PLANO_SAUDE", "Plano de Saúde"
-        CONTABILIDADE = "CONTABILIDADE", "Contabilidade"
+        TAXES = "TAXES", "Taxes"
+        HEALTH_INSURANCE = "HEALTH_INSURANCE", "Health Insurance"
+        ACCOUNTING = "ACCOUNTING", "Accounting"
+        TFE = "TFE", "TFE"
         OTHER = "OTHER", "Other"
 
     expense_date = models.DateField()

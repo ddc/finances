@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
+  Box, Button, Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, IconButton,
 } from "@mui/material";
 import { Add, Edit, Delete } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
@@ -10,19 +10,19 @@ import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
 import { listNfeSamples, createNfeSample, updateNfeSample, deleteNfeSample } from "../api/nfeSamples";
 import DataGridExport from "../components/DataGridExport";
+import { MonthFilter, YearFilter } from "../components/PageFilters";
+import DeleteDialog from "../components/DeleteDialog";
+import PageHeader from "../components/PageHeader";
 import type { NfeSample } from "../types";
 
 const EMPTY_FORM = { description: "", body: "" };
 
 export default function NfeSamples() {
   const { t } = useTranslation();
-  const monthKeys = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
-  const MONTH_NAMES = monthKeys.map(k => t(`months.${k}`));
 
   const { isAdmin } = useAuth();
-  const currentYear = new Date().getFullYear();
   const [rows, setRows] = useState<NfeSample[]>([]);
-  const [yearFilter, setYearFilter] = useState(String(currentYear));
+  const [yearFilter, setYearFilter] = useState(String(new Date().getFullYear()));
   const [monthFilter, setMonthFilter] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -106,34 +106,15 @@ export default function NfeSamples() {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h5">{t("nfeSamples.title")}</Typography>
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>{t("filters.month")}</InputLabel>
-            <Select value={monthFilter} label={t("filters.month")} onChange={(e) => setMonthFilter(e.target.value)}>
-              <MenuItem value="">{t("filters.all")}</MenuItem>
-              {MONTH_NAMES.map((name, i) => (
-                <MenuItem key={i + 1} value={String(i + 1)}>{name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 100 }}>
-            <InputLabel>{t("filters.year")}</InputLabel>
-            <Select value={yearFilter} label={t("filters.year")} onChange={(e) => setYearFilter(e.target.value)}>
-              <MenuItem value="">{t("filters.all")}</MenuItem>
-              {Array.from({ length: 5 }, (_, i) => currentYear - i).map((y) => (
-                <MenuItem key={y} value={String(y)}>{y}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {isAdmin && (
-            <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
-              {t("nfeSamples.addNfe")}
-            </Button>
-          )}
-        </Box>
-      </Box>
+      <PageHeader title={t("nfeSamples.title")} monthFilter={monthFilter} yearFilter={yearFilter}>
+        <MonthFilter value={monthFilter} onChange={setMonthFilter} />
+        <YearFilter value={yearFilter} onChange={setYearFilter} />
+        {isAdmin && (
+          <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
+            {t("nfeSamples.addNfe")}
+          </Button>
+        )}
+      </PageHeader>
 
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
         <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="nfe-samples" />
@@ -184,16 +165,12 @@ export default function NfeSamples() {
       </Dialog>
 
       {/* Delete confirmation */}
-      <Dialog open={Boolean(deleteId)} onClose={() => setDeleteId(null)}>
-        <DialogTitle>{t("common.confirmDelete")}</DialogTitle>
-        <DialogContent>
-          <Typography>{t("deleteConfirm.nfe")}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>{t("common.cancel")}</Button>
-          <Button variant="contained" color="error" onClick={handleDelete}>{t("common.delete")}</Button>
-        </DialogActions>
-      </Dialog>
+      <DeleteDialog
+        open={Boolean(deleteId)}
+        message={t("deleteConfirm.nfe")}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+      />
     </Box>
   );
 }

@@ -13,6 +13,9 @@ import { useAuth } from "../hooks/useAuth";
 import { listTransfers, createTransfer, updateTransfer, deleteTransfer } from "../api/transfers";
 import { listDeposits } from "../api/deposits";
 import DataGridExport from "../components/DataGridExport";
+import { MonthFilter, YearFilter } from "../components/PageFilters";
+import DeleteDialog from "../components/DeleteDialog";
+import PageHeader from "../components/PageHeader";
 import type { Transfer, Deposit } from "../types";
 
 const BANKS = ["SANTANDER"] as const;
@@ -30,14 +33,11 @@ const EMPTY_FORM = {
 
 export default function Transfers() {
   const { t } = useTranslation();
-  const monthKeys = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
-  const MONTH_NAMES = monthKeys.map(k => t(`months.${k}`));
 
   const { isAdmin } = useAuth();
-  const currentYear = new Date().getFullYear();
   const [rows, setRows] = useState<Transfer[]>([]);
   const [deposits, setDeposits] = useState<Deposit[]>([]);
-  const [yearFilter, setYearFilter] = useState(String(currentYear));
+  const [yearFilter, setYearFilter] = useState(String(new Date().getFullYear()));
   const [monthFilter, setMonthFilter] = useState("");
   const [bankFilter, setBankFilter] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -139,45 +139,24 @@ export default function Transfers() {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h5">
-          {t("transfers.title")}{monthFilter ? ` — ${MONTH_NAMES[Number(monthFilter) - 1]}` : ""}{yearFilter ? ` ${yearFilter}` : ""}
-        </Typography>
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>{t("filters.month")}</InputLabel>
-            <Select value={monthFilter} label={t("filters.month")} onChange={(e) => setMonthFilter(e.target.value)}>
-              <MenuItem value="">{t("filters.all")}</MenuItem>
-              {MONTH_NAMES.map((name, i) => (
-                <MenuItem key={i + 1} value={String(i + 1)}>{name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 100 }}>
-            <InputLabel>{t("filters.year")}</InputLabel>
-            <Select value={yearFilter} label={t("filters.year")} onChange={(e) => setYearFilter(e.target.value)}>
-              <MenuItem value="">{t("filters.all")}</MenuItem>
-              {Array.from({ length: 5 }, (_, i) => currentYear - i).map((y) => (
-                <MenuItem key={y} value={String(y)}>{y}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel>{t("filters.bank")}</InputLabel>
-            <Select value={bankFilter} label={t("filters.bank")} onChange={(e) => setBankFilter(e.target.value)}>
-              <MenuItem value="">{t("filters.all")}</MenuItem>
-              {BANKS.map((b) => (
-                <MenuItem key={b} value={b}>{b}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {isAdmin && (
-            <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
-              {t("transfers.addTransfer")}
-            </Button>
-          )}
-        </Box>
-      </Box>
+      <PageHeader title={t("transfers.title")} monthFilter={monthFilter} yearFilter={yearFilter}>
+        <MonthFilter value={monthFilter} onChange={setMonthFilter} />
+        <YearFilter value={yearFilter} onChange={setYearFilter} />
+        <FormControl size="small" sx={{ minWidth: 140 }}>
+          <InputLabel>{t("filters.bank")}</InputLabel>
+          <Select value={bankFilter} label={t("filters.bank")} onChange={(e) => setBankFilter(e.target.value)}>
+            <MenuItem value="">{t("filters.all")}</MenuItem>
+            {BANKS.map((b) => (
+              <MenuItem key={b} value={b}>{b}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        {isAdmin && (
+          <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
+            {t("transfers.addTransfer")}
+          </Button>
+        )}
+      </PageHeader>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <Card sx={{ minWidth: 200 }}>
@@ -205,8 +184,8 @@ export default function Transfers() {
                   dataKey="value"
                   label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                 >
-                  {bankTotals.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
+                  {bankTotals.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
                 <RechartsTooltip formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
@@ -261,16 +240,12 @@ export default function Transfers() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={Boolean(deleteId)} onClose={() => setDeleteId(null)}>
-        <DialogTitle>{t("common.confirmDelete")}</DialogTitle>
-        <DialogContent>
-          <Typography>{t("deleteConfirm.transfer")}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>{t("common.cancel")}</Button>
-          <Button variant="contained" color="error" onClick={handleDelete}>{t("common.delete")}</Button>
-        </DialogActions>
-      </Dialog>
+      <DeleteDialog
+        open={Boolean(deleteId)}
+        message={t("deleteConfirm.transfer")}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+      />
     </Box>
   );
 }

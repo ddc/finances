@@ -27,7 +27,7 @@ class TestDashboard:
     def test_dashboard_with_data(self, mock_ptax, admin_client):
         admin_client.post(
             "/api/v1/expenses/",
-            {"expense_date": "2026-01-05", "category": "IMPOSTOS", "amount": "100.00"},
+            {"expense_date": "2026-01-05", "category": "TAXES", "amount": "100.00"},
         )
         admin_client.post(
             "/api/v1/deposits/",
@@ -43,4 +43,6 @@ class TestDashboard:
         )
         response = admin_client.get("/api/v1/dashboard/?year=2026")
         assert response.status_code == 200
-        assert float(response.data["summary"]["total_income_brl"]) == 5894.49
+        from decimal import Decimal
+
+        assert Decimal(str(response.data["summary"]["total_income_brl"])) == Decimal("5894.49")

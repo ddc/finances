@@ -4,7 +4,7 @@ import tempfile
 os.environ.setdefault("LOG_DIRECTORY", tempfile.gettempdir())
 os.environ.setdefault("LOG_STREAM_HANDLER", "False")
 
-from finances.settings import *  # noqa: E402, F401, F403
+from finances.settings import *  # noqa: E402, F401, F403  # NOSONAR - Django requires wildcard import for test settings
 
 DATABASES = {
     "default": {
