@@ -22,7 +22,7 @@ services:
         uv run --frozen --no-sync python manage.py collectstatic --noinput &&
         uv run --frozen --no-sync gunicorn finances.wsgi:application --bind 0.0.0.0:8000 --workers 2
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/admin/login/"]
+      test: ["CMD-SHELL", "curl -sf -o /dev/null localhost:8000/admin/login/"]
       interval: 30s
       timeout: 10s
       retries: 3
