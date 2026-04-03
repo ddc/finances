@@ -1,7 +1,7 @@
 <h1 align="center">
   <img src="https://raw.githubusercontent.com/ddc/finances/refs/heads/main/frontend/public/favicon.svg" alt="finances" width="150">
   <br>
-  finances
+  Personal finance management app
 </h1>
 
 <p align="center">
@@ -17,21 +17,23 @@
     <a href="https://github.com/ddc/finances/releases/latest"><img src="https://img.shields.io/github/v/release/ddc/finances?style=plastic&logo=github&logoColor=white" alt="Release"/></a>
     <br>
     <a href="https://github.com/ddc/finances/issues"><img src="https://img.shields.io/github/issues/ddc/finances?style=plastic&logo=github&logoColor=white" alt="issues"/></a>
-    <a href="https://codecov.io/gh/ddc/finances"><img src="https://img.shields.io/codecov/c/github/ddc/finances?token=E942EZII4Q&style=plastic&logo=codecov" alt="codecov"/></a>
-    <a href="https://sonarcloud.io/dashboard?id=ddc_DiscordBot"><img src="https://img.shields.io/sonar/quality_gate/ddc_DiscordBot?server=https%3A%2F%2Fsonarcloud.io&style=plastic&logo=sonarqubecloud&logoColor=white" alt="Quality Gate Status"/></a>
+    <a href="https://codecov.io/gh/ddc/finances"><img src="https://img.shields.io/codecov/c/github/ddc/finances?token=Y43wp9vain&style=plastic&logo=codecov" alt="codecov"/></a>
+    <a href="https://sonarcloud.io/dashboard?id=ddc_finances"><img src="https://img.shields.io/sonar/quality_gate/ddc_finances?server=https%3A%2F%2Fsonarcloud.io&style=plastic&logo=sonarqubecloud&logoColor=white" alt="Quality Gate Status"/></a>
     <a href="https://github.com/ddc/finances/actions/workflows/workflow.yml"><img src="https://img.shields.io/github/actions/workflow/status/ddc/finances/workflow.yml?style=plastic&logo=github&logoColor=white&label=CI%2FCD%20Pipeline" alt="CI/CD Pipeline"/></a>
     <a href="https://actions-badge.atrox.dev/ddc/finances/goto?ref=main"><img src="https://img.shields.io/endpoint.svg?url=https%3A//actions-badge.atrox.dev/ddc/finances/badge?ref=main&label=build&logo=github&style=plastic" alt="Build Status"/></a>
 </p>
 
-<p align="center">Personal finance management app</p>
-
-
 
 # Create finances user and database
+```sql
+SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'finances' AND pid <> pg_backend_pid();
+DROP DATABASE IF EXISTS finances;
+DROP ROLE IF EXISTS finances;
 CREATE USER finances WITH PASSWORD 'finances';
 CREATE DATABASE finances OWNER finances;
 GRANT ALL PRIVILEGES ON DATABASE finances TO finances;
 \q
+```
 
 
 # Create DJANGO_SECRET_KEY

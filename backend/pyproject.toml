@@ -14,7 +14,7 @@ dependencies = [
   "gunicorn>=25.3.0",
   "psycopg2-binary>=2.9.11",
   "pydantic_settings>=2.13.1",
-  "pythonLogs>=7.0.0",
+  "pythonLogs>=7.0.1",
   "requests>=2.33.1",
   "uuid-utils>=0.14.1",
 ]
