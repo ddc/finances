@@ -190,7 +190,7 @@ requires-dist = [
     { name = "gunicorn", specifier = ">=25.3.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.11" },
     { name = "pydantic-settings", specifier = ">=2.13.1" },
-    { name = "pythonlogs", specifier = ">=7.0.0" },
+    { name = "pythonlogs", specifier = ">=7.0.1" },
     { name = "requests", specifier = ">=2.33.1" },
     { name = "uuid-utils", specifier = ">=0.14.1" },
 ]
@@ -410,14 +410,14 @@ wheels = [
 
 [[package]]
 name = "pythonlogs"
-version = "7.0.0"
+version = "7.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic-settings" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/21/00/f2366834681f9d66b670aed50f0931d37c4241fe43d1e4cddb0c2b70ce9b/pythonlogs-7.0.0.tar.gz", hash = "sha256:8a5ef7a4508cd718772d2dd7052b50c0b44cafe72b52a5cc3e382f8efb6a15e8", size = 21406, upload-time = "2026-03-20T14:21:58.886Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/97/fe/ae3c2efbf816bdf6ccff1e0d553e0fb4165b160850e2ba70ab5d13e6278d/pythonlogs-7.0.1.tar.gz", hash = "sha256:9c649d3c42e8c2d0347c658e4d17e66f3ddfa4dc120829d9c160ef0b7c0ae98c", size = 21322, upload-time = "2026-04-03T16:57:51.69Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/c4/40a854e28beaf1201a291fb8ac7624184f0e5427506f34874c4f51a96bda/pythonlogs-7.0.0-py3-none-any.whl", hash = "sha256:61ee53e710edd7aedb7d21340c591e5d2cfd9a4dab5aae62914501299a704d0d", size = 25308, upload-time = "2026-03-20T14:21:57.614Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/c1/e5d8f149d1bec376e7fd48624ce089d4fd523a95ea874ee36ad2fbc46de2/pythonlogs-7.0.1-py3-none-any.whl", hash = "sha256:9956dd3803a3ac9531c2942ef5ee0e130cdb9cfcb9b2d8340e2fb2f4b94161bd", size = 25247, upload-time = "2026-04-03T16:57:50.712Z" },
 ]
 
 [[package]]
