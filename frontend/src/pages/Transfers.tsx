@@ -43,6 +43,7 @@ export default function Transfers() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -74,10 +75,13 @@ export default function Transfers() {
       setEditingId(null);
       setForm(EMPTY_FORM);
     }
+    setSubmitted(false);
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
+    setSubmitted(true);
+    if (!form.transfer_date || !form.deposit || !form.bank_name || !form.amount_brl) return;
     const payload = {
       transfer_date: form.transfer_date,
       deposit: form.deposit,
@@ -170,7 +174,7 @@ export default function Transfers() {
         <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="transfers" />
       </Box>
 
-      {monthFilter && bankTotals.length > 0 && (
+      {bankTotals.length > 0 && (
         <Card sx={{ mb: 2 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>{t("dashboard.overview")}</Typography>
@@ -212,8 +216,9 @@ export default function Transfers() {
             label={t("transfers.transferDate")} type="date" value={form.transfer_date}
             onChange={(e) => setForm({ ...form, transfer_date: e.target.value })}
             slotProps={{ inputLabel: { shrink: true } }}
+            required error={submitted && !form.transfer_date}
           />
-          <FormControl fullWidth>
+          <FormControl fullWidth required error={submitted && !form.deposit}>
             <InputLabel>{t("transfers.deposit")}</InputLabel>
             <Select value={form.deposit} label={t("transfers.deposit")} onChange={(e) => setForm({ ...form, deposit: e.target.value })}>
               {deposits.map((d) => (
@@ -221,7 +226,7 @@ export default function Transfers() {
               ))}
             </Select>
           </FormControl>
-          <FormControl fullWidth>
+          <FormControl fullWidth required error={submitted && !form.bank_name}>
             <InputLabel>{t("transfers.bank")}</InputLabel>
             <Select value={form.bank_name} label={t("transfers.bank")} onChange={(e) => setForm({ ...form, bank_name: e.target.value })}>
               {BANKS.map((b) => (
@@ -232,6 +237,7 @@ export default function Transfers() {
           <TextField
             label={t("transfers.amountBrl")} type="number" value={form.amount_brl}
             onChange={(e) => setForm({ ...form, amount_brl: e.target.value })}
+            required error={submitted && !form.amount_brl}
           />
         </DialogContent>
         <DialogActions>

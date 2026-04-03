@@ -13,7 +13,7 @@ from core.services.ptax import get_ptax_rate
 from datetime import datetime as dt
 from django.conf import settings
 from django.contrib.auth import authenticate
-from importlib.metadata import version
+import tomllib
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -59,7 +59,10 @@ class VersionView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        return Response({"version": version("finances")})
+        pyproject_path = settings.BASE_DIR / "pyproject.toml"
+        with open(pyproject_path, "rb") as f:
+            data = tomllib.load(f)
+        return Response({"version": data["project"]["version"]})
 
 
 class DashboardView(APIView):

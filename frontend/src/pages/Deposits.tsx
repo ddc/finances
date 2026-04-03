@@ -19,6 +19,14 @@ import type { Deposit } from "../types";
 
 const DEPOSIT_CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD"] as const;
 
+const CURRENCY_COLORS: Record<string, string> = {
+  USD: "#8b5cf6",
+  EUR: "#6366f1",
+  GBP: "#3b82f6",
+  CAD: "#22c55e",
+  AUD: "#f59e0b",
+};
+
 const EMPTY_FORM = {
   deposit_date: "",
   invoice_number: "",
@@ -40,6 +48,7 @@ export default function Deposits() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -68,10 +77,13 @@ export default function Deposits() {
       setEditingId(null);
       setForm(EMPTY_FORM);
     }
+    setSubmitted(false);
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
+    setSubmitted(true);
+    if (!form.deposit_date || !form.currency || !form.amount_foreign || !form.amount_brl) return;
     const payload = {
       deposit_date: form.deposit_date,
       invoice_number: form.invoice_number,
@@ -127,12 +139,19 @@ export default function Deposits() {
       : []),
   ];
 
-  // Pie chart data: USD vs BRL totals
-  const totalForeign = rows.reduce((sum, r) => sum + Number(r.amount_foreign), 0);
   const totalBrl = rows.reduce((sum, r) => sum + Number(r.amount_brl), 0);
-  const pieData = [
+
+  const currencyTotals = DEPOSIT_CURRENCIES.map((curr) => ({
+    name: curr,
+    value: rows.filter((r) => r.currency === curr).reduce((sum, r) => sum + Number(r.amount_foreign), 0),
+    color: CURRENCY_COLORS[curr],
+  })).filter((d) => d.value > 0);
+
+  const totalForeign = currencyTotals.reduce((sum, c) => sum + c.value, 0);
+
+  const overviewPieData = [
     { name: "Foreign", value: totalForeign, color: "#8b5cf6" },
-    { name: "BRL", value: totalBrl, color: "#6366f1" },
+    { name: "BRL", value: totalBrl, color: "#ef4444" },
   ].filter((d) => d.value > 0);
 
   return (
@@ -147,58 +166,91 @@ export default function Deposits() {
         )}
       </PageHeader>
 
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <Card sx={{ minWidth: 200 }}>
+      {/* Currency amount cards */}
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
+        {currencyTotals.map((ct) => (
+          <Card key={ct.name} sx={{ minWidth: 160 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-              <Typography color="text.secondary" variant="body2">{t("deposits.totalForeign")}</Typography>
-              <Typography variant="h6" sx={{ color: "#8b5cf6" }}>
-                $ {totalForeign.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              <Typography color="text.secondary" variant="body2">{ct.name}</Typography>
+              <Typography variant="h6" sx={{ color: ct.color }}>
+                $ {ct.value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </Typography>
             </CardContent>
           </Card>
-          <Card sx={{ minWidth: 200 }}>
-            <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-              <Typography color="text.secondary" variant="body2">{t("deposits.totalBrl")}</Typography>
-              <Typography variant="h6" sx={{ color: "#6366f1" }}>
-                R$ {totalBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Box>
-        <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="deposits" />
-      </Box>
-
-      {monthFilter && pieData.length > 0 && (
-        <Card sx={{ mb: 2 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>{t("dashboard.overview")}</Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  dataKey="value"
-                  label={({ name, value }) => {
-                    const prefix = name === "USD" ? "$" : "R$";
-                    return `${name}: ${prefix} ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-                  }}
-                >
-                  {pieData.map((entry) => (
-                    <Cell key={entry.name} fill={entry.color} />
-                  ))}
-                </Pie>
-                <RechartsTooltip formatter={(value, name) => {
-                  const prefix = name === "USD" ? "$" : "R$";
-                  return `${prefix} ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-                }} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+        ))}
+        <Card sx={{ minWidth: 160 }}>
+          <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
+            <Typography color="text.secondary" variant="body2">{t("deposits.totalBrl")}</Typography>
+            <Typography variant="h6" sx={{ color: "#ef4444" }}>
+              R$ {totalBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            </Typography>
           </CardContent>
         </Card>
+        <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+          <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="deposits" />
+        </Box>
+      </Box>
+
+      {/* Pie charts side by side */}
+      {(overviewPieData.length > 0 || currencyTotals.length > 0) && (
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          {overviewPieData.length > 0 && (
+            <Card sx={{ flex: 1 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>{t("deposits.totalForeign")} vs BRL</Typography>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={overviewPieData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({ name, value }) => {
+                        const prefix = name === "BRL" ? "R$" : "$";
+                        return name + ": " + prefix + " " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+                      }}
+                    >
+                      {overviewPieData.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip formatter={(value, name) => {
+                      const prefix = String(name) === "BRL" ? "R$" : "$";
+                      return prefix + " " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+                    }} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+          {currencyTotals.length > 1 && (
+            <Card sx={{ flex: 1 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>{t("filters.currency")}</Typography>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={currencyTotals}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({ name, value }) => name + ": $ " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    >
+                      {currencyTotals.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip formatter={(value) => "$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+        </Box>
       )}
 
       <StyledDataGrid
@@ -217,6 +269,7 @@ export default function Deposits() {
             label={t("deposits.depositDate")} type="date" value={form.deposit_date}
             onChange={(e) => setForm({ ...form, deposit_date: e.target.value })}
             slotProps={{ inputLabel: { shrink: true } }}
+            required error={submitted && !form.deposit_date}
           />
           <TextField
             label={t("deposits.invoiceNumber")} value={form.invoice_number}
@@ -237,7 +290,7 @@ export default function Deposits() {
             onChange={(e) => setForm({ ...form, period_end: e.target.value })}
             slotProps={{ inputLabel: { shrink: true } }}
           />
-          <FormControl fullWidth>
+          <FormControl fullWidth required error={submitted && !form.currency}>
             <InputLabel>{t("deposits.currency")}</InputLabel>
             <Select value={form.currency} label={t("deposits.currency")} onChange={(e) => setForm({ ...form, currency: e.target.value })}>
               {DEPOSIT_CURRENCIES.map((c) => (
@@ -248,10 +301,12 @@ export default function Deposits() {
           <TextField
             label={t("deposits.amountForeign")} type="number" value={form.amount_foreign}
             onChange={(e) => setForm({ ...form, amount_foreign: e.target.value })}
+            required error={submitted && !form.amount_foreign}
           />
           <TextField
             label={t("deposits.amountBrl")} type="number" value={form.amount_brl}
             onChange={(e) => setForm({ ...form, amount_brl: e.target.value })}
+            required error={submitted && !form.amount_brl}
           />
         </DialogContent>
         <DialogActions>

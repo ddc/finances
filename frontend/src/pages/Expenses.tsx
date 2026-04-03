@@ -42,6 +42,7 @@ export default function Expenses() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -62,10 +63,13 @@ export default function Expenses() {
       setEditingId(null);
       setForm(EMPTY_FORM);
     }
+    setSubmitted(false);
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
+    setSubmitted(true);
+    if (!form.expense_date || !form.category || !form.amount) return;
     const payload = {
       expense_date: form.expense_date,
       category: form.category as Expense["category"],
@@ -153,7 +157,7 @@ export default function Expenses() {
         <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="expenses" />
       </Box>
 
-      {monthFilter && pieData.length > 0 && (
+      {pieData.length > 0 && (
         <Card sx={{ mb: 2 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>{t("dashboard.overview")}</Typography>
@@ -195,8 +199,9 @@ export default function Expenses() {
             label={t("expenses.date")} type="date" value={form.expense_date}
             onChange={(e) => setForm({ ...form, expense_date: e.target.value })}
             slotProps={{ inputLabel: { shrink: true } }}
+            required error={submitted && !form.expense_date}
           />
-          <FormControl fullWidth>
+          <FormControl fullWidth required error={submitted && !form.category}>
             <InputLabel>{t("expenses.category")}</InputLabel>
             <Select value={form.category} label={t("expenses.category")} onChange={(e) => setForm({ ...form, category: e.target.value })}>
               {CATEGORIES.map((c) => (
@@ -205,7 +210,7 @@ export default function Expenses() {
             </Select>
           </FormControl>
           <TextField label={t("expenses.description")} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-          <TextField label={t("expenses.amount")} type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+          <TextField label={t("expenses.amount")} type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required error={submitted && !form.amount} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>{t("common.cancel")}</Button>

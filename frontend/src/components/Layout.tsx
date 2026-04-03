@@ -43,13 +43,17 @@ export default function Layout() {
     navigate("/login");
   };
 
-  const handleLanguageChange = (lang: string) => {
-    i18n.changeLanguage(lang);
-    localStorage.setItem("language", lang);
-    setLangAnchorEl(null);
+  const [lang, setLang] = useState(i18n.language);
+
+  const handleLanguageChange = (newLang: string) => {
+    i18n.changeLanguage(newLang).then(() => {
+      setLang(newLang);
+      localStorage.setItem("language", newLang);
+      setLangAnchorEl(null);
+    });
   };
 
-  const currentLang = i18n.language === "pt-br" ? "PT-BR" : "EN-US";
+  const currentLang = lang === "pt-br" ? "PT-BR" : "EN-US";
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -69,8 +73,8 @@ export default function Layout() {
             </IconButton>
           </Tooltip>
           <Menu anchorEl={langAnchorEl} open={Boolean(langAnchorEl)} onClose={() => setLangAnchorEl(null)}>
-            <MenuItem selected={i18n.language === "en"} onClick={() => handleLanguageChange("en")}>EN-US</MenuItem>
-            <MenuItem selected={i18n.language === "pt-br"} onClick={() => handleLanguageChange("pt-br")}>PT-BR</MenuItem>
+            <MenuItem selected={lang === "en"} onClick={() => handleLanguageChange("en")}>EN-US</MenuItem>
+            <MenuItem selected={lang === "pt-br"} onClick={() => handleLanguageChange("pt-br")}>PT-BR</MenuItem>
           </Menu>
           <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)}>
             <AccountCircle />
