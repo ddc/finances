@@ -12,8 +12,9 @@ export default function PageHeader({ title, monthFilter, yearFilter, children }:
   const monthNames = useMonthNames();
 
   const monthIndex = Number(monthFilter) - 1;
-  const monthLabel = monthFilter && monthNames[monthIndex] ? ` — ${monthNames[monthIndex]}` : "";
-  const label = `${title}${monthLabel}${yearFilter ? ` ${yearFilter}` : ""}`;
+  const monthLabel = monthFilter && monthNames[monthIndex] ? " — " + monthNames[monthIndex] : "";
+  const yearLabel = yearFilter ? " " + yearFilter : "";
+  const label = title + monthLabel + yearLabel;
 
   return (
     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
