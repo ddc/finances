@@ -41,10 +41,10 @@ hadolint-backend.shell = "docker run --rm -i -v $(pwd)/../.hadolint.yml:/.config
 update-backend.shell = "uv run ruff check --fix . && uv run ruff format . && uv lock --upgrade && uv sync --all-extras --all-groups"
 migration-backend = "uv run --frozen python manage.py migrate"
 # --- Frontend ---
-linter-frontend.shell = "cd ../frontend && npm run lint"
-test-frontend.shell = "cd ../frontend && npx vitest run src/test/unit"
-test-frontend-integration.shell = "cd ../frontend && npx vitest run src/test/integration"
-update-frontend.shell = "cd ../frontend && npm update && npm run build"
+linter-frontend.shell = "cd ../frontend && bun run lint"
+test-frontend.shell = "cd ../frontend && bunx vitest run src/test/unit"
+test-frontend-integration.shell = "cd ../frontend && bunx vitest run src/test/integration"
+update-frontend.shell = "cd ../frontend && bun update && bun run build"
 # --- All ---
 linter.sequence = ["linter-backend", "linter-frontend"]
 updatedev.sequence = ["update-backend", "update-frontend"]

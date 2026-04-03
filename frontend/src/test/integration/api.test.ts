@@ -56,7 +56,7 @@ describe("Expenses API", () => {
   });
 
   it("createExpense sends payload", async () => {
-    const expense = { expense_date: "2026-01-05", category: "IMPOSTOS" as const, amount: 100 };
+    const expense = { expense_date: "2026-01-05", category: "TAXES" as const, amount: 100 };
     mockClient.post.mockResolvedValueOnce({ data: { id: "1", ...expense } });
     const result = await createExpense(expense);
     expect(mockClient.post).toHaveBeenCalledWith("/expenses/", expense);

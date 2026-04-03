@@ -20,7 +20,7 @@ class TestLogin:
         from rest_framework.test import APIClient
 
         client = APIClient()
-        response = client.post(f"{BASE_URL}/login/", {"username": "wrong", "password": "wrong-not-real"})
+        response = client.post(f"{BASE_URL}/login/", {"username": "wrong", "password": TEST_USER_PASSWORD + "-invalid"})
         assert response.status_code == 401
 
     def test_me(self, admin_client):

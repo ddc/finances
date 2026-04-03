@@ -7,7 +7,6 @@ name: CI/CD Pipeline
 
 env:
   LATEST_PYTHON_VERSION: '3.14'
-  LATEST_NODE_VERSION: '22'
 
 jobs:
   lint-backend:
@@ -27,20 +26,16 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
 
-      - name: Set up Node ${{ env.LATEST_NODE_VERSION }}
-        uses: actions/setup-node@v6.3.0
-        with:
-          node-version: ${{ env.LATEST_NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: npm install
+        run: bun install --frozen-lockfile
 
       - name: Lint
-        run: npm run lint
+        run: bun run lint
 
   test-backend:
     name: Backend Unit Tests
@@ -89,18 +84,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
 
-      - name: Set up Node ${{ env.LATEST_NODE_VERSION }}
-        uses: actions/setup-node@v6.3.0
-        with:
-          node-version: ${{ env.LATEST_NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: npm install
+        run: bun install --frozen-lockfile
 
       - name: Run unit tests
-        run: npx vitest run src/test/unit
+        run: bunx vitest run src/test/unit
 
   test-backend-integration:
     name: Backend Integration Tests
@@ -141,18 +132,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
 
-      - name: Set up Node ${{ env.LATEST_NODE_VERSION }}
-        uses: actions/setup-node@v6.3.0
-        with:
-          node-version: ${{ env.LATEST_NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: npm install
+        run: bun install --frozen-lockfile
 
       - name: Run integration tests
-        run: npx vitest run src/test/integration
+        run: bunx vitest run src/test/integration
 
   docker-backend:
     name: Backend Docker
@@ -220,18 +207,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
 
-      - name: Set up Node ${{ env.LATEST_NODE_VERSION }}
-        uses: actions/setup-node@v6.3.0
-        with:
-          node-version: ${{ env.LATEST_NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: npm install
+        run: bun install --frozen-lockfile
 
       - name: Build
-        run: npm run build
+        run: bun run build
 
   release:
     name: Create Release
