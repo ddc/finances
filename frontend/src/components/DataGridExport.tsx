@@ -10,8 +10,9 @@ interface DataGridExportProps<T extends object> {
 
 function cellToString(value: unknown): string {
   if (value === null || value === undefined) return "";
-  if (typeof value === "object") return JSON.stringify(value);
-  return String(value);
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return value.toString();
+  return JSON.stringify(value);
 }
 
 export default function DataGridExport<T extends object>({ rows, columns, filename }: DataGridExportProps<T>) {
