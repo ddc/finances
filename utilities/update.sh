@@ -10,8 +10,8 @@ pushd "$PROJECT_DIR" > /dev/null
 ./utilities/stop.sh
 
 # update project
-sudo git fetch --all
-sudo git reset --hard origin/main
+git fetch --all
+git reset --hard origin/main
 
 # change perms
 sudo chown -R "$PROJECT_USERNAME":"$PROJECT_USERNAME" "$PROJECT_DIR"
