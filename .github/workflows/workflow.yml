@@ -11,7 +11,7 @@ env:
 
 jobs:
   lint-backend:
-    name: Lint Backend (ruff)
+    name: Backend Lint (ruff)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
@@ -21,7 +21,7 @@ jobs:
           args: "check"
 
   lint-frontend:
-    name: Lint Frontend (eslint)
+    name: Frontend Lint (eslint)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -155,7 +155,7 @@ jobs:
         run: npx vitest run src/test/integration
 
   docker-backend:
-    name: Docker Backend
+    name: Backend Docker
     runs-on: ubuntu-latest
     needs: lint-backend
     steps:
@@ -180,7 +180,7 @@ jobs:
         run: docker run --rm finances-backend-ci uv --version
 
   docker-frontend:
-    name: Docker Frontend
+    name: Frontend Docker
     runs-on: ubuntu-latest
     needs: lint-frontend
     steps:
@@ -211,7 +211,7 @@ jobs:
           docker compose -f docker-compose.yml config --quiet
 
   build-frontend:
-    name: Build Frontend
+    name: Frontend Build
     runs-on: ubuntu-latest
     needs: [test-frontend, test-frontend-integration]
     defaults:
