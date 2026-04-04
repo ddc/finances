@@ -27,6 +27,14 @@ const CURRENCY_COLORS: Record<string, string> = {
   AUD: "#f59e0b",
 };
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$",
+  EUR: "\u20AC",
+  GBP: "\u00A3",
+  CAD: "C$",
+  AUD: "A$",
+};
+
 const EMPTY_FORM = {
   deposit_date: "",
   invoice_number: "",
@@ -115,9 +123,9 @@ export default function Deposits() {
     { field: "deposit_date", headerName: t("deposits.depositDate"), flex: 1 },
     { field: "invoice_issue_date", headerName: t("deposits.issueDate"), flex: 1 },
     { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 1 },
-    { field: "currency", headerName: t("deposits.currency"), flex: 0.5 },
     { field: "period_start", headerName: t("deposits.periodStart"), flex: 1 },
     { field: "period_end", headerName: t("deposits.periodEnd"), flex: 1 },
+    { field: "currency", headerName: t("deposits.currency"), flex: 0.5 },
     { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1, type: "number" },
     { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number" },
     ...(isAdmin
@@ -173,7 +181,7 @@ export default function Deposits() {
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
               <Typography color="text.secondary" variant="body2">{ct.name}</Typography>
               <Typography variant="h6" sx={{ color: ct.color }}>
-                $ {ct.value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                {CURRENCY_SYMBOLS[ct.name] || ct.name} {ct.value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </Typography>
             </CardContent>
           </Card>
@@ -206,19 +214,13 @@ export default function Deposits() {
                       cy="50%"
                       outerRadius={80}
                       dataKey="value"
-                      label={({ name, value }) => {
-                        const prefix = name === "BRL" ? "R$" : "$";
-                        return name + ": " + prefix + " " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
-                      }}
+                      label={({ name, value }) => name + ": " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     >
                       {overviewPieData.map((entry) => (
                         <Cell key={entry.name} fill={entry.color} />
                       ))}
                     </Pie>
-                    <RechartsTooltip formatter={(value, name) => {
-                      const prefix = String(name) === "BRL" ? "R$" : "$";
-                      return prefix + " " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
-                    }} />
+                    <RechartsTooltip formatter={(value) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -237,13 +239,13 @@ export default function Deposits() {
                       cy="50%"
                       outerRadius={80}
                       dataKey="value"
-                      label={({ name, value }) => name + ": $ " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      label={({ name, value }) => name + ": " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     >
                       {currencyTotals.map((entry) => (
                         <Cell key={entry.name} fill={entry.color} />
                       ))}
                     </Pie>
-                    <RechartsTooltip formatter={(value) => "$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <RechartsTooltip formatter={(value) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>

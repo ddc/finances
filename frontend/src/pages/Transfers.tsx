@@ -59,7 +59,7 @@ export default function Transfers() {
 
   const depositLabel = (id: string) => {
     const d = deposits.find((dep) => dep.id === id);
-    return d ? `${d.invoice_number} (${d.deposit_date})` : id;
+    return d ? d.invoice_number + " (" + d.deposit_date + ") " + d.currency + " " + d.amount_foreign : id;
   };
 
   const handleOpen = (transfer?: Transfer) => {
@@ -222,7 +222,7 @@ export default function Transfers() {
             <InputLabel>{t("transfers.deposit")}</InputLabel>
             <Select value={form.deposit} label={t("transfers.deposit")} onChange={(e) => setForm({ ...form, deposit: e.target.value })}>
               {deposits.map((d) => (
-                <MenuItem key={d.id} value={d.id}>{d.invoice_number} ({d.deposit_date})</MenuItem>
+                <MenuItem key={d.id} value={d.id}>{d.invoice_number} ({d.deposit_date}) {d.currency} {d.amount_foreign}</MenuItem>
               ))}
             </Select>
           </FormControl>

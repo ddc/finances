@@ -1,7 +1,8 @@
-import "./i18n";
+import i18n from "./i18n";
 import { useState, useEffect, useMemo } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
+import { I18nextProvider } from "react-i18next";
 import { AuthContext } from "./hooks/useAuth";
 import { ThemeModeContext } from "./hooks/useThemeMode";
 import type { User } from "./types";
@@ -72,24 +73,26 @@ export default function App() {
   if (loading) return null;
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <ThemeModeContext.Provider value={themeModeValue}>
-        <AuthContext.Provider value={authValue}>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={token ? <Navigate to="/" /> : <Login />} />
-              <Route element={token ? <Layout /> : <Navigate to="/login" />}>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/expenses" element={<Expenses />} />
-                <Route path="/deposits" element={<Deposits />} />
-                <Route path="/transfers" element={<Transfers />} />
-                <Route path="/nfe-samples" element={<NfeSamples />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
-        </AuthContext.Provider>
-      </ThemeModeContext.Provider>
-    </ThemeProvider>
+    <I18nextProvider i18n={i18n}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <ThemeModeContext.Provider value={themeModeValue}>
+          <AuthContext.Provider value={authValue}>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={token ? <Navigate to="/" /> : <Login />} />
+                <Route element={token ? <Layout /> : <Navigate to="/login" />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/expenses" element={<Expenses />} />
+                  <Route path="/deposits" element={<Deposits />} />
+                  <Route path="/transfers" element={<Transfers />} />
+                  <Route path="/nfe-samples" element={<NfeSamples />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </AuthContext.Provider>
+        </ThemeModeContext.Provider>
+      </ThemeProvider>
+    </I18nextProvider>
   );
 }

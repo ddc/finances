@@ -44,10 +44,10 @@ class Deposit(BaseModel):
         AUD = "AUD", "AUD"
 
     deposit_date = models.DateField()
-    invoice_number = models.CharField(max_length=100)
-    invoice_issue_date = models.DateField()
-    period_start = models.DateField()
-    period_end = models.DateField()
+    invoice_number = models.CharField(max_length=100, blank=True, default="")
+    invoice_issue_date = models.DateField(null=True, blank=True)
+    period_start = models.DateField(null=True, blank=True)
+    period_end = models.DateField(null=True, blank=True)
     currency = models.CharField(max_length=3, choices=CurrencyChoices.choices, default="USD")
     amount_foreign = models.DecimalField(max_digits=10, decimal_places=2)
     amount_brl = models.DecimalField(max_digits=10, decimal_places=2)

@@ -123,8 +123,17 @@ export default function Layout() {
           {appVersion ? t("app.version", { version: appVersion }) : ""}
         </Typography>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-        <Outlet />
+      <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8, display: "flex", flexDirection: "column", minHeight: "calc(100vh - 64px)" }}>
+        <Box sx={{ flexGrow: 1 }}>
+          <Outlet />
+        </Box>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ textAlign: "right", pt: 2 }}
+        >
+          Copyright &copy; 2026 DDC Softwares
+        </Typography>
       </Box>
     </Box>
   );
