@@ -1,5 +1,5 @@
-INVALID_CREDENTIALS = "Invalid credentials"
-LOGIN_SUCCESS = "Login successful"
-LOGOUT_SUCCESS = "Logout successful"
-PERMISSION_DENIED = "You do not have permission to perform this action"
-NOT_FOUND = "Resource not found"
+from typing import Final
+
+INVALID_CREDENTIALS: Final[str] = "Invalid credentials"
+PERMISSION_DENIED: Final[str] = "You do not have permission to perform this action"
+NOT_FOUND: Final[str] = "Resource not found"

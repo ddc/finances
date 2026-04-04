@@ -55,8 +55,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self._log("Running seed_data command")
-        self._seed_admin(settings.env)
-        self._seed_categories(settings.env)
-        self._seed_currencies(settings.env)
-        self._seed_banks(settings.env)
+        self._seed_admin(settings.ENV)
+        self._seed_categories(settings.ENV)
+        self._seed_currencies(settings.ENV)
+        self._seed_banks(settings.ENV)
         self._log("Seed data loaded", "success")

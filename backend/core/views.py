@@ -1,4 +1,5 @@
-import tomllib
+from core.constants.messages import INVALID_CREDENTIALS
+from core.constants.variables import APP_VERSION
 from core.models import Bank, Currency, Deposit, Expense, ExpenseCategory, NfeSample, Transfer
 from core.permissions import IsAdminOrReadOnly
 from core.serializers import (
@@ -102,7 +103,7 @@ class LoginView(APIView):
         )
         if not user:
             settings.LOG.warning("Failed login attempt for: " + serializer.validated_data["username"])
-            return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"detail": INVALID_CREDENTIALS}, status=status.HTTP_401_UNAUTHORIZED)
         token, _ = Token.objects.get_or_create(user=user)
         settings.LOG.info("User logged in: " + user.username)
         return Response({"token": token.key, "user": UserSerializer(user).data})
@@ -128,10 +129,7 @@ class VersionView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        pyproject_path = settings.BASE_DIR / "pyproject.toml"
-        with open(pyproject_path, "rb") as f:
-            data = tomllib.load(f)
-        return Response({"version": data["project"]["version"]})
+        return Response({"version": APP_VERSION})
 
 
 class DashboardView(APIView):

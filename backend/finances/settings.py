@@ -1,58 +1,19 @@
+from core.constants.app_settings import AppSettings
 from pathlib import Path
-from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pythonlogs import TimedRotatingLog
 
-
-class AppSettings(BaseSettings):
-    # Database
-    POSTGRES_HOST: str = Field(default="localhost")
-    POSTGRES_PORT: int = Field(default=5432)
-    POSTGRES_DB: str = Field(default="finances")
-    POSTGRES_USER: str = Field(default="finances")
-    POSTGRES_PASSWORD: str = Field(default="finances")
-
-    # Frontend App Port
-    FRONTEND_PORT: int = Field(default=8888)
-
-    # Admin
-    ADMIN_USERNAME: str = Field(default="admin")
-    ADMIN_PASSWORD: str = Field(default="admin123")
-
-    # Seed data (comma-separated)
-    SEED_CATEGORIES: str = Field(
-        default="TAXES:Taxes,HEALTH_INSURANCE:Health Insurance,ACCOUNTING:Accounting,TFE:TFE,OTHER:Other"
-    )
-    SEED_CURRENCIES: str = Field(
-        default="USD:US Dollar:$,EUR:Euro:\u20ac,GBP:British Pound:\u00a3,CAD:Canadian Dollar:C$,AUD:Australian Dollar:A$"
-    )
-    SEED_BANKS: str = Field(default="SANTANDER:Santander")
-
-    # Django
-    DJANGO_DEBUG: bool = Field(default=True)
-    DJANGO_SECRET_KEY: str = Field(default="dev-insecure-key")
-    DJANGO_ALLOWED_HOSTS: str = Field(default="localhost,127.0.0.1")
-    DJANGO_TIME_ZONE: str = Field(default="UTC")
-
-    # PTAX
-    PTAX_CACHE_TTL_SECONDS: int = Field(default=3600)
-    PTAX_API_URL: str = Field(default="https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata")
-
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="allow")
-
-
-env = AppSettings()
+ENV = AppSettings()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = env.DJANGO_SECRET_KEY
-DEBUG = env.DJANGO_DEBUG
-ALLOWED_HOSTS = env.DJANGO_ALLOWED_HOSTS.split(",")
+SECRET_KEY = ENV.DJANGO_SECRET_KEY
+DEBUG = ENV.DJANGO_DEBUG
+ALLOWED_HOSTS = ENV.DJANGO_ALLOWED_HOSTS.split(",")
 CSRF_TRUSTED_ORIGINS = []
-for host in env.DJANGO_ALLOWED_HOSTS.split(","):
+for host in ENV.DJANGO_ALLOWED_HOSTS.split(","):
     host = host.strip()
     if host:
         CSRF_TRUSTED_ORIGINS.append("http://" + host)
-        CSRF_TRUSTED_ORIGINS.append("http://" + host + ":" + str(env.FRONTEND_PORT))
+        CSRF_TRUSTED_ORIGINS.append("http://" + host + ":" + str(ENV.FRONTEND_PORT))
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -99,11 +60,11 @@ WSGI_APPLICATION = "finances.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env.POSTGRES_DB,
-        "USER": env.POSTGRES_USER,
-        "PASSWORD": env.POSTGRES_PASSWORD,
-        "HOST": env.POSTGRES_HOST,
-        "PORT": str(env.POSTGRES_PORT),
+        "NAME": ENV.POSTGRES_DB,
+        "USER": ENV.POSTGRES_USER,
+        "PASSWORD": ENV.POSTGRES_PASSWORD,
+        "HOST": ENV.POSTGRES_HOST,
+        "PORT": str(ENV.POSTGRES_PORT),
     }
 }
 
@@ -115,7 +76,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = env.DJANGO_TIME_ZONE
+TIME_ZONE = ENV.DJANGO_TIME_ZONE
 USE_I18N = True
 USE_TZ = True
 
@@ -133,8 +94,8 @@ REST_FRAMEWORK = {
     ],
 }
 
-PTAX_API_URL = env.PTAX_API_URL
-PTAX_CACHE_TTL_SECONDS = env.PTAX_CACHE_TTL_SECONDS
+PTAX_API_URL = ENV.PTAX_API_URL
+PTAX_CACHE_TTL_SECONDS = ENV.PTAX_CACHE_TTL_SECONDS
 
 LOGGING_CONFIG = None
 
