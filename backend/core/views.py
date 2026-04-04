@@ -1,8 +1,11 @@
 import tomllib
-from core.models import Deposit, Expense, NfeSample, Transfer
+from core.models import Bank, Currency, Deposit, Expense, ExpenseCategory, NfeSample, Transfer
 from core.permissions import IsAdminOrReadOnly
 from core.serializers import (
+    BankSerializer,
+    CurrencySerializer,
     DepositSerializer,
+    ExpenseCategorySerializer,
     ExpenseSerializer,
     LoginSerializer,
     NfeSerializer,
@@ -66,9 +69,15 @@ class LoggingModelViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        settings.LOG.debug(self.__class__.__name__ + " RETRIEVE by " + str(request.user) + " id=" + str(instance.pk))
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
     def list(self, request, *args, **kwargs):
         qs = self.filter_queryset(self.get_queryset())
-        settings.LOG.info(
+        settings.LOG.debug(
             self.__class__.__name__
             + " LIST by "
             + str(request.user)
@@ -171,7 +180,7 @@ class ExpenseViewSet(LoggingModelViewSet):
         year = self.request.query_params.get("year")
         month = self.request.query_params.get("month")
         if category:
-            qs = qs.filter(category=category)
+            qs = qs.filter(category__code=category)
         if year:
             qs = qs.filter(expense_date__year=year)
         if month:
@@ -210,14 +219,32 @@ class TransferViewSet(LoggingModelViewSet):
         qs = super().get_queryset()
         year = self.request.query_params.get("year")
         month = self.request.query_params.get("month")
-        bank = self.request.query_params.get("bank_name")
+        bank = self.request.query_params.get("bank")
         if year:
             qs = qs.filter(transfer_date__year=year)
         if month:
             qs = qs.filter(transfer_date__month=month)
         if bank:
-            qs = qs.filter(bank_name=bank)
+            qs = qs.filter(bank__code=bank)
         return qs
+
+
+class ExpenseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ExpenseCategory.objects.all()
+    serializer_class = ExpenseCategorySerializer
+    permission_classes = [IsAuthenticated]
+
+
+class CurrencyViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Currency.objects.all()
+    serializer_class = CurrencySerializer
+    permission_classes = [IsAuthenticated]
+
+
+class BankViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Bank.objects.all()
+    serializer_class = BankSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class NfeSampleViewSet(LoggingModelViewSet):

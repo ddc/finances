@@ -1,14 +1,12 @@
-from core.models import Deposit, Expense, Transfer
+from core.models import Currency, Deposit, Expense, Transfer
 from decimal import Decimal
 from django.conf import settings
 from django.db.models import Sum
 from django.db.models.functions import ExtractMonth
 
-CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD"]
-
 
 def get_dashboard_data(year, month=None):
-    settings.LOG.info(f"Building dashboard data: year={year}, month={month}")
+    settings.LOG.info("Building dashboard data: year=" + str(year) + ", month=" + str(month))
     deposit_qs = Deposit.objects.filter(deposit_date__year=year)
     expense_qs = Expense.objects.filter(expense_date__year=year)
     transfer_qs = Transfer.objects.filter(transfer_date__year=year)
@@ -20,9 +18,9 @@ def get_dashboard_data(year, month=None):
 
     # Income per currency
     income_by_currency = {}
-    for curr in CURRENCIES:
+    for curr in Currency.objects.all():
         total = deposit_qs.filter(currency=curr).aggregate(total=Sum("amount_foreign"))["total"] or Decimal("0")
-        income_by_currency[curr] = total
+        income_by_currency[curr.code] = total
 
     total_income_brl = deposit_qs.aggregate(total=Sum("amount_brl"))["total"] or Decimal("0")
     total_expenses = expense_qs.aggregate(total=Sum("amount"))["total"] or Decimal("0")
@@ -67,14 +65,19 @@ def get_dashboard_data(year, month=None):
         for m, data in sorted(months.items())
     ]
 
-    recent_expenses = expense_qs.order_by("-expense_date")[:10]
+    recent_expenses = expense_qs.select_related("category").order_by("-expense_date")[:10]
     recent_deposits = deposit_qs.order_by("-deposit_date")[:10]
-    recent_transfers = transfer_qs.order_by("-transfer_date")[:10]
+    recent_transfers = transfer_qs.select_related("bank").order_by("-transfer_date")[:10]
 
     recent_activity = sorted(
         [
             *[
-                {"type": "expense", "description": e.category, "amount_brl": e.amount, "date": str(e.expense_date)}
+                {
+                    "type": "expense",
+                    "description": e.category.label,
+                    "amount_brl": e.amount,
+                    "date": str(e.expense_date),
+                }
                 for e in recent_expenses
             ],
             *[
@@ -89,7 +92,7 @@ def get_dashboard_data(year, month=None):
             *[
                 {
                     "type": "transfer",
-                    "description": t.bank_name,
+                    "description": t.bank.label,
                     "amount_brl": t.amount_brl,
                     "date": str(t.transfer_date),
                 }
@@ -101,9 +104,16 @@ def get_dashboard_data(year, month=None):
     )[:10]
 
     settings.LOG.info(
-        f"Dashboard data: income_brl={total_income_brl}, "
-        f"expenses={total_expenses}, transferred={total_transferred}, "
-        f"months={len(monthly)}, recent_activity={len(recent_activity)}"
+        "Dashboard data: income_brl="
+        + str(total_income_brl)
+        + ", expenses="
+        + str(total_expenses)
+        + ", transferred="
+        + str(total_transferred)
+        + ", months="
+        + str(len(monthly))
+        + ", recent_activity="
+        + str(len(recent_activity))
     )
 
     return {

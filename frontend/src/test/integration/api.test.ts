@@ -56,7 +56,7 @@ describe("Expenses API", () => {
   });
 
   it("createExpense sends payload", async () => {
-    const expense = { expense_date: "2026-01-05", category: "TAXES" as const, amount: 100 };
+    const expense = { expense_date: "2026-01-05", category: "cat-uuid-1", amount: 100 };
     mockClient.post.mockResolvedValueOnce({ data: { id: "1", ...expense } });
     const result = await createExpense(expense);
     expect(mockClient.post).toHaveBeenCalledWith("/expenses/", expense);
@@ -89,12 +89,12 @@ describe("Deposits API", () => {
 describe("Transfers API", () => {
   it("listTransfers with params", async () => {
     mockClient.get.mockResolvedValueOnce({ data: [] });
-    await listTransfers({ year: "2026", bank_name: "SANTANDER" });
-    expect(mockClient.get).toHaveBeenCalledWith("/transfers/", { params: { year: "2026", bank_name: "SANTANDER" } });
+    await listTransfers({ year: "2026", bank: "some-uuid" });
+    expect(mockClient.get).toHaveBeenCalledWith("/transfers/", { params: { year: "2026", bank: "some-uuid" } });
   });
 
   it("createTransfer sends payload", async () => {
-    const transfer = { transfer_date: "2026-01-02", deposit: "dep-1", bank_name: "SANTANDER" as const, amount_brl: 5890 };
+    const transfer = { transfer_date: "2026-01-02", deposit: "dep-1", bank: "bank-uuid-1", amount_brl: 5890 };
     mockClient.post.mockResolvedValueOnce({ data: { id: "1", ...transfer } });
     const result = await createTransfer(transfer);
     expect(mockClient.post).toHaveBeenCalledWith("/transfers/", transfer);

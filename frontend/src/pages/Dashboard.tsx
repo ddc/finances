@@ -10,16 +10,11 @@ import {
 } from "recharts";
 import { useTranslation } from "react-i18next";
 import { getDashboard } from "../api/dashboard";
-import type { DashboardData } from "../types";
+import { listCurrencies } from "../api/lookups";
+import type { DashboardData, CurrencyOption } from "../types";
 
 const PIE_COLORS = ["#6366f1", "#ef4444", "#3b82f6", "#22c55e"];
-const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD"];
-const CURRENCY_COLORS: Record<string, string> = {
-  USD: "#8b5cf6", EUR: "#6366f1", GBP: "#3b82f6", CAD: "#f97316", AUD: "#f59e0b",
-};
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  USD: "$", EUR: "\u20AC", GBP: "\u00A3", CAD: "C$", AUD: "A$",
-};
+const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -31,6 +26,12 @@ export default function Dashboard() {
   const [month, setMonth] = useState<number | "">("");
   const [currency, setCurrency] = useState("USD");
   const [data, setData] = useState<DashboardData | null>(null);
+  const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
+
+  useEffect(() => { listCurrencies().then((list) => {
+    setCurrencies(list);
+    setCurrency((prev) => list.find((c) => c.code === prev) ? prev : (list[0]?.code || "USD"));
+  }); }, []);
 
   const fetchData = useCallback(() => {
     getDashboard(year, month || undefined, currency).then(setData);
@@ -39,6 +40,11 @@ export default function Dashboard() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   if (!data) return null;
+
+  const currencyColor = (code: string) => {
+    const idx = currencies.findIndex((c) => c.code === code);
+    return idx >= 0 ? DYNAMIC_COLORS[idx % DYNAMIC_COLORS.length] : "#94a3b8";
+  };
 
   const filterLabel = month ? `${MONTH_NAMES[month - 1]} ${year}` : `${year}`;
 
@@ -74,8 +80,8 @@ export default function Dashboard() {
           <FormControl size="small" sx={{ minWidth: 100 }}>
             <InputLabel>{t("filters.currency")}</InputLabel>
             <Select value={currency} label={t("filters.currency")} onChange={(e) => setCurrency(e.target.value)}>
-              {CURRENCIES.map((c) => (
-                <MenuItem key={c} value={c}>{c}</MenuItem>
+              {currencies.map((c) => (
+                <MenuItem key={c.id} value={c.code}>{c.code}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -108,15 +114,15 @@ export default function Dashboard() {
 
       {/* Row 1: Income by currency */}
       <Grid container spacing={2} sx={{ mb: 2 }}>
-        {CURRENCIES.map((curr) => (
-          <Grid key={curr} size={{ xs: 12, sm: 6, md: 2.4 }}>
+        {currencies.map((curr) => (
+          <Grid key={curr.id} size={{ xs: 12, sm: 6, md: 2.4 }}>
             <Card>
               <CardContent>
                 <Typography color="text.secondary" gutterBottom>
-                  {t("dashboard.totalIncomeForeign", { currency: curr })}
+                  {t("dashboard.totalIncomeForeign", { currency: curr.code })}
                 </Typography>
-                <Typography variant="h5" sx={{ color: CURRENCY_COLORS[curr] }}>
-                  {CURRENCY_SYMBOLS[curr]} {Number(data.summary.income_by_currency[curr] || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                <Typography variant="h5" sx={{ color: currencyColor(curr.code) }}>
+                  {curr.symbol} {Number(data.summary.income_by_currency[curr.code] || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                 </Typography>
               </CardContent>
             </Card>

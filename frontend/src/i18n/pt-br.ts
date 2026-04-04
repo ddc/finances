@@ -16,6 +16,7 @@ export default {
     username: "Usuário",
     password: "Senha",
     invalidCredentials: "Usuário ou senha inválidos",
+    rememberMe: "Lembrar-me",
     adminPanel: "Painel Admin",
   },
   theme: {

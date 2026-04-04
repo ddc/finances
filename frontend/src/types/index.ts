@@ -9,10 +9,31 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface ExpenseCategory {
+  id: string;
+  code: string;
+  label: string;
+}
+
+export interface CurrencyOption {
+  id: string;
+  code: string;
+  label: string;
+  symbol: string;
+}
+
+export interface BankOption {
+  id: string;
+  code: string;
+  label: string;
+}
+
 export interface Expense {
   id: string;
   expense_date: string;
-  category: "TAXES" | "HEALTH_INSURANCE" | "ACCOUNTING" | "TFE" | "OTHER";
+  category: string;
+  category_code: string;
+  category_label: string;
   description: string;
   amount: number;
   created_by: string;
@@ -27,7 +48,9 @@ export interface Deposit {
   invoice_issue_date: string | null;
   period_start: string | null;
   period_end: string | null;
-  currency: "USD" | "EUR" | "GBP" | "CAD" | "AUD";
+  currency: string;
+  currency_code: string;
+  currency_symbol: string;
   amount_foreign: number;
   amount_brl: number;
   created_by: string;
@@ -39,7 +62,9 @@ export interface Transfer {
   id: string;
   transfer_date: string;
   deposit: string;
-  bank_name: "SANTANDER";
+  bank: string;
+  bank_code: string;
+  bank_label: string;
   amount_brl: number;
   created_by: string;
   created_at: string;

@@ -11,32 +11,24 @@ import type { GridColDef } from "@mui/x-data-grid";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
 import { listExpenses, createExpense, updateExpense, deleteExpense } from "../api/expenses";
+import { listExpenseCategories } from "../api/lookups";
 import DataGridExport from "../components/DataGridExport";
 import { MonthFilter, YearFilter } from "../components/PageFilters";
 import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
-import type { Expense } from "../types";
+import type { Expense, ExpenseCategory } from "../types";
 
-const CATEGORIES = ["TAXES", "HEALTH_INSURANCE", "ACCOUNTING", "TFE", "OTHER"] as const;
-
-const CATEGORY_COLORS: Record<string, string> = {
-  TAXES: "#6366f1",
-  HEALTH_INSURANCE: "#8b5cf6",
-  ACCOUNTING: "#3b82f6",
-  TFE: "#f59e0b",
-  OTHER: "#f97316",
-};
+const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
 const today = () => new Date().toISOString().split("T")[0];
-const EMPTY_FORM = () => ({ expense_date: today(), category: "OTHER" as string, description: "", amount: "" });
+const EMPTY_FORM = () => ({ expense_date: today(), category: "" as string, description: "", amount: "" });
 
 export default function Expenses() {
   const { t } = useTranslation();
 
-  const categoryLabel = (cat: string) => t(`expenses.categories.${cat}`) || cat;
-
   const { isAdmin } = useAuth();
   const [rows, setRows] = useState<Expense[]>([]);
+  const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [yearFilter, setYearFilter] = useState(String(new Date().getFullYear()));
   const [monthFilter, setMonthFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -45,6 +37,8 @@ export default function Expenses() {
   const [form, setForm] = useState(EMPTY_FORM());
   const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  useEffect(() => { listExpenseCategories().then(setCategories); }, []);
 
   const load = useCallback(() => {
     const params: Record<string, string> = {};
@@ -62,7 +56,8 @@ export default function Expenses() {
       setForm({ expense_date: expense.expense_date, category: expense.category, description: expense.description, amount: String(expense.amount) });
     } else {
       setEditingId(null);
-      setForm(EMPTY_FORM());
+      const defaultCat = categories.find((c) => c.code === "OTHER");
+      setForm({ ...EMPTY_FORM(), category: defaultCat ? defaultCat.id : (categories[0]?.id || "") });
     }
     setSubmitted(false);
     setDialogOpen(true);
@@ -71,10 +66,11 @@ export default function Expenses() {
   const handleSave = async () => {
     setSubmitted(true);
     if (!form.expense_date || !form.category || !form.amount) return;
-    if (form.category === "OTHER" && !form.description) return;
+    const selectedCat = categories.find((c) => c.id === form.category);
+    if (selectedCat?.code === "OTHER" && !form.description) return;
     const payload = {
       expense_date: form.expense_date,
-      category: form.category as Expense["category"],
+      category: form.category,
       description: form.description,
       amount: Number(form.amount),
     };
@@ -95,9 +91,11 @@ export default function Expenses() {
     }
   };
 
+  const selectedCatCode = categories.find((c) => c.id === form.category)?.code;
+
   const columns: GridColDef[] = [
     { field: "expense_date", headerName: t("expenses.date"), flex: 1 },
-    { field: "category", headerName: t("expenses.category"), flex: 1, valueGetter: (value: string) => categoryLabel(value) },
+    { field: "category_label", headerName: t("expenses.category"), flex: 1 },
     { field: "description", headerName: t("expenses.description"), flex: 2 },
     { field: "amount", headerName: t("expenses.amount"), flex: 1, type: "number" },
     ...(isAdmin
@@ -120,10 +118,10 @@ export default function Expenses() {
   ];
 
   // Pie chart data: breakdown by category
-  const pieData = CATEGORIES.map((cat) => ({
-    name: categoryLabel(cat),
-    value: rows.filter((r) => r.category === cat).reduce((sum, r) => sum + Number(r.amount), 0),
-    color: CATEGORY_COLORS[cat],
+  const pieData = categories.map((cat, i) => ({
+    name: cat.label,
+    value: rows.filter((r) => r.category_code === cat.code).reduce((sum, r) => sum + Number(r.amount), 0),
+    color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
   })).filter((d) => d.value > 0);
 
   return (
@@ -133,8 +131,8 @@ export default function Expenses() {
           <InputLabel>{t("filters.category")}</InputLabel>
           <Select value={categoryFilter} label={t("filters.category")} onChange={(e) => setCategoryFilter(e.target.value)}>
             <MenuItem value="">{t("filters.all")}</MenuItem>
-            {CATEGORIES.map((c) => (
-              <MenuItem key={c} value={c}>{categoryLabel(c)}</MenuItem>
+            {categories.map((c) => (
+              <MenuItem key={c.id} value={c.id}>{c.label}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -210,16 +208,16 @@ export default function Expenses() {
           <FormControl fullWidth required error={submitted && !form.category}>
             <InputLabel>{t("expenses.category")}</InputLabel>
             <Select value={form.category} label={t("expenses.category")} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-              {CATEGORIES.map((c) => (
-                <MenuItem key={c} value={c}>{categoryLabel(c)}</MenuItem>
+              {categories.map((c) => (
+                <MenuItem key={c.id} value={c.id}>{c.label}</MenuItem>
               ))}
             </Select>
           </FormControl>
           <TextField
             label={t("expenses.description")} value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            required={form.category === "OTHER"}
-            error={submitted && form.category === "OTHER" && !form.description}
+            required={selectedCatCode === "OTHER"}
+            error={submitted && selectedCatCode === "OTHER" && !form.description}
           />
           <TextField label={t("expenses.amount")} type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required error={submitted && !form.amount} />
         </DialogContent>

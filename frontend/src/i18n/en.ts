@@ -16,6 +16,7 @@ export default {
     username: "Username",
     password: "Password",
     invalidCredentials: "Invalid username or password",
+    rememberMe: "Remember me",
     adminPanel: "Admin Panel",
   },
   theme: {

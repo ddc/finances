@@ -1,13 +1,45 @@
-from core.models import Deposit, Expense, NfeSample, Transfer
+from core.models import Bank, Currency, Deposit, Expense, ExpenseCategory, NfeSample, Transfer
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
 
+class ExpenseCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExpenseCategory
+        fields = ["id", "code", "label"]
+
+
+class CurrencySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Currency
+        fields = ["id", "code", "label", "symbol"]
+
+
+class BankSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bank
+        fields = ["id", "code", "label"]
+
+
 class ExpenseSerializer(serializers.ModelSerializer):
+    category_code = serializers.CharField(source="category.code", read_only=True)
+    category_label = serializers.CharField(source="category.label", read_only=True)
+
     class Meta:
         model = Expense
-        fields = ["id", "expense_date", "category", "description", "amount", "created_by", "created_at", "updated_at"]
-        read_only_fields = ["id", "created_by", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "expense_date",
+            "category",
+            "category_code",
+            "category_label",
+            "description",
+            "amount",
+            "created_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_by", "created_at", "updated_at", "category_code", "category_label"]
 
 
 class DepositSerializer(serializers.ModelSerializer):
@@ -15,6 +47,8 @@ class DepositSerializer(serializers.ModelSerializer):
     period_start = serializers.DateField(required=False, allow_null=True)
     period_end = serializers.DateField(required=False, allow_null=True)
     invoice_number = serializers.CharField(required=False, allow_blank=True)
+    currency_code = serializers.CharField(source="currency.code", read_only=True)
+    currency_symbol = serializers.CharField(source="currency.symbol", read_only=True)
 
     class Meta:
         model = Deposit
@@ -26,29 +60,36 @@ class DepositSerializer(serializers.ModelSerializer):
             "period_start",
             "period_end",
             "currency",
+            "currency_code",
+            "currency_symbol",
             "amount_foreign",
             "amount_brl",
             "created_by",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_by", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_by", "created_at", "updated_at", "currency_code", "currency_symbol"]
 
 
 class TransferSerializer(serializers.ModelSerializer):
+    bank_code = serializers.CharField(source="bank.code", read_only=True)
+    bank_label = serializers.CharField(source="bank.label", read_only=True)
+
     class Meta:
         model = Transfer
         fields = [
             "id",
             "transfer_date",
             "deposit",
-            "bank_name",
+            "bank",
+            "bank_code",
+            "bank_label",
             "amount_brl",
             "created_by",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_by", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_by", "created_at", "updated_at", "bank_code", "bank_label"]
 
 
 class NfeSerializer(serializers.ModelSerializer):

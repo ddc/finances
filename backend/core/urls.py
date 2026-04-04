@@ -1,6 +1,9 @@
 from core.views import (
+    BankViewSet,
+    CurrencyViewSet,
     DashboardView,
     DepositViewSet,
+    ExpenseCategoryViewSet,
     ExpenseViewSet,
     LoginView,
     LogoutView,
@@ -13,6 +16,9 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
+router.register(r"expense-categories", ExpenseCategoryViewSet)
+router.register(r"currencies", CurrencyViewSet)
+router.register(r"banks", BankViewSet)
 router.register(r"expenses", ExpenseViewSet)
 router.register(r"deposits", DepositViewSet)
 router.register(r"transfers", TransferViewSet)

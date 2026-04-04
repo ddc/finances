@@ -4,11 +4,12 @@ import client from "../api/client";
 import { useTranslation } from "react-i18next";
 import {
   Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText,
-  AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Tooltip, Divider,
+  AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Tooltip, Divider, Link,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon, Receipt, AccountBalance, SwapHoriz,
   Description, AccountCircle, DarkMode, LightMode, Language, AdminPanelSettings,
+  Menu as MenuIcon, ChevronLeft, GitHub,
 } from "@mui/icons-material";
 import { useAuth } from "../hooks/useAuth";
 import { useThemeMode } from "../hooks/useThemeMode";
@@ -24,6 +25,7 @@ export default function Layout() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [langAnchorEl, setLangAnchorEl] = useState<null | HTMLElement>(null);
   const [appVersion, setAppVersion] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(true);
 
   useEffect(() => {
     client.get<{ version: string }>("/version/").then((r) => setAppVersion(r.data.version)).catch(() => {});
@@ -59,6 +61,9 @@ export default function Layout() {
     <Box sx={{ display: "flex" }}>
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
+          <IconButton color="inherit" edge="start" sx={{ mr: 1 }} onClick={() => setDrawerOpen(!drawerOpen)}>
+            {drawerOpen ? <ChevronLeft /> : <MenuIcon />}
+          </IconButton>
           <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
             {t("app.title")}
           </Typography>
@@ -91,9 +96,11 @@ export default function Layout() {
         </Toolbar>
       </AppBar>
       <Drawer
-        variant="permanent"
+        variant="persistent"
+        open={drawerOpen}
         sx={{
-          width: DRAWER_WIDTH,
+          width: drawerOpen ? DRAWER_WIDTH : 0,
+          transition: "width 225ms",
           "& .MuiDrawer-paper": {
             width: DRAWER_WIDTH,
             boxSizing: "border-box",
@@ -115,22 +122,42 @@ export default function Layout() {
             </ListItemButton>
           ))}
         </List>
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ textAlign: "center", pb: 2 }}
-        >
-          {appVersion ? t("app.version", { version: appVersion }) : ""}
-        </Typography>
+        <Box sx={{ textAlign: "center", pb: 2 }}>
+          <Typography variant="caption" color="text.secondary">
+            {appVersion ? t("app.version", { version: appVersion }) : ""}
+          </Typography>
+          <br />
+          <Link
+            href="https://github.com/ddc/finances"
+            target="_blank"
+            rel="noopener"
+            color="text.secondary"
+            sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, fontSize: "0.75rem" }}
+          >
+            <GitHub sx={{ fontSize: "0.875rem" }} /> GitHub
+          </Link>
+        </Box>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8, display: "flex", flexDirection: "column", minHeight: "calc(100vh - 64px)" }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          mt: 8,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "calc(100vh - 64px)",
+          ml: drawerOpen ? 0 : `-${DRAWER_WIDTH}px`,
+          transition: "margin-left 225ms",
+        }}
+      >
         <Box sx={{ flexGrow: 1 }}>
           <Outlet />
         </Box>
         <Typography
           variant="caption"
           color="text.secondary"
-          sx={{ textAlign: "right", pb: 2 }}
+          sx={{ textAlign: "right", mb: -1 }}
         >
           Copyright &copy; 2026 DDC Softwares
         </Typography>

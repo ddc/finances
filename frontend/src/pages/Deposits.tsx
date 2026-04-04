@@ -11,29 +11,14 @@ import type { GridColDef } from "@mui/x-data-grid";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
 import { listDeposits, createDeposit, updateDeposit, deleteDeposit } from "../api/deposits";
+import { listCurrencies } from "../api/lookups";
 import DataGridExport from "../components/DataGridExport";
 import { MonthFilter, YearFilter } from "../components/PageFilters";
 import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
-import type { Deposit } from "../types";
+import type { Deposit, CurrencyOption } from "../types";
 
-const DEPOSIT_CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD"] as const;
-
-const CURRENCY_COLORS: Record<string, string> = {
-  USD: "#8b5cf6",
-  EUR: "#6366f1",
-  GBP: "#3b82f6",
-  CAD: "#f97316",
-  AUD: "#f59e0b",
-};
-
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  USD: "$",
-  EUR: "\u20AC",
-  GBP: "\u00A3",
-  CAD: "C$",
-  AUD: "A$",
-};
+const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
 const today = () => new Date().toISOString().split("T")[0];
 const EMPTY_FORM = () => ({
@@ -42,7 +27,7 @@ const EMPTY_FORM = () => ({
   invoice_issue_date: "",
   period_start: "",
   period_end: "",
-  currency: "USD" as string,
+  currency: "" as string,
   amount_foreign: "",
   amount_brl: "",
 });
@@ -52,6 +37,7 @@ export default function Deposits() {
 
   const { isAdmin } = useAuth();
   const [rows, setRows] = useState<Deposit[]>([]);
+  const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
   const [yearFilter, setYearFilter] = useState(String(new Date().getFullYear()));
   const [monthFilter, setMonthFilter] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -59,6 +45,8 @@ export default function Deposits() {
   const [form, setForm] = useState(EMPTY_FORM());
   const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  useEffect(() => { listCurrencies().then(setCurrencies); }, []);
 
   const load = useCallback(() => {
     const params: Record<string, string> = {};
@@ -84,7 +72,8 @@ export default function Deposits() {
       });
     } else {
       setEditingId(null);
-      setForm(EMPTY_FORM());
+      const defaultCurr = currencies.find((c) => c.code === "USD");
+      setForm({ ...EMPTY_FORM(), currency: defaultCurr ? defaultCurr.id : (currencies[0]?.id || "") });
     }
     setSubmitted(false);
     setDialogOpen(true);
@@ -93,13 +82,14 @@ export default function Deposits() {
   const handleSave = async () => {
     setSubmitted(true);
     if (!form.deposit_date || !form.currency || !form.amount_foreign || !form.amount_brl) return;
+    if (form.period_start && form.period_end && form.period_end < form.period_start) return;
     const payload = {
       deposit_date: form.deposit_date,
       invoice_number: form.invoice_number || "",
       invoice_issue_date: form.invoice_issue_date || null,
       period_start: form.period_start || null,
       period_end: form.period_end || null,
-      currency: form.currency as Deposit["currency"],
+      currency: form.currency,
       amount_foreign: Number(form.amount_foreign),
       amount_brl: Number(form.amount_brl),
     };
@@ -126,7 +116,7 @@ export default function Deposits() {
     { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 1 },
     { field: "period_start", headerName: t("deposits.periodStart"), flex: 1 },
     { field: "period_end", headerName: t("deposits.periodEnd"), flex: 1 },
-    { field: "currency", headerName: t("deposits.currency"), flex: 0.5 },
+    { field: "currency_code", headerName: t("deposits.currency"), flex: 0.5 },
     { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1, type: "number" },
     { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number" },
     ...(isAdmin
@@ -150,10 +140,11 @@ export default function Deposits() {
 
   const totalBrl = rows.reduce((sum, r) => sum + Number(r.amount_brl), 0);
 
-  const currencyTotals = DEPOSIT_CURRENCIES.map((curr) => ({
-    name: curr,
-    value: rows.filter((r) => r.currency === curr).reduce((sum, r) => sum + Number(r.amount_foreign), 0),
-    color: CURRENCY_COLORS[curr],
+  const currencyTotals = currencies.map((curr, i) => ({
+    name: curr.code,
+    value: rows.filter((r) => r.currency_code === curr.code).reduce((sum, r) => sum + Number(r.amount_foreign), 0),
+    color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
+    symbol: curr.symbol,
   })).filter((d) => d.value > 0);
 
   const totalForeign = currencyTotals.reduce((sum, c) => sum + c.value, 0);
@@ -190,7 +181,7 @@ export default function Deposits() {
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
               <Typography color="text.secondary" variant="body2">{ct.name}</Typography>
               <Typography variant="h6" sx={{ color: ct.color }}>
-                {CURRENCY_SYMBOLS[ct.name] || ct.name} {ct.value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                {ct.symbol} {ct.value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </Typography>
             </CardContent>
           </Card>
@@ -300,12 +291,14 @@ export default function Deposits() {
             label={t("deposits.periodEnd")} type="date" value={form.period_end}
             onChange={(e) => setForm({ ...form, period_end: e.target.value })}
             slotProps={{ inputLabel: { shrink: true } }}
+            error={submitted && !!form.period_start && !!form.period_end && form.period_end < form.period_start}
+            helperText={submitted && !!form.period_start && !!form.period_end && form.period_end < form.period_start ? "Period end cannot be before period start" : ""}
           />
           <FormControl fullWidth required error={submitted && !form.currency}>
             <InputLabel>{t("deposits.currency")}</InputLabel>
             <Select value={form.currency} label={t("deposits.currency")} onChange={(e) => setForm({ ...form, currency: e.target.value })}>
-              {DEPOSIT_CURRENCIES.map((c) => (
-                <MenuItem key={c} value={c}>{c}</MenuItem>
+              {currencies.map((c) => (
+                <MenuItem key={c.id} value={c.id}>{c.code}</MenuItem>
               ))}
             </Select>
           </FormControl>

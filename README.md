@@ -105,22 +105,28 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 docker compose up -d --build
 ```
 
-### 4. Create admin user
+### 4. Create admin user and seed lookup data
 
 ```bash
 docker compose exec backend uv run --frozen --no-sync python manage.py seed_data
 ```
 
-Default credentials:
+This creates:
 
-- **Username:** admin
-- **Password:** admin123
+- **Admin user** — username: `admin`, password: `admin123`
+- **Expense categories** — Taxes, Health Insurance, Accounting, TFE, Other
+- **Currencies** — USD, EUR, GBP, CAD, AUD
+- **Banks** — Santander
 
-Or create one manually:
+Or create a user manually:
 
 ```bash
 docker compose exec backend uv run --frozen --no-sync python manage.py createsuperuser
 ```
+
+### 5. Managing lookup tables
+
+Expense categories, currencies, and banks can be added, edited, or removed via the Django admin panel at `/admin/`. The frontend dropdowns update automatically from the database — no code changes needed.
 
 ## Development
 

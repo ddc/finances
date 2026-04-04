@@ -13,7 +13,20 @@ class AppSettings(BaseSettings):
     POSTGRES_PASSWORD: str = Field(default="finances")
 
     # Frontend App Port
-    FINANCES_PORT: int = Field(default=8888)
+    FRONTEND_PORT: int = Field(default=8888)
+
+    # Admin
+    ADMIN_USERNAME: str = Field(default="admin")
+    ADMIN_PASSWORD: str = Field(default="admin123")
+
+    # Seed data (comma-separated)
+    SEED_CATEGORIES: str = Field(
+        default="TAXES:Taxes,HEALTH_INSURANCE:Health Insurance,ACCOUNTING:Accounting,TFE:TFE,OTHER:Other"
+    )
+    SEED_CURRENCIES: str = Field(
+        default="USD:US Dollar:$,EUR:Euro:\u20ac,GBP:British Pound:\u00a3,CAD:Canadian Dollar:C$,AUD:Australian Dollar:A$"
+    )
+    SEED_BANKS: str = Field(default="SANTANDER:Santander")
 
     # Django
     DJANGO_DEBUG: bool = Field(default=True)
@@ -39,7 +52,7 @@ for host in env.DJANGO_ALLOWED_HOSTS.split(","):
     host = host.strip()
     if host:
         CSRF_TRUSTED_ORIGINS.append("http://" + host)
-        CSRF_TRUSTED_ORIGINS.append("http://" + host + ":" + str(env.FINANCES_PORT))
+        CSRF_TRUSTED_ORIGINS.append("http://" + host + ":" + str(env.FRONTEND_PORT))
 
 INSTALLED_APPS = [
     "django.contrib.admin",

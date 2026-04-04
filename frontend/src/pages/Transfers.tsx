@@ -12,23 +12,20 @@ import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
 import { listTransfers, createTransfer, updateTransfer, deleteTransfer } from "../api/transfers";
 import { listDeposits } from "../api/deposits";
+import { listBanks } from "../api/lookups";
 import DataGridExport from "../components/DataGridExport";
 import { MonthFilter, YearFilter } from "../components/PageFilters";
 import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
-import type { Transfer, Deposit } from "../types";
+import type { Transfer, Deposit, BankOption } from "../types";
 
-const BANKS = ["SANTANDER"] as const;
-
-const BANK_COLORS: Record<string, string> = {
-  SANTANDER: "#3b82f6",
-};
+const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
 const today = () => new Date().toISOString().split("T")[0];
 const EMPTY_FORM = () => ({
   transfer_date: today(),
   deposit: "",
-  bank_name: "SANTANDER" as string,
+  bank: "" as string,
   amount_brl: "",
 });
 
@@ -38,6 +35,7 @@ export default function Transfers() {
   const { isAdmin } = useAuth();
   const [rows, setRows] = useState<Transfer[]>([]);
   const [deposits, setDeposits] = useState<Deposit[]>([]);
+  const [banks, setBanks] = useState<BankOption[]>([]);
   const [yearFilter, setYearFilter] = useState(String(new Date().getFullYear()));
   const [monthFilter, setMonthFilter] = useState("");
   const [bankFilter, setBankFilter] = useState("");
@@ -47,11 +45,13 @@ export default function Transfers() {
   const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  useEffect(() => { listBanks().then(setBanks); }, []);
+
   const load = useCallback(() => {
     const params: Record<string, string> = {};
     if (yearFilter) params.year = yearFilter;
     if (monthFilter) params.month = monthFilter;
-    if (bankFilter) params.bank_name = bankFilter;
+    if (bankFilter) params.bank = bankFilter;
     listTransfers(params).then(setRows);
   }, [yearFilter, monthFilter, bankFilter]);
 
@@ -60,7 +60,7 @@ export default function Transfers() {
 
   const depositLabel = (id: string) => {
     const d = deposits.find((dep) => dep.id === id);
-    return d ? d.invoice_number + " (" + d.deposit_date + ") " + d.currency + " " + d.amount_foreign : id;
+    return d ? d.invoice_number + " (" + d.deposit_date + ") " + d.currency_code + " " + d.amount_foreign : id;
   };
 
   const handleOpen = (transfer?: Transfer) => {
@@ -69,12 +69,13 @@ export default function Transfers() {
       setForm({
         transfer_date: transfer.transfer_date,
         deposit: transfer.deposit,
-        bank_name: transfer.bank_name,
+        bank: transfer.bank,
         amount_brl: String(transfer.amount_brl),
       });
     } else {
       setEditingId(null);
-      setForm(EMPTY_FORM());
+      const defaultBank = banks[0];
+      setForm({ ...EMPTY_FORM(), bank: defaultBank ? defaultBank.id : "" });
     }
     setSubmitted(false);
     setDialogOpen(true);
@@ -82,11 +83,11 @@ export default function Transfers() {
 
   const handleSave = async () => {
     setSubmitted(true);
-    if (!form.transfer_date || !form.deposit || !form.bank_name || !form.amount_brl) return;
+    if (!form.transfer_date || !form.deposit || !form.bank || !form.amount_brl) return;
     const payload = {
       transfer_date: form.transfer_date,
       deposit: form.deposit,
-      bank_name: form.bank_name as Transfer["bank_name"],
+      bank: form.bank,
       amount_brl: Number(form.amount_brl),
     };
     if (editingId) {
@@ -108,7 +109,7 @@ export default function Transfers() {
 
   const columns: GridColDef[] = [
     { field: "transfer_date", headerName: t("transfers.transferDate"), flex: 1 },
-    { field: "bank_name", headerName: t("transfers.bank"), flex: 1 },
+    { field: "bank_label", headerName: t("transfers.bank"), flex: 1 },
     { field: "amount_brl", headerName: t("transfers.amountBrl"), flex: 1, type: "number" },
     {
       field: "deposit",
@@ -136,10 +137,10 @@ export default function Transfers() {
   ];
 
   // Pie chart data: breakdown by bank
-  const bankTotals = BANKS.map((bank) => ({
-    name: bank,
-    value: rows.filter((r) => r.bank_name === bank).reduce((sum, r) => sum + Number(r.amount_brl), 0),
-    color: BANK_COLORS[bank] || "#94a3b8",
+  const bankTotals = banks.map((bank, i) => ({
+    name: bank.label,
+    value: rows.filter((r) => r.bank_code === bank.code).reduce((sum, r) => sum + Number(r.amount_brl), 0),
+    color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
   })).filter((d) => d.value > 0);
 
   return (
@@ -149,8 +150,8 @@ export default function Transfers() {
           <InputLabel>{t("filters.bank")}</InputLabel>
           <Select value={bankFilter} label={t("filters.bank")} onChange={(e) => setBankFilter(e.target.value)}>
             <MenuItem value="">{t("filters.all")}</MenuItem>
-            {BANKS.map((b) => (
-              <MenuItem key={b} value={b}>{b}</MenuItem>
+            {banks.map((b) => (
+              <MenuItem key={b.id} value={b.id}>{b.label}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -227,15 +228,15 @@ export default function Transfers() {
             <InputLabel>{t("transfers.deposit")}</InputLabel>
             <Select value={form.deposit} label={t("transfers.deposit")} onChange={(e) => setForm({ ...form, deposit: e.target.value })}>
               {deposits.map((d) => (
-                <MenuItem key={d.id} value={d.id}>{d.invoice_number} ({d.deposit_date}) {d.currency} {d.amount_foreign}</MenuItem>
+                <MenuItem key={d.id} value={d.id}>{d.invoice_number} ({d.deposit_date}) {d.currency_code} {d.amount_foreign}</MenuItem>
               ))}
             </Select>
           </FormControl>
-          <FormControl fullWidth required error={submitted && !form.bank_name}>
+          <FormControl fullWidth required error={submitted && !form.bank}>
             <InputLabel>{t("transfers.bank")}</InputLabel>
-            <Select value={form.bank_name} label={t("transfers.bank")} onChange={(e) => setForm({ ...form, bank_name: e.target.value })}>
-              {BANKS.map((b) => (
-                <MenuItem key={b} value={b}>{b}</MenuItem>
+            <Select value={form.bank} label={t("transfers.bank")} onChange={(e) => setForm({ ...form, bank: e.target.value })}>
+              {banks.map((b) => (
+                <MenuItem key={b.id} value={b.id}>{b.label}</MenuItem>
               ))}
             </Select>
           </FormControl>

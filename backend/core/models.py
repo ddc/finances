@@ -17,58 +17,77 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class Expense(BaseModel):
-    class CategoryChoices(models.TextChoices):
-        TAXES = "TAXES", "Taxes"
-        HEALTH_INSURANCE = "HEALTH_INSURANCE", "Health Insurance"
-        ACCOUNTING = "ACCOUNTING", "Accounting"
-        TFE = "TFE", "TFE"
-        OTHER = "OTHER", "Other"
+class ExpenseCategory(BaseModel):
+    code = models.CharField(max_length=50, unique=True)
+    label = models.CharField(max_length=100)
 
+    class Meta:
+        verbose_name_plural = "Expense Categories"
+        ordering = ["label"]
+
+    def __str__(self):
+        return self.label
+
+
+class Currency(BaseModel):
+    code = models.CharField(max_length=10, unique=True)
+    label = models.CharField(max_length=100)
+    symbol = models.CharField(max_length=10, blank=True, default="")
+
+    class Meta:
+        verbose_name_plural = "Currencies"
+        ordering = ["code"]
+
+    def __str__(self):
+        return self.code + " - " + self.label
+
+
+class Bank(BaseModel):
+    code = models.CharField(max_length=50, unique=True)
+    label = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ["label"]
+
+    def __str__(self):
+        return self.label
+
+
+class Expense(BaseModel):
     expense_date = models.DateField()
-    category = models.CharField(max_length=20, choices=CategoryChoices.choices)
+    category = models.ForeignKey(ExpenseCategory, on_delete=models.PROTECT, related_name="expenses")
     description = models.TextField(blank=True, default="")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="expenses")
 
     def __str__(self):
-        return f"{self.category} - R${self.amount}"
+        return str(self.category) + " - R$" + str(self.amount)
 
 
 class Deposit(BaseModel):
-    class CurrencyChoices(models.TextChoices):
-        USD = "USD", "USD"
-        EUR = "EUR", "EUR"
-        GBP = "GBP", "GBP"
-        CAD = "CAD", "CAD"
-        AUD = "AUD", "AUD"
-
     deposit_date = models.DateField()
     invoice_number = models.CharField(max_length=100, blank=True, default="")
     invoice_issue_date = models.DateField(null=True, blank=True)
     period_start = models.DateField(null=True, blank=True)
     period_end = models.DateField(null=True, blank=True)
-    currency = models.CharField(max_length=3, choices=CurrencyChoices.choices, default="USD")
+    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, related_name="deposits")
     amount_foreign = models.DecimalField(max_digits=10, decimal_places=2)
     amount_brl = models.DecimalField(max_digits=10, decimal_places=2)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="deposits")
 
     def __str__(self):
-        return f"{self.invoice_number} - {self.currency} {self.amount_foreign}"
+        return self.invoice_number + " - " + str(self.currency.code) + " " + str(self.amount_foreign)
 
 
 class Transfer(BaseModel):
-    class BankChoices(models.TextChoices):
-        SANTANDER = "SANTANDER", "Santander"
-
     transfer_date = models.DateField()
     deposit = models.ForeignKey(Deposit, on_delete=models.CASCADE, related_name="transfers")
-    bank_name = models.CharField(max_length=20, choices=BankChoices.choices)
+    bank = models.ForeignKey(Bank, on_delete=models.PROTECT, related_name="transfers")
     amount_brl = models.DecimalField(max_digits=10, decimal_places=2)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="transfers")
 
     def __str__(self):
-        return f"{self.bank_name} - R${self.amount_brl}"
+        return str(self.bank) + " - R$" + str(self.amount_brl)
 
 
 class NfeSample(BaseModel):
@@ -77,4 +96,4 @@ class NfeSample(BaseModel):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="nfes")
 
     def __str__(self):
-        return self.description or f"NFE {self.pk}"
+        return self.description or "NFE " + str(self.pk)
