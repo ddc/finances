@@ -11,9 +11,11 @@ const savedLang = (() => {
   }
 })();
 
+// Add resources directly before init
 i18n.use(initReactI18next);
 
-i18n.init({
+// Use synchronous-style init with all resources pre-loaded
+void i18n.init({
   resources: {
     en: { translation: en },
     "pt-br": { translation: ptBr },
@@ -27,5 +29,10 @@ i18n.init({
     bindI18nStore: "added removed",
   },
 });
+
+// Force the language in case init hasn't applied it yet
+if (i18n.language !== savedLang) {
+  void i18n.changeLanguage(savedLang);
+}
 
 export default i18n;

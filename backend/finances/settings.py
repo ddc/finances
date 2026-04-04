@@ -12,8 +12,9 @@ CSRF_TRUSTED_ORIGINS = []
 for host in ENV.DJANGO_ALLOWED_HOSTS.split(","):
     host = host.strip()
     if host:
-        CSRF_TRUSTED_ORIGINS.append("http://" + host)
-        CSRF_TRUSTED_ORIGINS.append("http://" + host + ":" + str(ENV.FRONTEND_PORT))
+        for scheme in ("http", "https"):
+            CSRF_TRUSTED_ORIGINS.append(scheme + "://" + host)
+            CSRF_TRUSTED_ORIGINS.append(scheme + "://" + host + ":" + str(ENV.FRONTEND_PORT))
 
 INSTALLED_APPS = [
     "django.contrib.admin",

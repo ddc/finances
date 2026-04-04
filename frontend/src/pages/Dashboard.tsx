@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Box, Card, CardContent, Typography, FormControl, InputLabel, Select, MenuItem, Grid,
+  Box, Card, CardContent, Typography, FormControl, InputLabel, Select, MenuItem,
   List, ListItem, ListItemText, Chip, IconButton, Tooltip,
 } from "@mui/material";
 import { Refresh } from "@mui/icons-material";
@@ -187,56 +187,51 @@ export default function Dashboard() {
         </Box>
       </Box>
 
-      {/* Row 1: Income by currency */}
-      <Grid container spacing={2} sx={{ mb: 2 }}>
+      {/* Row 1: Income by currency — fixed 5 columns */}
+      <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
         {currencies.map((curr) => (
-          <Grid key={curr.id} size={{ xs: 12, sm: 6, md: 2.4 }}>
-            <Card>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>
-                  {t("dashboard.totalIncomeForeign", { currency: curr.code })}
-                </Typography>
-                <Typography variant="h5" sx={{ color: currencyColor(curr.code) }}>
-                  {curr.symbol} {Number(data.summary.income_by_currency[curr.code] || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+          <Card key={curr.id} sx={{ flex: "1 1 0", minWidth: 0 }}>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom>
+                {t("dashboard.totalIncomeForeign", { currency: curr.code })}
+              </Typography>
+              <Typography variant="h5" sx={{ color: currencyColor(curr.code) }}>
+                {curr.symbol} {Number(data.summary.income_by_currency[curr.code] || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </Typography>
+            </CardContent>
+          </Card>
         ))}
-      </Grid>
+      </Box>
 
-      {/* Row 2: BRL totals */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      {/* Row 2: BRL totals — fixed 4 columns */}
+      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
         {[
           { label: t("dashboard.totalIncomeBrl"), value: data.summary.total_income_brl, color: "#22c55e", prefix: "R$" },
           { label: t("dashboard.totalExpenses"), value: data.summary.total_expenses_brl, color: "#ef4444", prefix: "R$" },
           { label: t("dashboard.totalTransferred"), value: data.summary.total_transferred_brl, color: "#3b82f6", prefix: "R$" },
           { label: t("dashboard.netBalance"), value: data.summary.net_balance_brl, color: "#22c55e", prefix: "R$" },
         ].map((card) => (
-          <Grid key={card.label} size={{ xs: 12, sm: 6, md: 3 }}>
-            <Card>
-              <CardContent>
-                <Typography color="text.secondary" gutterBottom>{card.label}</Typography>
-                <Typography variant="h5" sx={{ color: card.color }}>
-                  {card.prefix} {Number(card.value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Card>
+          <Card key={card.label} sx={{ flex: "1 1 0", minWidth: 0 }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>{t("dashboard.overview")}</Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                {month ? (
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
+              <Typography color="text.secondary" gutterBottom>{card.label}</Typography>
+              <Typography variant="h5" sx={{ color: card.color }}>
+                {card.prefix} {Number(card.value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </Typography>
+            </CardContent>
+          </Card>
+        ))}
+      </Box>
+
+      {/* Overview chart - full width */}
+      <Card sx={{ mb: 2 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>{t("dashboard.overview")}</Typography>
+          <ResponsiveContainer width="100%" height={300}>
+            {month ? (
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
                       cy="50%"
                       outerRadius={100}
                       dataKey="value"
@@ -246,7 +241,7 @@ export default function Dashboard() {
                         <Cell key={entry.name} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                       ))}
                     </Pie>
-                    <RechartsTooltip formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
+                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
                     <Legend formatter={legendWithPct(pieData)} />
                   </PieChart>
                 ) : (
@@ -254,7 +249,7 @@ export default function Dashboard() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <RechartsTooltip />
+                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} />
                     <Legend />
                     <Bar dataKey="Income" fill="#6366f1" />
                     <Bar dataKey="Expenses" fill="#ef4444" />
@@ -263,25 +258,6 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>{t("dashboard.recentActivity")}</Typography>
-              <List dense>
-                {data.recent_activity.map((item) => (
-                  <ListItem key={`${item.type}-${item.date}-${item.description}`}>
-                    <ListItemText
-                      primary={`${item.description} — R$ ${Number(item.amount_brl).toFixed(2)}`}
-                      secondary={`${item.type} • ${item.date}`}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
 
       {/* Detail pie charts row */}
       {hasDetailPies && (
@@ -299,7 +275,7 @@ export default function Dashboard() {
                         <Cell key={entry.name} fill={entry.color} />
                       ))}
                     </Pie>
-                    <RechartsTooltip formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
                     <Legend formatter={legendWithPct(expenseByCategoryPie)} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -319,7 +295,7 @@ export default function Dashboard() {
                         <Cell key={entry.name} fill={entry.color} />
                       ))}
                     </Pie>
-                    <RechartsTooltip formatter={(value) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
                     <Legend formatter={legendWithPct(depositByCurrencyPie)} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -339,7 +315,7 @@ export default function Dashboard() {
                         <Cell key={entry.name} fill={entry.color} />
                       ))}
                     </Pie>
-                    <RechartsTooltip formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
                     <Legend formatter={legendWithPct(depositByCompanyPie)} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -359,7 +335,7 @@ export default function Dashboard() {
                         <Cell key={entry.name} fill={entry.color} />
                       ))}
                     </Pie>
-                    <RechartsTooltip formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
                     <Legend formatter={legendWithPct(transferByBankPie)} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -368,6 +344,23 @@ export default function Dashboard() {
           )}
         </Box>
       )}
+
+      {/* Recent Activity - bottom */}
+      <Card sx={{ mt: 2 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>{t("dashboard.recentActivity")}</Typography>
+          <List dense>
+            {data.recent_activity.map((item) => (
+              <ListItem key={`${item.type}-${item.date}-${item.description}`}>
+                <ListItemText
+                  primary={item.description + " — R$ " + Number(item.amount_brl).toFixed(2)}
+                  secondary={item.type + " • " + item.date}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </CardContent>
+      </Card>
     </Box>
   );
 }

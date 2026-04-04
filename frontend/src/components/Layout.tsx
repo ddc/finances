@@ -156,7 +156,7 @@ export default function Layout() {
           color="text.secondary"
           sx={{ textAlign: "right", mb: -1 }}
         >
-          Copyright &copy; 2026 DDC Softwares
+          &copy; 2026 DDC Softwares
         </Typography>
       </Box>
     </Box>
