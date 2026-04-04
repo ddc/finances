@@ -31,6 +31,7 @@
 
 - [Stack](#stack)
 - [Timezone Handling](#timezone-handling)
+- [API Endpoints](#api-endpoints)
 - [Setup](#setup)
 - [Development](#development)
 - [Running Tests](#running-tests)
@@ -38,6 +39,7 @@
 - [Local Development with Database](#local-development-with-database)
 - [License](#license)
 - [Support](#support)
+
 ---
 
 ## Stack
@@ -47,7 +49,7 @@
 | Backend         | Django 6.0 + Django REST Framework                   |
 | Frontend        | React 19 + Vite + MUI + Recharts                     |
 | Database        | PostgreSQL                                           |
-| Auth            | Token-based (DRF TokenAuthentication)                |
+| Auth            | httpOnly cookie + token expiration                   |
 | i18n            | EN-US, PT-BR                                         |
 | Package Manager | uv (backend), bun (frontend)                         |
 | Linting         | ruff (backend), eslint (frontend)                    |
@@ -65,6 +67,46 @@
 
 Timestamps are always stored in UTC. The frontend displays them in the user's browser timezone automatically. The
 `DJANGO_TIME_ZONE` env var only affects the Django admin panel.
+
+## API Endpoints
+
+Base URL: `/api/v1/`
+
+### Authentication
+
+| Method | Endpoint      | Description                    | Auth     |
+|--------|---------------|--------------------------------|----------|
+| POST   | /auth/login/  | Login, returns httpOnly cookie | Public   |
+| POST   | /auth/logout/ | Logout, clears cookie          | Required |
+| GET    | /auth/me/     | Current user info + role       | Required |
+
+### Dashboard
+
+| Method | Endpoint    | Description                                     | Auth     |
+|--------|-------------|-------------------------------------------------|----------|
+| GET    | /dashboard/ | Aggregated data (year, month, currency filters) | Required |
+
+### CRUD Endpoints
+
+| Method         | Endpoint           | Description               | Auth                    |
+|----------------|--------------------|---------------------------|-------------------------|
+| GET/POST       | /expenses/         | List / Create expenses    | Read: all, Write: admin |
+| GET/PUT/DELETE | /expenses/{id}/    | Detail / Update / Delete  | Read: all, Write: admin |
+| GET/POST       | /deposits/         | List / Create deposits    | Read: all, Write: admin |
+| GET/PUT/DELETE | /deposits/{id}/    | Detail / Update / Delete  | Read: all, Write: admin |
+| GET/POST       | /transfers/        | List / Create transfers   | Read: all, Write: admin |
+| GET/PUT/DELETE | /transfers/{id}/   | Detail / Update / Delete  | Read: all, Write: admin |
+| GET/POST       | /nfe-samples/      | List / Create NFE samples | Read: all, Write: admin |
+| GET/PUT/DELETE | /nfe-samples/{id}/ | Detail / Update / Delete  | Read: all, Write: admin |
+
+### Lookup Tables (read-only)
+
+| Method | Endpoint             | Description             | Auth     |
+|--------|----------------------|-------------------------|----------|
+| GET    | /expense-categories/ | List expense categories | Required |
+| GET    | /currencies/         | List currencies         | Required |
+| GET    | /companies/          | List companies          | Required |
+| GET    | /banks/              | List banks              | Required |
 
 ## Setup
 
@@ -105,18 +147,29 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 docker compose up -d --build
 ```
 
-### 4. Create admin user and seed lookup data
+On startup, the backend automatically:
+
+- Runs database migrations
+- Clears all auth tokens (forces re-login)
+- Seeds lookup data (categories, currencies, companies, banks) and creates the admin user
+- Collects static files
+- Starts gunicorn
+
+### 4. Seed data
+
+Seed data runs automatically on every deploy. To run it manually:
 
 ```bash
 docker compose exec backend uv run --frozen --no-sync python manage.py seed_data
 ```
 
-This creates:
+This creates (if not already existing):
 
-- **Admin user** — username: `admin`, password: `admin123`
-- **Expense categories** — Taxes, Health Insurance, Accounting, TFE, Other
-- **Currencies** — USD, EUR, GBP, CAD, AUD
-- **Banks** — Santander
+- **Admin user** — credentials from `ADMIN_USERNAME` / `ADMIN_PASSWORD` in `.env`
+- **Expense categories** — from `SEED_CATEGORIES` in `.env`
+- **Currencies** — from `SEED_CURRENCIES` in `.env`
+- **Companies** — from `SEED_COMPANIES` in `.env`
+- **Banks** — from `SEED_BANKS` in `.env`
 
 Or create a user manually:
 
@@ -126,7 +179,8 @@ docker compose exec backend uv run --frozen --no-sync python manage.py createsup
 
 ### 5. Managing lookup tables
 
-Expense categories, currencies, and banks can be added, edited, or removed via the Django admin panel at `/admin/`. The frontend dropdowns update automatically from the database — no code changes needed.
+Expense categories, currencies, companies, and banks can be added, edited, or removed via the Django admin panel at
+`/admin/`. The frontend dropdowns update automatically from the database — no code changes needed.
 
 ## Development
 
@@ -140,6 +194,8 @@ uv sync --all-groups
 ```
 
 ### Frontend
+
+Requires [Bun](https://bun.sh/) to be installed.
 
 ```bash
 cd frontend
@@ -171,6 +227,7 @@ uv run poe linter-frontend           # eslint
 # Update dependencies
 uv run poe update-backend
 uv run poe update-frontend
+uv run poe sync-version              # sync pyproject.toml version to package.json
 ```
 
 ## Deployment
@@ -204,7 +261,6 @@ POSTGRES_HOST=finances_database
 
 ## License
 Released under the [MIT License](LICENSE)
-
 
 ## Support
 If you find this project helpful, consider supporting development.

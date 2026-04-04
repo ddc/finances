@@ -11,7 +11,6 @@ from core.views import (
     MeView,
     NfeSampleViewSet,
     TransferViewSet,
-    VersionView,
 )
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
@@ -31,6 +30,5 @@ urlpatterns = [
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("auth/me/", MeView.as_view(), name="auth-me"),
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
-    path("version/", VersionView.as_view(), name="version"),
     path("", include(router.urls)),
 ]

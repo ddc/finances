@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import client from "../api/client";
+import packageJson from "../../package.json";
 import { useTranslation } from "react-i18next";
 import {
   Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText,
@@ -24,12 +24,8 @@ export default function Layout() {
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [langAnchorEl, setLangAnchorEl] = useState<null | HTMLElement>(null);
-  const [appVersion, setAppVersion] = useState("");
+  const appVersion = packageJson.version;
   const [drawerOpen, setDrawerOpen] = useState(true);
-
-  useEffect(() => {
-    client.get<{ version: string }>("/version/").then((r) => setAppVersion(r.data.version)).catch(() => {});
-  }, []);
 
   const navItems = [
     { label: t("nav.dashboard"), path: "/", icon: <DashboardIcon /> },

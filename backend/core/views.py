@@ -1,5 +1,4 @@
 from core.constants.messages import INVALID_CREDENTIALS
-from core.constants.variables import APP_VERSION
 from core.models import Bank, Company, Currency, Deposit, Expense, ExpenseCategory, NfeSample, Transfer
 from core.permissions import IsAdminOrReadOnly
 from core.serializers import (
@@ -93,6 +92,7 @@ class LoggingModelViewSet(viewsets.ModelViewSet):
 
 
 class LoginView(APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -137,13 +137,6 @@ class MeView(APIView):
 
     def get(self, request):
         return Response(UserSerializer(request.user).data)
-
-
-class VersionView(APIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        return Response({"version": APP_VERSION})
 
 
 class DashboardView(APIView):

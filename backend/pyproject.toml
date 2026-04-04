@@ -44,10 +44,11 @@ migration-backend = "uv run --frozen python manage.py migrate"
 linter-frontend.shell = "cd ../frontend && bun run lint"
 test-frontend.shell = "cd ../frontend && bunx vitest run src/test/unit"
 test-frontend-integration.shell = "cd ../frontend && bunx vitest run src/test/integration"
+sync-version.shell = "python3 -c \"import tomllib,json,pathlib; v=tomllib.load(open('pyproject.toml','rb'))['project']['version']; p=pathlib.Path('../frontend/package.json'); d=json.loads(p.read_text()); d['version']=v; p.write_text(json.dumps(d,indent=2)+'\\n'); print('Synced version: '+v)\""
 update-frontend.shell = "cd ../frontend && bun update && bun run build"
 # --- All ---
 linter.sequence = ["linter-backend", "linter-frontend"]
-updatedev.sequence = ["update-backend", "update-frontend"]
+updatedev.sequence = ["update-backend", "sync-version", "update-frontend"]
 tests.sequence = ["linter-backend", "linter-frontend", "hadolint-backend", "test-backend-docker", "test-backend", "test-backend-integration", "test-frontend", "test-frontend-integration"]
 
 [tool.pytest.ini_options]
