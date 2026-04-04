@@ -1,4 +1,4 @@
-from core.models import Bank, Currency, Deposit, Expense, ExpenseCategory, NfeSample, Transfer
+from core.models import Bank, Company, Currency, Deposit, Expense, ExpenseCategory, NfeSample, Transfer
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -13,6 +13,12 @@ class CurrencySerializer(serializers.ModelSerializer):
     class Meta:
         model = Currency
         fields = ["id", "code", "label", "symbol"]
+
+
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ["id", "code", "label"]
 
 
 class BankSerializer(serializers.ModelSerializer):
@@ -47,6 +53,8 @@ class DepositSerializer(serializers.ModelSerializer):
     period_start = serializers.DateField(required=False, allow_null=True)
     period_end = serializers.DateField(required=False, allow_null=True)
     invoice_number = serializers.CharField(required=False, allow_blank=True)
+    company_code = serializers.CharField(source="company.code", read_only=True)
+    company_label = serializers.CharField(source="company.label", read_only=True)
     currency_code = serializers.CharField(source="currency.code", read_only=True)
     currency_symbol = serializers.CharField(source="currency.symbol", read_only=True)
 
@@ -55,6 +63,9 @@ class DepositSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "deposit_date",
+            "company",
+            "company_code",
+            "company_label",
             "invoice_number",
             "invoice_issue_date",
             "period_start",
@@ -68,7 +79,16 @@ class DepositSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_by", "created_at", "updated_at", "currency_code", "currency_symbol"]
+        read_only_fields = [
+            "id",
+            "created_by",
+            "created_at",
+            "updated_at",
+            "company_code",
+            "company_label",
+            "currency_code",
+            "currency_symbol",
+        ]
 
 
 class TransferSerializer(serializers.ModelSerializer):

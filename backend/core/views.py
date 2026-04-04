@@ -1,9 +1,10 @@
 from core.constants.messages import INVALID_CREDENTIALS
 from core.constants.variables import APP_VERSION
-from core.models import Bank, Currency, Deposit, Expense, ExpenseCategory, NfeSample, Transfer
+from core.models import Bank, Company, Currency, Deposit, Expense, ExpenseCategory, NfeSample, Transfer
 from core.permissions import IsAdminOrReadOnly
 from core.serializers import (
     BankSerializer,
+    CompanySerializer,
     CurrencySerializer,
     DepositSerializer,
     ExpenseCategorySerializer,
@@ -236,6 +237,12 @@ class ExpenseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
 class CurrencyViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Currency.objects.all()
     serializer_class = CurrencySerializer
+    permission_classes = [IsAuthenticated]
+
+
+class CompanyViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
     permission_classes = [IsAuthenticated]
 
 

@@ -17,6 +17,7 @@ class AppSettings(BaseSettings):
     SEED_CURRENCIES: str = Field(
         default="USD:US Dollar:$,EUR:Euro:\u20ac,GBP:British Pound:\u00a3,CAD:Canadian Dollar:C$,AUD:Australian Dollar:A$"
     )
+    SEED_COMPANIES: str = Field(default="DEEL:Deel,OTHER:Other")
     SEED_BANKS: str = Field(default="SANTANDER:Santander")
 
     # Database

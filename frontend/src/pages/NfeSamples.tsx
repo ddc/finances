@@ -27,6 +27,7 @@ export default function NfeSamples() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [previewBody, setPreviewBody] = useState<string | null>(null);
 
@@ -47,10 +48,13 @@ export default function NfeSamples() {
       setEditingId(null);
       setForm(EMPTY_FORM);
     }
+    setSubmitted(false);
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
+    setSubmitted(true);
+    if (!form.description || !form.body) return;
     const payload = { description: form.description, body: form.body };
     if (editingId) {
       await updateNfeSample(editingId, payload);
@@ -150,12 +154,14 @@ export default function NfeSamples() {
           <TextField
             label={t("nfeSamples.description")} value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
+            required error={submitted && !form.description}
           />
           <TextField
             label={t("nfeSamples.body")} value={form.body}
             onChange={(e) => setForm({ ...form, body: e.target.value })}
             multiline rows={16}
             placeholder="Paste the full NFE body here..."
+            required error={submitted && !form.body}
           />
         </DialogContent>
         <DialogActions>

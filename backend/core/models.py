@@ -42,6 +42,18 @@ class Currency(BaseModel):
         return self.code + " - " + self.label
 
 
+class Company(BaseModel):
+    code = models.CharField(max_length=50, unique=True)
+    label = models.CharField(max_length=100)
+
+    class Meta:
+        verbose_name_plural = "Companies"
+        ordering = ["label"]
+
+    def __str__(self):
+        return self.label
+
+
 class Bank(BaseModel):
     code = models.CharField(max_length=50, unique=True)
     label = models.CharField(max_length=100)
@@ -66,6 +78,7 @@ class Expense(BaseModel):
 
 class Deposit(BaseModel):
     deposit_date = models.DateField()
+    company = models.ForeignKey(Company, on_delete=models.PROTECT, related_name="deposits")
     invoice_number = models.CharField(max_length=100, blank=True, default="")
     invoice_issue_date = models.DateField(null=True, blank=True)
     period_start = models.DateField(null=True, blank=True)

@@ -28,6 +28,12 @@ export interface BankOption {
   label: string;
 }
 
+export interface CompanyOption {
+  id: string;
+  code: string;
+  label: string;
+}
+
 export interface Expense {
   id: string;
   expense_date: string;
@@ -44,6 +50,9 @@ export interface Expense {
 export interface Deposit {
   id: string;
   deposit_date: string;
+  company: string;
+  company_code: string;
+  company_label: string;
   invoice_number: string;
   invoice_issue_date: string | null;
   period_start: string | null;

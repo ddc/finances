@@ -46,6 +46,10 @@ export default {
     recentActivity: "Recent Activity",
     buy: "Buy",
     sell: "Sell",
+    expensesByCategory: "Expenses by Category",
+    depositsByCurrency: "Deposits by Currency",
+    depositsByCompany: "Deposits by Company",
+    transfersByBank: "Transfers by Bank",
   },
   expenses: {
     title: "Expenses",
@@ -55,7 +59,7 @@ export default {
     category: "Category",
     description: "Description",
     amount: "Amount R$",
-    total: "Total",
+    total: "Total BRL",
     categories: {
       TAXES: "Taxes",
       HEALTH_INSURANCE: "Health Insurance",
@@ -78,6 +82,7 @@ export default {
     amountBrl: "Amount BRL",
     totalForeign: "Total Foreign",
     totalBrl: "Total BRL",
+    company: "Company",
   },
   transfers: {
     title: "Transfers",
@@ -87,12 +92,12 @@ export default {
     bank: "Bank",
     amountBrl: "Amount BRL",
     deposit: "Deposit",
-    total: "Total",
+    total: "Total BRL",
   },
   nfeSamples: {
     title: "NFE Samples",
-    addNfe: "Add NFE",
-    editNfe: "Edit NFE",
+    addNfe: "Add NFE Sample",
+    editNfe: "Edit NFE Sample",
     description: "Description",
     body: "Body",
     nfeBody: "NFE Body",

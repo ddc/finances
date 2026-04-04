@@ -11,18 +11,19 @@ import type { GridColDef } from "@mui/x-data-grid";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
 import { listDeposits, createDeposit, updateDeposit, deleteDeposit } from "../api/deposits";
-import { listCurrencies } from "../api/lookups";
+import { listCurrencies, listCompanies } from "../api/lookups";
 import DataGridExport from "../components/DataGridExport";
 import { MonthFilter, YearFilter } from "../components/PageFilters";
 import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
-import type { Deposit, CurrencyOption } from "../types";
+import type { Deposit, CurrencyOption, CompanyOption } from "../types";
 
 const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
 const today = () => new Date().toISOString().split("T")[0];
 const EMPTY_FORM = () => ({
   deposit_date: today(),
+  company: "" as string,
   invoice_number: "",
   invoice_issue_date: "",
   period_start: "",
@@ -37,6 +38,7 @@ export default function Deposits() {
 
   const { isAdmin } = useAuth();
   const [rows, setRows] = useState<Deposit[]>([]);
+  const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
   const [yearFilter, setYearFilter] = useState(String(new Date().getFullYear()));
   const [monthFilter, setMonthFilter] = useState("");
@@ -46,6 +48,7 @@ export default function Deposits() {
   const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  useEffect(() => { listCompanies().then(setCompanies); }, []);
   useEffect(() => { listCurrencies().then(setCurrencies); }, []);
 
   const load = useCallback(() => {
@@ -62,6 +65,7 @@ export default function Deposits() {
       setEditingId(deposit.id);
       setForm({
         deposit_date: deposit.deposit_date,
+        company: deposit.company,
         invoice_number: deposit.invoice_number,
         invoice_issue_date: deposit.invoice_issue_date || "",
         period_start: deposit.period_start || "",
@@ -73,7 +77,7 @@ export default function Deposits() {
     } else {
       setEditingId(null);
       const defaultCurr = currencies.find((c) => c.code === "USD");
-      setForm({ ...EMPTY_FORM(), currency: defaultCurr ? defaultCurr.id : (currencies[0]?.id || "") });
+      setForm({ ...EMPTY_FORM(), company: companies[0]?.id || "", currency: defaultCurr ? defaultCurr.id : (currencies[0]?.id || "") });
     }
     setSubmitted(false);
     setDialogOpen(true);
@@ -81,10 +85,11 @@ export default function Deposits() {
 
   const handleSave = async () => {
     setSubmitted(true);
-    if (!form.deposit_date || !form.currency || !form.amount_foreign || !form.amount_brl) return;
+    if (!form.deposit_date || !form.company || !form.currency || !form.amount_foreign || !form.amount_brl) return;
     if (form.period_start && form.period_end && form.period_end < form.period_start) return;
     const payload = {
       deposit_date: form.deposit_date,
+      company: form.company,
       invoice_number: form.invoice_number || "",
       invoice_issue_date: form.invoice_issue_date || null,
       period_start: form.period_start || null,
@@ -112,6 +117,7 @@ export default function Deposits() {
 
   const columns: GridColDef[] = [
     { field: "deposit_date", headerName: t("deposits.depositDate"), flex: 1 },
+    { field: "company_label", headerName: t("deposits.company"), flex: 1 },
     { field: "invoice_issue_date", headerName: t("deposits.issueDate"), flex: 1 },
     { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 1 },
     { field: "period_start", headerName: t("deposits.periodStart"), flex: 1 },
@@ -154,6 +160,12 @@ export default function Deposits() {
     { name: "BRL", value: totalBrl, color: "#22c55e" },
   ].filter((d) => d.value > 0);
 
+  const companyTotals = companies.map((comp, i) => ({
+    name: comp.label,
+    value: rows.filter((r) => r.company_code === comp.code).reduce((sum, r) => sum + Number(r.amount_brl), 0),
+    color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
+  })).filter((d) => d.value > 0);
+
   return (
     <Box>
       <PageHeader title={t("deposits.title")} monthFilter={monthFilter} yearFilter={yearFilter}>
@@ -192,7 +204,7 @@ export default function Deposits() {
       </Box>
 
       {/* Pie charts side by side */}
-      {(overviewPieData.length > 0 || currencyTotals.length > 0) && (
+      {(overviewPieData.length > 0 || currencyTotals.length > 0 || companyTotals.length > 0) && (
         <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
           {overviewPieData.length > 0 && (
             <Card sx={{ flex: 1 }}>
@@ -252,6 +264,35 @@ export default function Deposits() {
               </CardContent>
             </Card>
           )}
+          {companyTotals.length > 0 && (
+            <Card sx={{ flex: 1 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>{t("deposits.company")}</Typography>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={companyTotals}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({ name, value }) => name + ": R$ " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    >
+                      {companyTotals.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <Legend formatter={(value, entry) => {
+                      const total = companyTotals.reduce((s, d) => s + d.value, 0);
+                      const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
+                      return value + " (" + pct + "%)";
+                    }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
         </Box>
       )}
 
@@ -273,6 +314,14 @@ export default function Deposits() {
             slotProps={{ inputLabel: { shrink: true } }}
             required error={submitted && !form.deposit_date}
           />
+          <FormControl fullWidth required error={submitted && !form.company}>
+            <InputLabel>{t("deposits.company")}</InputLabel>
+            <Select value={form.company} label={t("deposits.company")} onChange={(e) => setForm({ ...form, company: e.target.value })}>
+              {companies.map((c) => (
+                <MenuItem key={c.id} value={c.id}>{c.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             label={t("deposits.invoiceNumber")} value={form.invoice_number}
             onChange={(e) => setForm({ ...form, invoice_number: e.target.value })}

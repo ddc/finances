@@ -45,14 +45,11 @@ export default function Layout() {
     navigate("/login");
   };
 
-  const [lang, setLang] = useState(i18n.language);
+  const [lang] = useState(i18n.language);
 
   const handleLanguageChange = (newLang: string) => {
-    i18n.changeLanguage(newLang).then(() => {
-      setLang(newLang);
-      localStorage.setItem("language", newLang);
-      setLangAnchorEl(null);
-    });
+    localStorage.setItem("language", newLang);
+    globalThis.location.reload();
   };
 
   const currentLang = lang === "pt-br" ? "PT-BR" : "EN-US";

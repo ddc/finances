@@ -10,8 +10,11 @@ import {
 } from "recharts";
 import { useTranslation } from "react-i18next";
 import { getDashboard } from "../api/dashboard";
+import { listExpenses } from "../api/expenses";
+import { listDeposits } from "../api/deposits";
+import { listTransfers } from "../api/transfers";
 import { listCurrencies } from "../api/lookups";
-import type { DashboardData, CurrencyOption } from "../types";
+import type { DashboardData, CurrencyOption, Expense, Deposit, Transfer } from "../types";
 
 const PIE_COLORS = ["#6366f1", "#ef4444", "#3b82f6", "#22c55e"];
 const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
@@ -27,6 +30,10 @@ export default function Dashboard() {
   const [currency, setCurrency] = useState("USD");
   const [data, setData] = useState<DashboardData | null>(null);
   const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [deposits, setDeposits] = useState<Deposit[]>([]);
+  const [transfers, setTransfers] = useState<Transfer[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => { listCurrencies().then((list) => {
     setCurrencies(list);
@@ -34,7 +41,13 @@ export default function Dashboard() {
   }); }, []);
 
   const fetchData = useCallback(() => {
+    const params: Record<string, string> = { year: String(year) };
+    if (month) params.month = String(month);
+
     getDashboard(year, month || undefined, currency).then(setData);
+    listExpenses(params).then(setExpenses);
+    listDeposits(params).then(setDeposits);
+    listTransfers(params).then(setTransfers);
   }, [year, month, currency]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -61,6 +74,58 @@ export default function Dashboard() {
     Transferred: Number(m.transferred_brl),
   }));
 
+  // Pie chart data: expenses by category
+  const expenseByCategoryMap = new Map<string, number>();
+  for (const e of expenses) {
+    const key = e.category_label;
+    expenseByCategoryMap.set(key, (expenseByCategoryMap.get(key) || 0) + Number(e.amount));
+  }
+  const expenseByCategoryPie = Array.from(expenseByCategoryMap.entries())
+    .map(([name, value], i) => ({ name, value, color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }))
+    .filter((d) => d.value > 0);
+
+  // Pie chart data: deposits by currency
+  const depositByCurrencyMap = new Map<string, { value: number; symbol: string }>();
+  for (const d of deposits) {
+    const key = d.currency_code;
+    const existing = depositByCurrencyMap.get(key);
+    depositByCurrencyMap.set(key, {
+      value: (existing?.value || 0) + Number(d.amount_foreign),
+      symbol: d.currency_symbol,
+    });
+  }
+  const depositByCurrencyPie = Array.from(depositByCurrencyMap.entries())
+    .map(([name, { value }], i) => ({ name, value, color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }))
+    .filter((d) => d.value > 0);
+
+  // Pie chart data: deposits by company
+  const depositByCompanyMap = new Map<string, number>();
+  for (const d of deposits) {
+    const key = d.company_label;
+    depositByCompanyMap.set(key, (depositByCompanyMap.get(key) || 0) + Number(d.amount_brl));
+  }
+  const depositByCompanyPie = Array.from(depositByCompanyMap.entries())
+    .map(([name, value], i) => ({ name, value, color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }))
+    .filter((d) => d.value > 0);
+
+  // Pie chart data: transfers by bank
+  const transferByBankMap = new Map<string, number>();
+  for (const tr of transfers) {
+    const key = tr.bank_label;
+    transferByBankMap.set(key, (transferByBankMap.get(key) || 0) + Number(tr.amount_brl));
+  }
+  const transferByBankPie = Array.from(transferByBankMap.entries())
+    .map(([name, value], i) => ({ name, value, color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }))
+    .filter((d) => d.value > 0);
+
+  const legendWithPct = (pieItems: Array<{ name: string; value: number }>) => (value: string, entry: { payload?: unknown }) => {
+    const total = pieItems.reduce((s, d) => s + d.value, 0);
+    const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
+    return value + " (" + pct + "%)";
+  };
+
+  const hasDetailPies = expenseByCategoryPie.length > 0 || depositByCurrencyPie.length > 0 || depositByCompanyPie.length > 0 || transferByBankPie.length > 0;
+
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -73,8 +138,18 @@ export default function Dashboard() {
             <Chip label={`${currency} ${t("dashboard.sell")}: R$ ${data.ptax_venda}`} color="info" variant="outlined" />
           )}
           <Tooltip title="Refresh">
-            <IconButton onClick={fetchData} size="small">
-              <Refresh />
+            <IconButton
+              size="small"
+              onClick={() => {
+                setRefreshing(true);
+                fetchData();
+                setTimeout(() => setRefreshing(false), 1000);
+              }}
+            >
+              <Refresh sx={{
+                animation: refreshing ? "spin 1s linear infinite" : "none",
+                "@keyframes spin": { "0%": { transform: "rotate(0deg)" }, "100%": { transform: "rotate(360deg)" } },
+              }} />
             </IconButton>
           </Tooltip>
           <FormControl size="small" sx={{ minWidth: 100 }}>
@@ -172,11 +247,7 @@ export default function Dashboard() {
                       ))}
                     </Pie>
                     <RechartsTooltip formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
-                    <Legend formatter={(value, entry) => {
-                      const total = pieData.reduce((s, d) => s + d.value, 0);
-                      const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
-                      return value + " (" + pct + "%)";
-                    }} />
+                    <Legend formatter={legendWithPct(pieData)} />
                   </PieChart>
                 ) : (
                   <BarChart data={barData}>
@@ -211,6 +282,92 @@ export default function Dashboard() {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Detail pie charts row */}
+      {hasDetailPies && (
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 2 }}>
+          {expenseByCategoryPie.length > 0 && (
+            <Card sx={{ flex: "1 1 calc(25% - 12px)", minWidth: 260 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>{t("dashboard.expensesByCategory")}</Typography>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={expenseByCategoryPie} cx="50%" cy="50%" outerRadius={70} dataKey="value"
+                      label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                    >
+                      {expenseByCategoryPie.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <Legend formatter={legendWithPct(expenseByCategoryPie)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+          {depositByCurrencyPie.length > 0 && (
+            <Card sx={{ flex: "1 1 calc(25% - 12px)", minWidth: 260 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>{t("dashboard.depositsByCurrency")}</Typography>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={depositByCurrencyPie} cx="50%" cy="50%" outerRadius={70} dataKey="value"
+                      label={({ name, value }) => `${name}: ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                    >
+                      {depositByCurrencyPie.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip formatter={(value) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <Legend formatter={legendWithPct(depositByCurrencyPie)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+          {depositByCompanyPie.length > 0 && (
+            <Card sx={{ flex: "1 1 calc(25% - 12px)", minWidth: 260 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>{t("dashboard.depositsByCompany")}</Typography>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={depositByCompanyPie} cx="50%" cy="50%" outerRadius={70} dataKey="value"
+                      label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                    >
+                      {depositByCompanyPie.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <Legend formatter={legendWithPct(depositByCompanyPie)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+          {transferByBankPie.length > 0 && (
+            <Card sx={{ flex: "1 1 calc(25% - 12px)", minWidth: 260 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>{t("dashboard.transfersByBank")}</Typography>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={transferByBankPie} cx="50%" cy="50%" outerRadius={70} dataKey="value"
+                      label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                    >
+                      {transferByBankPie.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <Legend formatter={legendWithPct(transferByBankPie)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+        </Box>
+      )}
     </Box>
   );
 }

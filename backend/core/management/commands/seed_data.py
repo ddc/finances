@@ -1,4 +1,4 @@
-from core.models import Bank, Currency, ExpenseCategory
+from core.models import Bank, Company, Currency, ExpenseCategory
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
@@ -45,6 +45,14 @@ class Command(BaseCommand):
                 if created:
                     self._log("  Created currency: " + parts[0])
 
+    def _seed_companies(self, env):
+        for entry in env.SEED_COMPANIES.split(","):
+            parts = entry.strip().split(":")
+            if len(parts) >= 2:
+                _, created = Company.objects.get_or_create(code=parts[0], defaults={"label": parts[1]})
+                if created:
+                    self._log("  Created company: " + parts[0])
+
     def _seed_banks(self, env):
         for entry in env.SEED_BANKS.split(","):
             parts = entry.strip().split(":")
@@ -58,5 +66,6 @@ class Command(BaseCommand):
         self._seed_admin(settings.ENV)
         self._seed_categories(settings.ENV)
         self._seed_currencies(settings.ENV)
+        self._seed_companies(settings.ENV)
         self._seed_banks(settings.ENV)
         self._log("Seed data loaded", "success")
