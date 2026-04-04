@@ -15,7 +15,10 @@ import type { DashboardData } from "../types";
 const PIE_COLORS = ["#6366f1", "#ef4444", "#3b82f6", "#22c55e"];
 const CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD"];
 const CURRENCY_COLORS: Record<string, string> = {
-  USD: "#8b5cf6", EUR: "#6366f1", GBP: "#3b82f6", CAD: "#22c55e", AUD: "#f59e0b",
+  USD: "#8b5cf6", EUR: "#6366f1", GBP: "#3b82f6", CAD: "#f97316", AUD: "#f59e0b",
+};
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$", EUR: "\u20AC", GBP: "\u00A3", CAD: "C$", AUD: "A$",
 };
 
 export default function Dashboard() {
@@ -113,7 +116,7 @@ export default function Dashboard() {
                   {t("dashboard.totalIncomeForeign", { currency: curr })}
                 </Typography>
                 <Typography variant="h5" sx={{ color: CURRENCY_COLORS[curr] }}>
-                  {Number(data.summary.income_by_currency[curr] || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  {CURRENCY_SYMBOLS[curr]} {Number(data.summary.income_by_currency[curr] || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                 </Typography>
               </CardContent>
             </Card>
@@ -124,7 +127,7 @@ export default function Dashboard() {
       {/* Row 2: BRL totals */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {[
-          { label: t("dashboard.totalIncomeBrl"), value: data.summary.total_income_brl, color: "#6366f1", prefix: "R$" },
+          { label: t("dashboard.totalIncomeBrl"), value: data.summary.total_income_brl, color: "#22c55e", prefix: "R$" },
           { label: t("dashboard.totalExpenses"), value: data.summary.total_expenses_brl, color: "#ef4444", prefix: "R$" },
           { label: t("dashboard.totalTransferred"), value: data.summary.total_transferred_brl, color: "#3b82f6", prefix: "R$" },
           { label: t("dashboard.netBalance"), value: data.summary.net_balance_brl, color: "#22c55e", prefix: "R$" },
@@ -163,7 +166,11 @@ export default function Dashboard() {
                       ))}
                     </Pie>
                     <RechartsTooltip formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
-                    <Legend />
+                    <Legend formatter={(value, entry) => {
+                      const total = pieData.reduce((s, d) => s + d.value, 0);
+                      const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
+                      return value + " (" + pct + "%)";
+                    }} />
                   </PieChart>
                 ) : (
                   <BarChart data={barData}>

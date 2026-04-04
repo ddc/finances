@@ -23,7 +23,7 @@ const CURRENCY_COLORS: Record<string, string> = {
   USD: "#8b5cf6",
   EUR: "#6366f1",
   GBP: "#3b82f6",
-  CAD: "#22c55e",
+  CAD: "#f97316",
   AUD: "#f59e0b",
 };
 
@@ -35,8 +35,9 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   AUD: "A$",
 };
 
-const EMPTY_FORM = {
-  deposit_date: "",
+const today = () => new Date().toISOString().split("T")[0];
+const EMPTY_FORM = () => ({
+  deposit_date: today(),
   invoice_number: "",
   invoice_issue_date: "",
   period_start: "",
@@ -44,7 +45,7 @@ const EMPTY_FORM = {
   currency: "USD" as string,
   amount_foreign: "",
   amount_brl: "",
-};
+});
 
 export default function Deposits() {
   const { t } = useTranslation();
@@ -55,7 +56,7 @@ export default function Deposits() {
   const [monthFilter, setMonthFilter] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(EMPTY_FORM());
   const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -74,16 +75,16 @@ export default function Deposits() {
       setForm({
         deposit_date: deposit.deposit_date,
         invoice_number: deposit.invoice_number,
-        invoice_issue_date: deposit.invoice_issue_date,
-        period_start: deposit.period_start,
-        period_end: deposit.period_end,
+        invoice_issue_date: deposit.invoice_issue_date || "",
+        period_start: deposit.period_start || "",
+        period_end: deposit.period_end || "",
         currency: deposit.currency,
         amount_foreign: String(deposit.amount_foreign),
         amount_brl: String(deposit.amount_brl),
       });
     } else {
       setEditingId(null);
-      setForm(EMPTY_FORM);
+      setForm(EMPTY_FORM());
     }
     setSubmitted(false);
     setDialogOpen(true);
@@ -94,10 +95,10 @@ export default function Deposits() {
     if (!form.deposit_date || !form.currency || !form.amount_foreign || !form.amount_brl) return;
     const payload = {
       deposit_date: form.deposit_date,
-      invoice_number: form.invoice_number,
-      invoice_issue_date: form.invoice_issue_date,
-      period_start: form.period_start,
-      period_end: form.period_end,
+      invoice_number: form.invoice_number || "",
+      invoice_issue_date: form.invoice_issue_date || null,
+      period_start: form.period_start || null,
+      period_end: form.period_end || null,
       currency: form.currency as Deposit["currency"],
       amount_foreign: Number(form.amount_foreign),
       amount_brl: Number(form.amount_brl),
@@ -159,7 +160,7 @@ export default function Deposits() {
 
   const overviewPieData = [
     { name: "Foreign", value: totalForeign, color: "#8b5cf6" },
-    { name: "BRL", value: totalBrl, color: "#ef4444" },
+    { name: "BRL", value: totalBrl, color: "#22c55e" },
   ].filter((d) => d.value > 0);
 
   return (
@@ -176,6 +177,14 @@ export default function Deposits() {
 
       {/* Currency amount cards */}
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
+        <Card sx={{ minWidth: 160 }}>
+          <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
+            <Typography color="text.secondary" variant="body2">{t("deposits.totalBrl")}</Typography>
+            <Typography variant="h6" sx={{ color: "#22c55e" }}>
+              R$ {totalBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            </Typography>
+          </CardContent>
+        </Card>
         {currencyTotals.map((ct) => (
           <Card key={ct.name} sx={{ minWidth: 160 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
@@ -186,14 +195,6 @@ export default function Deposits() {
             </CardContent>
           </Card>
         ))}
-        <Card sx={{ minWidth: 160 }}>
-          <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-            <Typography color="text.secondary" variant="body2">{t("deposits.totalBrl")}</Typography>
-            <Typography variant="h6" sx={{ color: "#ef4444" }}>
-              R$ {totalBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-            </Typography>
-          </CardContent>
-        </Card>
         <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
           <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="deposits" />
         </Box>
@@ -221,13 +222,17 @@ export default function Deposits() {
                       ))}
                     </Pie>
                     <RechartsTooltip formatter={(value) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
-                    <Legend />
+                    <Legend formatter={(value, entry) => {
+                      const total = overviewPieData.reduce((s, d) => s + d.value, 0);
+                      const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
+                      return value + " (" + pct + "%)";
+                    }} />
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
           )}
-          {currencyTotals.length > 1 && (
+          {currencyTotals.length > 0 && (
             <Card sx={{ flex: 1 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>{t("filters.currency")}</Typography>
@@ -246,7 +251,11 @@ export default function Deposits() {
                       ))}
                     </Pie>
                     <RechartsTooltip formatter={(value) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
-                    <Legend />
+                    <Legend formatter={(value, entry) => {
+                      const total = currencyTotals.reduce((s, d) => s + d.value, 0);
+                      const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
+                      return value + " (" + pct + "%)";
+                    }} />
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>

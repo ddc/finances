@@ -24,12 +24,13 @@ const BANK_COLORS: Record<string, string> = {
   SANTANDER: "#3b82f6",
 };
 
-const EMPTY_FORM = {
-  transfer_date: "",
+const today = () => new Date().toISOString().split("T")[0];
+const EMPTY_FORM = () => ({
+  transfer_date: today(),
   deposit: "",
   bank_name: "SANTANDER" as string,
   amount_brl: "",
-};
+});
 
 export default function Transfers() {
   const { t } = useTranslation();
@@ -42,7 +43,7 @@ export default function Transfers() {
   const [bankFilter, setBankFilter] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(EMPTY_FORM());
   const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -73,7 +74,7 @@ export default function Transfers() {
       });
     } else {
       setEditingId(null);
-      setForm(EMPTY_FORM);
+      setForm(EMPTY_FORM());
     }
     setSubmitted(false);
     setDialogOpen(true);
@@ -144,8 +145,6 @@ export default function Transfers() {
   return (
     <Box>
       <PageHeader title={t("transfers.title")} monthFilter={monthFilter} yearFilter={yearFilter}>
-        <MonthFilter value={monthFilter} onChange={setMonthFilter} />
-        <YearFilter value={yearFilter} onChange={setYearFilter} />
         <FormControl size="small" sx={{ minWidth: 140 }}>
           <InputLabel>{t("filters.bank")}</InputLabel>
           <Select value={bankFilter} label={t("filters.bank")} onChange={(e) => setBankFilter(e.target.value)}>
@@ -155,6 +154,8 @@ export default function Transfers() {
             ))}
           </Select>
         </FormControl>
+        <MonthFilter value={monthFilter} onChange={setMonthFilter} />
+        <YearFilter value={yearFilter} onChange={setYearFilter} />
         {isAdmin && (
           <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
             {t("transfers.addTransfer")}
@@ -166,7 +167,7 @@ export default function Transfers() {
         <Card sx={{ minWidth: 200 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
             <Typography color="text.secondary" variant="body2">{t("transfers.total")}</Typography>
-            <Typography variant="h6" sx={{ color: "#3b82f6" }}>
+            <Typography variant="h6" sx={{ color: "#22c55e" }}>
               R$ {rows.reduce((sum, r) => sum + Number(r.amount_brl), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </Typography>
           </CardContent>
@@ -192,8 +193,12 @@ export default function Transfers() {
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
-                <RechartsTooltip formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
-                <Legend />
+                <RechartsTooltip formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                <Legend formatter={(value, entry) => {
+                  const total = bankTotals.reduce((s, d) => s + d.value, 0);
+                  const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
+                  return value + " (" + pct + "%)";
+                }} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>

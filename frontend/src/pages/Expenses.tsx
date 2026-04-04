@@ -24,10 +24,11 @@ const CATEGORY_COLORS: Record<string, string> = {
   HEALTH_INSURANCE: "#8b5cf6",
   ACCOUNTING: "#3b82f6",
   TFE: "#f59e0b",
-  OTHER: "#22c55e",
+  OTHER: "#f97316",
 };
 
-const EMPTY_FORM = { expense_date: "", category: "OTHER" as string, description: "", amount: "" };
+const today = () => new Date().toISOString().split("T")[0];
+const EMPTY_FORM = () => ({ expense_date: today(), category: "OTHER" as string, description: "", amount: "" });
 
 export default function Expenses() {
   const { t } = useTranslation();
@@ -41,7 +42,7 @@ export default function Expenses() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(EMPTY_FORM());
   const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -61,7 +62,7 @@ export default function Expenses() {
       setForm({ expense_date: expense.expense_date, category: expense.category, description: expense.description, amount: String(expense.amount) });
     } else {
       setEditingId(null);
-      setForm(EMPTY_FORM);
+      setForm(EMPTY_FORM());
     }
     setSubmitted(false);
     setDialogOpen(true);
@@ -70,6 +71,7 @@ export default function Expenses() {
   const handleSave = async () => {
     setSubmitted(true);
     if (!form.expense_date || !form.category || !form.amount) return;
+    if (form.category === "OTHER" && !form.description) return;
     const payload = {
       expense_date: form.expense_date,
       category: form.category as Expense["category"],
@@ -127,8 +129,6 @@ export default function Expenses() {
   return (
     <Box>
       <PageHeader title={t("expenses.title")} monthFilter={monthFilter} yearFilter={yearFilter}>
-        <MonthFilter value={monthFilter} onChange={setMonthFilter} />
-        <YearFilter value={yearFilter} onChange={setYearFilter} />
         <FormControl size="small" sx={{ minWidth: 160 }}>
           <InputLabel>{t("filters.category")}</InputLabel>
           <Select value={categoryFilter} label={t("filters.category")} onChange={(e) => setCategoryFilter(e.target.value)}>
@@ -138,6 +138,8 @@ export default function Expenses() {
             ))}
           </Select>
         </FormControl>
+        <MonthFilter value={monthFilter} onChange={setMonthFilter} />
+        <YearFilter value={yearFilter} onChange={setYearFilter} />
         {isAdmin && (
           <Button variant="contained" startIcon={<Add />} onClick={() => handleOpen()}>
             {t("expenses.addExpense")}
@@ -175,8 +177,12 @@ export default function Expenses() {
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
-                <RechartsTooltip formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
-                <Legend />
+                <RechartsTooltip formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                <Legend formatter={(value, entry) => {
+                  const total = pieData.reduce((s, d) => s + d.value, 0);
+                  const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
+                  return value + " (" + pct + "%)";
+                }} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -209,7 +215,12 @@ export default function Expenses() {
               ))}
             </Select>
           </FormControl>
-          <TextField label={t("expenses.description")} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <TextField
+            label={t("expenses.description")} value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            required={form.category === "OTHER"}
+            error={submitted && form.category === "OTHER" && !form.description}
+          />
           <TextField label={t("expenses.amount")} type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required error={submitted && !form.amount} />
         </DialogContent>
         <DialogActions>

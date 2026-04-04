@@ -130,7 +130,7 @@ export default function Layout() {
         <Typography
           variant="caption"
           color="text.secondary"
-          sx={{ textAlign: "right", pt: 2 }}
+          sx={{ textAlign: "right", pb: 2 }}
         >
           Copyright &copy; 2026 DDC Softwares
         </Typography>

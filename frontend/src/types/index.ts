@@ -24,9 +24,9 @@ export interface Deposit {
   id: string;
   deposit_date: string;
   invoice_number: string;
-  invoice_issue_date: string;
-  period_start: string;
-  period_end: string;
+  invoice_issue_date: string | null;
+  period_start: string | null;
+  period_end: string | null;
   currency: "USD" | "EUR" | "GBP" | "CAD" | "AUD";
   amount_foreign: number;
   amount_brl: number;

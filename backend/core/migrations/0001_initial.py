@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -161,9 +160,7 @@ class Migration(migrations.Migration):
                 ("transfer_date", models.DateField()),
                 (
                     "bank_name",
-                    models.CharField(
-                        choices=[("SANTANDER", "Santander")], max_length=20
-                    ),
+                    models.CharField(choices=[("SANTANDER", "Santander")], max_length=20),
                 ),
                 ("amount_brl", models.DecimalField(decimal_places=2, max_digits=10)),
                 (

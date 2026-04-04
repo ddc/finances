@@ -11,6 +11,11 @@ class ExpenseSerializer(serializers.ModelSerializer):
 
 
 class DepositSerializer(serializers.ModelSerializer):
+    invoice_issue_date = serializers.DateField(required=False, allow_null=True)
+    period_start = serializers.DateField(required=False, allow_null=True)
+    period_end = serializers.DateField(required=False, allow_null=True)
+    invoice_number = serializers.CharField(required=False, allow_blank=True)
+
     class Meta:
         model = Deposit
         fields = [

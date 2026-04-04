@@ -1,3 +1,4 @@
+import tomllib
 from core.models import Deposit, Expense, NfeSample, Transfer
 from core.permissions import IsAdminOrReadOnly
 from core.serializers import (
@@ -13,12 +14,71 @@ from core.services.ptax import get_ptax_rate
 from datetime import datetime as dt
 from django.conf import settings
 from django.contrib.auth import authenticate
-import tomllib
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+
+class LoggingModelViewSet(viewsets.ModelViewSet):
+    """Base ViewSet that logs all CRUD operations including validation errors."""
+
+    def create(self, request, *args, **kwargs):
+        settings.LOG.info(self.__class__.__name__ + " CREATE by " + str(request.user) + ": " + str(request.data))
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            settings.LOG.warning(self.__class__.__name__ + " validation error: " + str(serializer.errors))
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        settings.LOG.info(
+            self.__class__.__name__
+            + " UPDATE by "
+            + str(request.user)
+            + " id="
+            + str(kwargs.get("pk"))
+            + ": "
+            + str(request.data)
+        )
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        if not serializer.is_valid():
+            settings.LOG.warning(self.__class__.__name__ + " validation error: " + str(serializer.errors))
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        settings.LOG.info(
+            self.__class__.__name__
+            + " DELETE by "
+            + str(request.user)
+            + " id="
+            + str(instance.pk)
+            + ": "
+            + str(instance)
+        )
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def list(self, request, *args, **kwargs):
+        qs = self.filter_queryset(self.get_queryset())
+        settings.LOG.info(
+            self.__class__.__name__
+            + " LIST by "
+            + str(request.user)
+            + " params="
+            + str(dict(request.query_params))
+            + " count="
+            + str(qs.count())
+        )
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
 
 
 class LoginView(APIView):
@@ -32,10 +92,10 @@ class LoginView(APIView):
             password=serializer.validated_data["password"],
         )
         if not user:
-            settings.LOG.warning(f"Failed login attempt for: {serializer.validated_data['username']}")
+            settings.LOG.warning("Failed login attempt for: " + serializer.validated_data["username"])
             return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         token, _ = Token.objects.get_or_create(user=user)
-        settings.LOG.info(f"User logged in: {user.username}")
+        settings.LOG.info("User logged in: " + user.username)
         return Response({"token": token.key, "user": UserSerializer(user).data})
 
 
@@ -44,7 +104,7 @@ class LogoutView(APIView):
 
     def post(self, request):
         request.user.auth_token.delete()
-        settings.LOG.info(f"User logged out: {request.user.username}")
+        settings.LOG.info("User logged out: " + request.user.username)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -74,7 +134,14 @@ class DashboardView(APIView):
         month = int(month_param) if month_param else None
         currency = request.query_params.get("currency", "USD").upper()
         settings.LOG.info(
-            f"Dashboard requested by {request.user.username}: year={year}, month={month}, currency={currency}"
+            "Dashboard requested by "
+            + request.user.username
+            + ": year="
+            + str(year)
+            + ", month="
+            + str(month)
+            + ", currency="
+            + currency
         )
         data = get_dashboard_data(year, month=month)
         ptax = get_ptax_rate(currency)
@@ -90,26 +157,13 @@ class DashboardView(APIView):
         return Response(data)
 
 
-class ExpenseViewSet(viewsets.ModelViewSet):
+class ExpenseViewSet(LoggingModelViewSet):
     queryset = Expense.objects.all().order_by("-expense_date")
     serializer_class = ExpenseSerializer
     permission_classes = [IsAdminOrReadOnly]
 
     def perform_create(self, serializer):
-        instance = serializer.save(created_by=self.request.user)
-        settings.LOG.info(f"Expense created by {self.request.user.username}: {instance.category} R${instance.amount}")
-
-    def perform_update(self, serializer):
-        instance = serializer.save()
-        settings.LOG.info(
-            f"Expense updated by {self.request.user.username}: {instance.id} {instance.category} R${instance.amount}"
-        )
-
-    def perform_destroy(self, instance):
-        settings.LOG.info(
-            f"Expense deleted by {self.request.user.username}: {instance.id} {instance.category} R${instance.amount}"
-        )
-        instance.delete()
+        serializer.save(created_by=self.request.user)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -125,24 +179,13 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         return qs
 
 
-class DepositViewSet(viewsets.ModelViewSet):
+class DepositViewSet(LoggingModelViewSet):
     queryset = Deposit.objects.all().order_by("-deposit_date")
     serializer_class = DepositSerializer
     permission_classes = [IsAdminOrReadOnly]
 
     def perform_create(self, serializer):
-        instance = serializer.save(created_by=self.request.user)
-        settings.LOG.info(
-            f"Deposit created by {self.request.user.username}: {instance.invoice_number} {instance.currency} {instance.amount_foreign}"
-        )
-
-    def perform_update(self, serializer):
-        instance = serializer.save()
-        settings.LOG.info(f"Deposit updated by {self.request.user.username}: {instance.id} {instance.invoice_number}")
-
-    def perform_destroy(self, instance):
-        settings.LOG.info(f"Deposit deleted by {self.request.user.username}: {instance.id} {instance.invoice_number}")
-        instance.delete()
+        serializer.save(created_by=self.request.user)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -155,26 +198,13 @@ class DepositViewSet(viewsets.ModelViewSet):
         return qs
 
 
-class TransferViewSet(viewsets.ModelViewSet):
+class TransferViewSet(LoggingModelViewSet):
     queryset = Transfer.objects.all().order_by("-transfer_date")
     serializer_class = TransferSerializer
     permission_classes = [IsAdminOrReadOnly]
 
     def perform_create(self, serializer):
-        instance = serializer.save(created_by=self.request.user)
-        settings.LOG.info(
-            f"Transfer created by {self.request.user.username}: {instance.bank_name} R${instance.amount_brl}"
-        )
-
-    def perform_update(self, serializer):
-        instance = serializer.save()
-        settings.LOG.info(f"Transfer updated by {self.request.user.username}: {instance.id} {instance.bank_name}")
-
-    def perform_destroy(self, instance):
-        settings.LOG.info(
-            f"Transfer deleted by {self.request.user.username}: {instance.id} {instance.bank_name} R${instance.amount_brl}"
-        )
-        instance.delete()
+        serializer.save(created_by=self.request.user)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -190,22 +220,13 @@ class TransferViewSet(viewsets.ModelViewSet):
         return qs
 
 
-class NfeSampleViewSet(viewsets.ModelViewSet):
+class NfeSampleViewSet(LoggingModelViewSet):
     queryset = NfeSample.objects.all().order_by("-created_at")
     serializer_class = NfeSerializer
     permission_classes = [IsAdminOrReadOnly]
 
     def perform_create(self, serializer):
-        instance = serializer.save(created_by=self.request.user)
-        settings.LOG.info(f"NFE sample created by {self.request.user.username}: {instance.description or instance.id}")
-
-    def perform_update(self, serializer):
-        instance = serializer.save()
-        settings.LOG.info(f"NFE sample updated by {self.request.user.username}: {instance.id}")
-
-    def perform_destroy(self, instance):
-        settings.LOG.info(f"NFE sample deleted by {self.request.user.username}: {instance.id} {instance.description}")
-        instance.delete()
+        serializer.save(created_by=self.request.user)
 
     def get_queryset(self):
         qs = super().get_queryset()

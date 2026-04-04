@@ -11,7 +11,7 @@ i18n.use(initReactI18next).init({
   lng: (() => { try { return localStorage.getItem("language") || "en"; } catch { return "en"; } })(),
   fallbackLng: "en",
   interpolation: { escapeValue: false },
-  react: { useSuspense: false },
+  react: { useSuspense: false, bindI18n: "languageChanged loaded", bindI18nStore: "added removed" },
 });
 
 export default i18n;
