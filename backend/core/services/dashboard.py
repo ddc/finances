@@ -65,9 +65,9 @@ def get_dashboard_data(year, month=None):
         for m, data in sorted(months.items())
     ]
 
-    recent_expenses = expense_qs.select_related("category").order_by("-expense_date")[:10]
-    recent_deposits = deposit_qs.order_by("-deposit_date")[:10]
-    recent_transfers = transfer_qs.select_related("bank").order_by("-transfer_date")[:10]
+    recent_expenses = expense_qs.select_related("category").order_by("-expense_date")[:30]
+    recent_deposits = deposit_qs.order_by("-deposit_date")[:30]
+    recent_transfers = transfer_qs.select_related("bank").order_by("-transfer_date")[:30]
 
     recent_activity = sorted(
         [
@@ -101,7 +101,7 @@ def get_dashboard_data(year, month=None):
         ],
         key=lambda x: x["date"],
         reverse=True,
-    )[:10]
+    )[:30]
 
     settings.LOG.info(
         "Dashboard data: income_brl="

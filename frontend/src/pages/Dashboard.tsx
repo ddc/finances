@@ -217,7 +217,7 @@ export default function Dashboard() {
           { label: t("dashboard.totalIncomeBrl"), value: data.summary.total_income_brl, color: "#22c55e", prefix: "R$" },
           { label: t("dashboard.totalExpenses"), value: data.summary.total_expenses_brl, color: "#ef4444", prefix: "R$" },
           { label: t("dashboard.totalTransferred"), value: data.summary.total_transferred_brl, color: "#3b82f6", prefix: "R$" },
-          { label: t("dashboard.netBalance"), value: data.summary.net_balance_brl, color: "#22c55e", prefix: "R$" },
+          { label: t("dashboard.netBalance"), value: data.summary.net_balance_brl, color: Number(data.summary.net_balance_brl) >= 0 ? "#22c55e" : "#ef4444", prefix: "R$" },
         ].map((card) => (
           <Card key={card.label} sx={{ flex: "1 1 0", minWidth: 0 }}>
             <CardContent>

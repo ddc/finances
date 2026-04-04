@@ -227,7 +227,6 @@ export default function Transfers() {
         columns={columns}
         getRowId={(row) => row.id}
         autoHeight
-        pageSizeOptions={[10, 25, 50]}
         initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
       />
 

@@ -129,7 +129,6 @@ export default function NfeSamples() {
         columns={columns}
         getRowId={(row) => row.id}
         autoHeight
-        pageSizeOptions={[10, 25, 50]}
         initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
         onCellDoubleClick={handleCellDoubleClick}
       />
