@@ -3,6 +3,7 @@ import { DataGrid, type DataGridProps } from "@mui/x-data-grid";
 export default function StyledDataGrid(props: DataGridProps) {
   return (
     <DataGrid
+      pageSizeOptions={[10, 25, 50, 75, 100]}
       {...props}
       sx={{
         "& .MuiDataGrid-columnHeader": {

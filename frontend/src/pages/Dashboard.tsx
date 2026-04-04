@@ -36,9 +36,15 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
+    const CURRENCY_ORDER = ["USD", "EUR", "GBP", "CAD", "AUD"];
     listCurrencies().then((list) => {
-      setCurrencies(list);
-      setCurrency((prev) => list.some((c) => c.code === prev) ? prev : (list[0]?.code || "USD"));
+      const sorted = [...list].sort((a, b) => {
+        const ai = CURRENCY_ORDER.indexOf(a.code);
+        const bi = CURRENCY_ORDER.indexOf(b.code);
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+      });
+      setCurrencies(sorted);
+      setCurrency((prev) => sorted.some((c) => c.code === prev) ? prev : (sorted[0]?.code || "USD"));
     });
   }, []);
 
@@ -347,20 +353,24 @@ export default function Dashboard() {
         </Box>
       )}
 
-      {/* Recent Activity - bottom */}
+      {/* Recent Activity - bottom, columns of 10 */}
       <Card sx={{ mt: 2 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>{t("dashboard.recentActivity")}</Typography>
-          <List dense>
-            {data.recent_activity.map((item) => (
-              <ListItem key={`${item.type}-${item.date}-${item.description}`}>
-                <ListItemText
-                  primary={item.description + " — R$ " + Number(item.amount_brl).toFixed(2)}
-                  secondary={item.type + " • " + item.date}
-                />
-              </ListItem>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            {Array.from({ length: Math.ceil(data.recent_activity.length / 10) }, (_, col) => (
+              <List key={col} dense sx={{ flex: 1, minWidth: 0 }}>
+                {data.recent_activity.slice(col * 10, (col + 1) * 10).map((item) => (
+                  <ListItem key={item.type + "-" + item.date + "-" + item.description}>
+                    <ListItemText
+                      primary={item.description + " — R$ " + Number(item.amount_brl).toFixed(2)}
+                      secondary={item.type + " • " + item.date}
+                    />
+                  </ListItem>
+                ))}
+              </List>
             ))}
-          </List>
+          </Box>
         </CardContent>
       </Card>
     </Box>

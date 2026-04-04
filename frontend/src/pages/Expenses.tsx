@@ -154,7 +154,7 @@ export default function Expenses() {
             </Typography>
           </CardContent>
         </Card>
-        {categories.map((cat, i) => {
+        {[...categories].sort((a, b) => a.code === "OTHER" ? 1 : b.code === "OTHER" ? -1 : 0).map((cat, i) => {
           const catTotal = rows.filter((r) => r.category_code === cat.code).reduce((sum, r) => sum + Number(r.amount), 0);
           if (catTotal <= 0) return null;
           return (

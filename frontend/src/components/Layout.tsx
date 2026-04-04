@@ -92,8 +92,6 @@ export default function Layout() {
         variant="persistent"
         open={drawerOpen}
         sx={{
-          width: drawerOpen ? DRAWER_WIDTH : 0,
-          transition: "width 225ms",
           "& .MuiDrawer-paper": {
             width: DRAWER_WIDTH,
             boxSizing: "border-box",
@@ -135,13 +133,16 @@ export default function Layout() {
         component="main"
         sx={{
           flexGrow: 1,
+          width: drawerOpen ? `calc(100% - ${DRAWER_WIDTH}px)` : "100%",
+          ml: drawerOpen ? `${DRAWER_WIDTH}px` : 0,
+          minWidth: 0,
+          overflowX: "hidden",
           p: 3,
           mt: 8,
           display: "flex",
           flexDirection: "column",
           minHeight: "calc(100vh - 64px)",
-          ml: drawerOpen ? 0 : `-${DRAWER_WIDTH}px`,
-          transition: "margin-left 225ms",
+          transition: "width 225ms, margin-left 225ms",
         }}
       >
         <Box sx={{ flexGrow: 1 }}>

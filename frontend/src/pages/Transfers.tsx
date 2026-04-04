@@ -173,7 +173,7 @@ export default function Transfers() {
             </Typography>
           </CardContent>
         </Card>
-        {banks.map((bank, i) => {
+        {[...banks].sort((a, b) => a.code === "OTHER" ? 1 : b.code === "OTHER" ? -1 : 0).map((bank, i) => {
           const bankTotal = rows.filter((r) => r.bank_code === bank.code).reduce((sum, r) => sum + Number(r.amount_brl), 0);
           if (bankTotal <= 0) return null;
           return (
