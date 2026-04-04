@@ -191,7 +191,7 @@ export default function Deposits() {
         {currencyTotals.map((ct) => (
           <Card key={ct.name} sx={{ minWidth: 160 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-              <Typography color="text.secondary" variant="body2">{ct.name}</Typography>
+              <Typography color="text.secondary" variant="body2">{"Total " + ct.name}</Typography>
               <Typography variant="h6" sx={{ color: ct.color }}>
                 {ct.symbol} {ct.value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </Typography>

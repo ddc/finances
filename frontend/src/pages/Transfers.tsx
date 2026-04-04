@@ -60,7 +60,7 @@ export default function Transfers() {
 
   const depositLabel = (id: string) => {
     const d = deposits.find((dep) => dep.id === id);
-    return d ? d.company_label + " - " + d.invoice_number + " (" + d.deposit_date + ") " + d.currency_code + " " + d.amount_foreign : id;
+    return d ? d.company_label + " - " + d.currency_code + " " + d.amount_foreign + " - " + d.deposit_date : id;
   };
 
   const handleOpen = (transfer?: Transfer) => {
@@ -164,7 +164,7 @@ export default function Transfers() {
         )}
       </PageHeader>
 
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
         <Card sx={{ minWidth: 200 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
             <Typography color="text.secondary" variant="body2">{t("transfers.total")}</Typography>
@@ -173,7 +173,23 @@ export default function Transfers() {
             </Typography>
           </CardContent>
         </Card>
-        <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="transfers" />
+        {banks.map((bank, i) => {
+          const bankTotal = rows.filter((r) => r.bank_code === bank.code).reduce((sum, r) => sum + Number(r.amount_brl), 0);
+          if (bankTotal <= 0) return null;
+          return (
+            <Card key={bank.code} sx={{ minWidth: 200 }}>
+              <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
+                <Typography color="text.secondary" variant="body2">{"Total " + bank.label}</Typography>
+                <Typography variant="h6" sx={{ color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }}>
+                  R$ {bankTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </Typography>
+              </CardContent>
+            </Card>
+          );
+        })}
+        <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+          <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="transfers" />
+        </Box>
       </Box>
 
       {bankTotals.length > 0 && (
@@ -228,7 +244,7 @@ export default function Transfers() {
             <InputLabel>{t("transfers.deposit")}</InputLabel>
             <Select value={form.deposit} label={t("transfers.deposit")} onChange={(e) => setForm({ ...form, deposit: e.target.value })}>
               {deposits.map((d) => (
-                <MenuItem key={d.id} value={d.id}>{d.company_label} - {d.invoice_number} ({d.deposit_date}) {d.currency_code} {d.amount_foreign}</MenuItem>
+                <MenuItem key={d.id} value={d.id}>{d.company_label} - {d.currency_code} {d.amount_foreign} - {d.deposit_date}</MenuItem>
               ))}
             </Select>
           </FormControl>

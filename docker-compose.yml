@@ -19,6 +19,7 @@ services:
       - -c
       - |
         uv run --frozen --no-sync python manage.py migrate &&
+        uv run --frozen --no-sync python manage.py shell -c "from rest_framework.authtoken.models import Token; Token.objects.all().delete(); print('All auth tokens cleared')" &&
         uv run --frozen --no-sync python manage.py seed_data &&
         uv run --frozen --no-sync python manage.py collectstatic --noinput &&
         uv run --frozen --no-sync gunicorn finances.wsgi:application --bind 0.0.0.0:8000 --workers 2

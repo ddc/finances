@@ -35,10 +35,12 @@ export default function Dashboard() {
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => { listCurrencies().then((list) => {
-    setCurrencies(list);
-    setCurrency((prev) => list.find((c) => c.code === prev) ? prev : (list[0]?.code || "USD"));
-  }); }, []);
+  useEffect(() => {
+    listCurrencies().then((list) => {
+      setCurrencies(list);
+      setCurrency((prev) => list.some((c) => c.code === prev) ? prev : (list[0]?.code || "USD"));
+    });
+  }, []);
 
   const fetchData = useCallback(() => {
     const params: Record<string, string> = { year: String(year) };

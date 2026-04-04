@@ -3,24 +3,16 @@ import { initReactI18next } from "react-i18next";
 import en from "./en";
 import ptBr from "./pt-br";
 
-const savedLang = (() => {
-  try {
-    return localStorage.getItem("language") || "en";
-  } catch {
-    return "en";
-  }
-})();
+const getSavedLang = (): string => {
+  try { return localStorage.getItem("language") || "en"; } catch { return "en"; }
+};
 
-// Add resources directly before init
-i18n.use(initReactI18next);
-
-// Use synchronous-style init with all resources pre-loaded
-void i18n.init({
+i18n.use(initReactI18next).init({
   resources: {
     en: { translation: en },
     "pt-br": { translation: ptBr },
   },
-  lng: savedLang,
+  lng: getSavedLang(),
   fallbackLng: "en",
   interpolation: { escapeValue: false },
   react: {
@@ -28,11 +20,6 @@ void i18n.init({
     bindI18n: "languageChanged loaded",
     bindI18nStore: "added removed",
   },
-});
-
-// Force the language in case init hasn't applied it yet
-if (i18n.language !== savedLang) {
-  void i18n.changeLanguage(savedLang);
-}
+}).catch(() => {});
 
 export default i18n;

@@ -31,7 +31,7 @@ NC="\033[0m"
 #############################################################################
 
 # Get server IP from .env or use default
-if [ -f "$PROJECT_DIR/.env" ]; then
+if [[ -f "$PROJECT_DIR/.env" ]]; then
     SERVER_IP=$(grep -E "^DJANGO_ALLOWED_HOSTS=" "$PROJECT_DIR/.env" | cut -d= -f2 | tr ',' '\n' | grep -E '^[0-9]+\.' | head -1)
 fi
 SERVER_IP="${SERVER_IP:-127.0.0.1}"
@@ -49,7 +49,7 @@ echo -e "Output: ${GREEN}$CERT_DIR/${NC}"
 echo ""
 
 # Clean up existing certs
-if [ -d "$CERT_DIR" ]; then
+if [[ -d "$CERT_DIR" ]]; then
     echo -e "---> ${RED}Removing existing $CERT_DIR/${NC}"
     rm -rf "$CERT_DIR"
 fi

@@ -145,7 +145,7 @@ export default function Expenses() {
         )}
       </PageHeader>
 
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
         <Card sx={{ minWidth: 200 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
             <Typography color="text.secondary" variant="body2">{t("expenses.total")}</Typography>
@@ -154,7 +154,23 @@ export default function Expenses() {
             </Typography>
           </CardContent>
         </Card>
-        <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="expenses" />
+        {categories.map((cat, i) => {
+          const catTotal = rows.filter((r) => r.category_code === cat.code).reduce((sum, r) => sum + Number(r.amount), 0);
+          if (catTotal <= 0) return null;
+          return (
+            <Card key={cat.code} sx={{ minWidth: 200 }}>
+              <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
+                <Typography color="text.secondary" variant="body2">{"Total " + cat.label}</Typography>
+                <Typography variant="h6" sx={{ color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }}>
+                  R$ {catTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </Typography>
+              </CardContent>
+            </Card>
+          );
+        })}
+        <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+          <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="expenses" />
+        </Box>
       </Box>
 
       {pieData.length > 0 && (
