@@ -9,8 +9,12 @@ client.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("user");
-      globalThis.location.href = "/login";
+      const url = error.config?.url || "";
+      // Don't redirect on auth check — App.tsx handles that
+      if (!url.includes("/auth/me")) {
+        localStorage.removeItem("user");
+        globalThis.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }
