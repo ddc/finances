@@ -7,6 +7,9 @@ class AppSettings(BaseSettings):
     ADMIN_USERNAME: str = Field(default="admin")
     ADMIN_PASSWORD: str = Field(default="admin123")
 
+    # Auth
+    TOKEN_EXPIRY_HOURS: int = Field(default=1)
+
     # Frontend App Port
     FRONTEND_PORT: int = Field(default=8888)
 

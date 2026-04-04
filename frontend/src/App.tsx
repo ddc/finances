@@ -21,9 +21,7 @@ function buildTheme(mode: "light" | "dark") {
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
-  const storedToken = localStorage.getItem("token");
-  const [token, setToken] = useState<string | null>(storedToken);
-  const [loading, setLoading] = useState(!!storedToken);
+  const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<"light" | "dark">(
     () => (localStorage.getItem("themeMode") as "light" | "dark") || "light"
   );
@@ -42,33 +40,29 @@ export default function App() {
   }), [mode]);
 
   useEffect(() => {
-    if (token) {
-      authApi.getMe().then(setUser).catch(() => {
-        setToken(null);
-        localStorage.removeItem("token");
-      }).finally(() => setLoading(false));
-    }
-  }, [token]);
+    authApi.getMe()
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const isAuthenticated = !!user;
 
   const authValue = useMemo(() => ({
     user,
-    token,
+    token: null,
     isAdmin: user?.role === "admin",
     login: async (username: string, password: string) => {
       const resp = await authApi.login(username, password);
-      localStorage.setItem("token", resp.token);
       localStorage.setItem("user", JSON.stringify(resp.user));
-      setToken(resp.token);
       setUser(resp.user);
     },
     logout: async () => {
-      try { await authApi.logout(); } catch { /* token may already be invalid */ }
-      localStorage.removeItem("token");
+      try { await authApi.logout(); } catch { /* cookie may already be cleared */ }
       localStorage.removeItem("user");
-      setToken(null);
       setUser(null);
     },
-  }), [user, token]);
+  }), [user]);
 
   if (loading) return null;
 
@@ -80,8 +74,8 @@ export default function App() {
           <AuthContext.Provider value={authValue}>
             <BrowserRouter>
               <Routes>
-                <Route path="/login" element={token ? <Navigate to="/" /> : <Login />} />
-                <Route element={token ? <Layout /> : <Navigate to="/login" />}>
+                <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
+                <Route element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/expenses" element={<Expenses />} />
                   <Route path="/deposits" element={<Deposits />} />

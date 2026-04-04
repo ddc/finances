@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Box, Button, Container, TextField, Typography, Alert, FormControlLabel, Checkbox } from "@mui/material";
@@ -8,20 +8,11 @@ export default function Login() {
   const { t } = useTranslation();
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const savedUsername = (() => { try { return localStorage.getItem("rememberedUsername") || ""; } catch { return ""; } })();
+  const [username, setUsername] = useState(savedUsername);
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(!!savedUsername);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    const saved = localStorage.getItem("rememberedUser");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setUsername(parsed.username || "");
-      setPassword(parsed.password || "");
-      setRememberMe(true);
-    }
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,9 +20,9 @@ export default function Login() {
     try {
       await login(username, password);
       if (rememberMe) {
-        localStorage.setItem("rememberedUser", JSON.stringify({ username, password }));
+        localStorage.setItem("rememberedUsername", username);
       } else {
-        localStorage.removeItem("rememberedUser");
+        localStorage.removeItem("rememberedUsername");
       }
       navigate("/");
     } catch {

@@ -28,10 +28,10 @@ beforeEach(() => {
 
 describe("Auth API", () => {
   it("login sends username and password", async () => {
-    mockClient.post.mockResolvedValueOnce({ data: { token: "abc", user: { id: "1", username: "admin", role: "admin" } } });
+    mockClient.post.mockResolvedValueOnce({ data: { user: { id: "1", username: "admin", role: "admin" } } });
     const result = await login("admin", "pass");
     expect(mockClient.post).toHaveBeenCalledWith("/auth/login/", { username: "admin", password: "pass" });
-    expect(result.token).toBe("abc");
+    expect(result.user.username).toBe("admin");
   });
 
   it("logout calls post", async () => {

@@ -105,9 +105,20 @@ class LoginView(APIView):
         if not user:
             settings.LOG.warning("Failed login attempt for: " + serializer.validated_data["username"])
             return Response({"detail": INVALID_CREDENTIALS}, status=status.HTTP_401_UNAUTHORIZED)
-        token, _ = Token.objects.get_or_create(user=user)
+        # Delete old token if exists, create fresh one (resets expiry)
+        Token.objects.filter(user=user).delete()
+        token = Token.objects.create(user=user)
         settings.LOG.info("User logged in: " + user.username)
-        return Response({"token": token.key, "user": UserSerializer(user).data})
+        response = Response({"user": UserSerializer(user).data})
+        response.set_cookie(
+            key="auth_token",
+            value=token.key,
+            httponly=True,
+            samesite="Lax",
+            max_age=settings.ENV.TOKEN_EXPIRY_HOURS * 3600,
+            path="/",
+        )
+        return response
 
 
 class LogoutView(APIView):
@@ -116,7 +127,9 @@ class LogoutView(APIView):
     def post(self, request):
         request.user.auth_token.delete()
         settings.LOG.info("User logged out: " + request.user.username)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie("auth_token", path="/")
+        return response
 
 
 class MeView(APIView):

@@ -1,5 +1,5 @@
 import pytest
-from core.models import Deposit, Expense, Transfer
+from core.models import Bank, Company, Currency, Deposit, Expense, ExpenseCategory, Transfer
 from datetime import date
 from decimal import Decimal
 from django.contrib.auth.models import User
@@ -8,49 +8,66 @@ from tests.conftest import TEST_USER_PASSWORD
 pytestmark = pytest.mark.django_db
 
 
+@pytest.fixture
+def user():
+    return User.objects.create_user(username="testuser", password=TEST_USER_PASSWORD)
+
+
+@pytest.fixture
+def category():
+    return ExpenseCategory.objects.create(code="TAXES", label="Taxes")
+
+
+@pytest.fixture
+def currency():
+    return Currency.objects.create(code="USD", label="US Dollar", symbol="$")
+
+
+@pytest.fixture
+def company():
+    return Company.objects.create(code="DEEL", label="Deel")
+
+
+@pytest.fixture
+def bank():
+    return Bank.objects.create(code="SANTANDER", label="Santander")
+
+
 class TestExpense:
-    def test_create_expense(self):
-        user = User.objects.create_user(username="testuser", password=TEST_USER_PASSWORD)
+    def test_create_expense(self, user, category):
         expense = Expense.objects.create(
             expense_date=date(2026, 1, 5),
-            category="TAXES",
+            category=category,
             description="Tax payment",
             amount=Decimal("4380.59"),
             created_by=user,
         )
         assert expense.id is not None
-        assert expense.category == "TAXES"
+        assert expense.category == category
         assert expense.amount == Decimal("4380.59")
         assert expense.created_at is not None
         assert expense.updated_at is not None
 
-    def test_expense_category_choices(self):
-        choices = dict(Expense.CategoryChoices.choices)
-        assert "TAXES" in choices
-        assert "HEALTH_INSURANCE" in choices
-        assert "ACCOUNTING" in choices
-        assert "OTHER" in choices
-
-    def test_expense_str(self):
-        user = User.objects.create_user(username="testuser2", password=TEST_USER_PASSWORD)
+    def test_expense_str(self, user, category):
         expense = Expense.objects.create(
             expense_date=date(2026, 1, 10),
-            category="HEALTH_INSURANCE",
+            category=category,
             amount=Decimal("889.64"),
             created_by=user,
         )
-        assert "HEALTH_INSURANCE" in str(expense)
+        assert "Taxes" in str(expense)
 
 
 class TestDeposit:
-    def test_create_deposit(self):
-        user = User.objects.create_user(username="testuser3", password=TEST_USER_PASSWORD)
+    def test_create_deposit(self, user, currency, company):
         deposit = Deposit.objects.create(
             deposit_date=date(2026, 1, 2),
+            company=company,
             invoice_number="INV-ne3wdd4-2026-1",
             invoice_issue_date=date(2025, 12, 26),
             period_start=date(2025, 12, 21),
             period_end=date(2025, 12, 27),
+            currency=currency,
             amount_foreign=Decimal("1115.00"),
             amount_brl=Decimal("5894.49"),
             created_by=user,
@@ -61,14 +78,12 @@ class TestDeposit:
 
 
 class TestTransfer:
-    def test_create_transfer_linked_to_deposit(self):
-        user = User.objects.create_user(username="testuser4", password=TEST_USER_PASSWORD)
+    def test_create_transfer_linked_to_deposit(self, user, currency, company, bank):
         deposit = Deposit.objects.create(
             deposit_date=date(2026, 1, 2),
+            company=company,
             invoice_number="INV-53",
-            invoice_issue_date=date(2025, 12, 26),
-            period_start=date(2025, 12, 21),
-            period_end=date(2025, 12, 27),
+            currency=currency,
             amount_foreign=Decimal("1115.00"),
             amount_brl=Decimal("5890.00"),
             created_by=user,
@@ -76,13 +91,9 @@ class TestTransfer:
         transfer = Transfer.objects.create(
             transfer_date=date(2026, 1, 2),
             deposit=deposit,
-            bank_name="SANTANDER",
+            bank=bank,
             amount_brl=Decimal("5890.00"),
             created_by=user,
         )
         assert transfer.deposit == deposit
-        assert transfer.bank_name == "SANTANDER"
-
-    def test_transfer_bank_choices(self):
-        choices = dict(Transfer.BankChoices.choices)
-        assert "SANTANDER" in choices
+        assert transfer.bank == bank

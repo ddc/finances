@@ -4,10 +4,6 @@ export interface User {
   role: "admin" | "viewer";
 }
 
-export interface AuthResponse {
-  token: string;
-  user: User;
-}
 
 export interface ExpenseCategory {
   id: string;

@@ -1,8 +1,12 @@
 import client from "./client";
-import type { AuthResponse, User } from "../types";
+import type { User } from "../types";
 
-export const login = async (username: string, password: string): Promise<AuthResponse> => {
-  const { data } = await client.post<AuthResponse>("/auth/login/", { username, password });
+interface LoginResponse {
+  user: User;
+}
+
+export const login = async (username: string, password: string): Promise<LoginResponse> => {
+  const { data } = await client.post<LoginResponse>("/auth/login/", { username, password });
   return data;
 };
 

@@ -10,7 +10,6 @@
 ###
 ### TLS SUPPORT:
 ### - RSA 3072-bit keys with SHA-256 signatures
-### - Compatible with TLSv1.2 and higher
 ###
 
 set -euo pipefail
@@ -168,4 +167,6 @@ echo "2. Configure nginx to use the certificates (update frontend/nginx.conf):"
 echo "   listen 443 ssl;"
 echo "   ssl_certificate /etc/nginx/certs/${SERVER_FILENAMES_PREFIX}.crt;"
 echo "   ssl_certificate_key /etc/nginx/certs/${SERVER_FILENAMES_PREFIX}.key;"
+echo "   ssl_protocols TLSv1.3;"
+echo "   ssl_prefer_server_ciphers off;"
 echo ""

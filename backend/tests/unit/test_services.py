@@ -52,18 +52,18 @@ class TestDashboardService:
         assert data["recent_activity"] == []
 
     def test_dashboard_data_with_records(self):
-        from core.models import Deposit, Expense
+        from core.models import Company, Currency, Deposit, Expense, ExpenseCategory
 
         user = User.objects.create_user(username="testuser", password=TEST_USER_PASSWORD)
-        Expense.objects.create(
-            expense_date=date(2026, 1, 5), category="TAXES", amount=Decimal("4380.59"), created_by=user
-        )
+        cat = ExpenseCategory.objects.create(code="TAXES", label="Taxes")
+        curr = Currency.objects.create(code="USD", label="US Dollar", symbol="$")
+        comp = Company.objects.create(code="DEEL", label="Deel")
+        Expense.objects.create(expense_date=date(2026, 1, 5), category=cat, amount=Decimal("4380.59"), created_by=user)
         Deposit.objects.create(
             deposit_date=date(2026, 1, 2),
+            company=comp,
             invoice_number="INV-001",
-            invoice_issue_date=date(2025, 12, 26),
-            period_start=date(2025, 12, 21),
-            period_end=date(2025, 12, 27),
+            currency=curr,
             amount_foreign=Decimal("1115.00"),
             amount_brl=Decimal("5894.49"),
             created_by=user,

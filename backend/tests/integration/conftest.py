@@ -1,4 +1,5 @@
 import pytest
+from core.models import Bank, Company, Currency, ExpenseCategory
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
@@ -63,3 +64,23 @@ def viewer_client(viewer_user):
     token, _ = Token.objects.get_or_create(user=viewer_user)
     client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
     return client
+
+
+@pytest.fixture
+def expense_category(db):
+    return ExpenseCategory.objects.create(code="TAXES", label="Taxes")
+
+
+@pytest.fixture
+def currency(db):
+    return Currency.objects.create(code="USD", label="US Dollar", symbol="$")
+
+
+@pytest.fixture
+def company(db):
+    return Company.objects.create(code="DEEL", label="Deel")
+
+
+@pytest.fixture
+def bank(db):
+    return Bank.objects.create(code="SANTANDER", label="Santander")

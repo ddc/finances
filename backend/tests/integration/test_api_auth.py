@@ -13,8 +13,8 @@ class TestLogin:
         client = APIClient()
         response = client.post(f"{BASE_URL}/login/", {"username": "admin", "password": TEST_USER_PASSWORD})
         assert response.status_code == 200
-        assert "token" in response.data
         assert response.data["user"]["role"] == "admin"
+        assert "auth_token" in response.cookies
 
     def test_login_invalid_credentials(self):
         from rest_framework.test import APIClient
