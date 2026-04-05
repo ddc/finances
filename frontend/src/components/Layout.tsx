@@ -48,7 +48,7 @@ export default function Layout() {
     globalThis.location.reload();
   };
 
-  const currentLang = lang === "pt-br" ? "PT-BR" : "EN-US";
+  const currentLang = lang === "pt-BR" ? "PT-BR" : "EN-US";
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -72,7 +72,7 @@ export default function Layout() {
           </Tooltip>
           <Menu anchorEl={langAnchorEl} open={Boolean(langAnchorEl)} onClose={() => setLangAnchorEl(null)}>
             <MenuItem selected={lang === "en"} onClick={() => handleLanguageChange("en")}>EN-US</MenuItem>
-            <MenuItem selected={lang === "pt-br"} onClick={() => handleLanguageChange("pt-br")}>PT-BR</MenuItem>
+            <MenuItem selected={lang === "pt-BR"} onClick={() => handleLanguageChange("pt-BR")}>PT-BR</MenuItem>
           </Menu>
           <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)}>
             <AccountCircle />
