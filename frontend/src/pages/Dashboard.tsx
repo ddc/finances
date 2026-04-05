@@ -267,37 +267,17 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-      {/* Detail pie charts row */}
+      {/* Detail pie charts — 2x2 grid */}
       {hasDetailPies && (
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 2 }}>
-          {expenseByCategoryPie.length > 0 && (
-            <Card sx={{ flex: "1 1 calc(25% - 12px)", minWidth: 260 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>{t("dashboard.expensesByCategory")}</Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie data={expenseByCategoryPie} cx="50%" cy="50%" outerRadius={70} dataKey="value"
-                      label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
-                    >
-                      {expenseByCategoryPie.map((entry) => (
-                        <Cell key={entry.name} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
-                    <Legend formatter={legendWithPct(expenseByCategoryPie)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
+        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, mt: 2 }}>
           {depositByCurrencyPie.length > 0 && (
-            <Card sx={{ flex: "1 1 calc(25% - 12px)", minWidth: 260 }}>
+            <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>{t("dashboard.depositsByCurrency")}</Typography>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={350}>
                   <PieChart>
-                    <Pie data={depositByCurrencyPie} cx="50%" cy="50%" outerRadius={70} dataKey="value"
-                      label={({ name, value }) => `${name}: ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                    <Pie data={depositByCurrencyPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
+                      label={({ name, value }) => name + ": " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     >
                       {depositByCurrencyPie.map((entry) => (
                         <Cell key={entry.name} fill={entry.color} />
@@ -311,13 +291,13 @@ export default function Dashboard() {
             </Card>
           )}
           {depositByCompanyPie.length > 0 && (
-            <Card sx={{ flex: "1 1 calc(25% - 12px)", minWidth: 260 }}>
+            <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>{t("dashboard.depositsByCompany")}</Typography>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={350}>
                   <PieChart>
-                    <Pie data={depositByCompanyPie} cx="50%" cy="50%" outerRadius={70} dataKey="value"
-                      label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                    <Pie data={depositByCompanyPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
+                      label={({ name, value }) => name + ": R$ " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     >
                       {depositByCompanyPie.map((entry) => (
                         <Cell key={entry.name} fill={entry.color} />
@@ -330,14 +310,34 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           )}
+          {expenseByCategoryPie.length > 0 && (
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>{t("dashboard.expensesByCategory")}</Typography>
+                <ResponsiveContainer width="100%" height={350}>
+                  <PieChart>
+                    <Pie data={expenseByCategoryPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
+                      label={({ name, value }) => name + ": R$ " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    >
+                      {expenseByCategoryPie.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <Legend formatter={legendWithPct(expenseByCategoryPie)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
           {transferByBankPie.length > 0 && (
-            <Card sx={{ flex: "1 1 calc(25% - 12px)", minWidth: 260 }}>
+            <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>{t("dashboard.transfersByBank")}</Typography>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={350}>
                   <PieChart>
-                    <Pie data={transferByBankPie} cx="50%" cy="50%" outerRadius={70} dataKey="value"
-                      label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                    <Pie data={transferByBankPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
+                      label={({ name, value }) => name + ": R$ " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     >
                       {transferByBankPie.map((entry) => (
                         <Cell key={entry.name} fill={entry.color} />
@@ -357,9 +357,9 @@ export default function Dashboard() {
       <Card sx={{ mt: 2 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>{t("dashboard.recentActivity")}</Typography>
-          <Box sx={{ display: "flex", gap: 2 }}>
+          <Box sx={{ display: "flex", gap: 0 }}>
             {Array.from({ length: Math.ceil(data.recent_activity.length / 10) }, (_, col) => (
-              <List key={col} dense sx={{ flex: 1, minWidth: 0 }}>
+              <List key={col} dense sx={{ flex: "0 0 auto", minWidth: 300 }}>
                 {data.recent_activity.slice(col * 10, (col + 1) * 10).map((item) => (
                   <ListItem key={item.type + "-" + item.date + "-" + item.description}>
                     <ListItemText
