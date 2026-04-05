@@ -32,7 +32,7 @@ NC="\033[0m"
 
 # Get server IP from .env or use default
 if [[ -f "$PROJECT_DIR/.env" ]]; then
-    SERVER_IP=$(grep -E "^DJANGO_ALLOWED_HOSTS=" "$PROJECT_DIR/.env" | cut -d= -f2 | tr ',' '\n' | grep -E '^[0-9]+\.' | head -1)
+    SERVER_IP=$(grep -E "^DJANGO_ALLOWED_HOSTS=" "$PROJECT_DIR/.env" | cut -d= -f2 | tr ',' '\n' | grep -E '^[0-9]+\.' | grep -v '^127\.' | head -1)
 fi
 SERVER_IP="${SERVER_IP:-127.0.0.1}"
 
@@ -83,22 +83,30 @@ EOF
 echo "---> [3/6] Generating server private key"
 openssl genrsa -out "$CERT_DIR/${SERVER_FILENAMES_PREFIX}.key" $RSA_KEY_BITS 2>/dev/null
 
-# Step 4: Create certificate extension file
+# Step 4: Create certificate extension file with all IPs from .env
 echo "---> [4/6] Creating certificate extension file"
-cat > "$CERT_DIR/${SERVER_FILENAMES_PREFIX}.ext" << EOF
-[v3_req]
-authorityKeyIdentifier=keyid,issuer
-basicConstraints=CA:FALSE
-keyUsage = digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-subjectAltName = @alt_names
-
-[alt_names]
-DNS.1 = finances
-DNS.2 = localhost
-IP.1 = $SERVER_IP
-IP.2 = 127.0.0.1
-EOF
+{
+    echo "[v3_req]"
+    echo "authorityKeyIdentifier=keyid,issuer"
+    echo "basicConstraints=CA:FALSE"
+    echo "keyUsage = digitalSignature, keyEncipherment"
+    echo "extendedKeyUsage = serverAuth"
+    echo "subjectAltName = @alt_names"
+    echo ""
+    echo "[alt_names]"
+    echo "DNS.1 = finances"
+    echo "DNS.2 = localhost"
+    echo "IP.1 = 127.0.0.1"
+    # Add all IPs from DJANGO_ALLOWED_HOSTS
+    IP_COUNT=2
+    if [[ -f "$PROJECT_DIR/.env" ]]; then
+        while IFS= read -r ip; do
+            [[ "$ip" == "127.0.0.1" ]] && continue
+            IP_COUNT=$((IP_COUNT + 1))
+            echo "IP.$IP_COUNT = $ip"
+        done < <(grep -E "^DJANGO_ALLOWED_HOSTS=" "$PROJECT_DIR/.env" | cut -d= -f2 | tr ',' '\n' | grep -E '^[0-9]+\.')
+    fi
+} > "$CERT_DIR/${SERVER_FILENAMES_PREFIX}.ext"
 
 # Step 5: Generate Certificate Signing Request (CSR)
 echo "---> [5/6] Creating Certificate Signing Request (CSR)"
