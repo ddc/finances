@@ -5,7 +5,15 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        - PYTHON_IMAGE=${PYTHON_IMAGE:-python:3.14.3-alpine3.23}
+        - LOG_DIRECTORY=${LOG_DIRECTORY}
     container_name: finances_backend
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: always
     env_file: .env
     environment:
@@ -35,7 +43,16 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - BUN_IMAGE=${BUN_IMAGE:-oven/bun:1.3.11-alpine}
+        - NGINX_IMAGE=${NGINX_IMAGE:-nginx:1.29.7-alpine3.23}
+        - LOG_DIRECTORY=${LOG_DIRECTORY}
     container_name: finances_frontend
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: always
     env_file: .env
     ports:
@@ -43,8 +60,15 @@ services:
     volumes:
       - static_files:/app/staticfiles:ro
       - ./certs:/etc/nginx/certs:ro
+      - ./frontend/logs:/app/logs
     networks:
       - postgres_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sfk -o /dev/null https://localhost:8443/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
     depends_on:
       backend:
         condition: service_healthy

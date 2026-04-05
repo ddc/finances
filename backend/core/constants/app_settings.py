@@ -11,17 +11,17 @@ class AppSettings(BaseSettings):
     TOKEN_EXPIRY_HOURS: int = Field(default=1)
 
     # Frontend App Port
-    FRONTEND_PORT: int = Field(default=8888)
+    FRONTEND_PORT: int = Field(default=443)
 
     # Seed data (comma-separated)
-    SEED_CATEGORIES: str = Field(
-        default="TAXES:Taxes,HEALTH_INSURANCE:Health Insurance,ACCOUNTING:Accounting,TFE:TFE,OTHER:Other"
-    )
     SEED_CURRENCIES: str = Field(
         default="USD:US Dollar:$,EUR:Euro:\u20ac,GBP:British Pound:\u00a3,CAD:Canadian Dollar:C$,AUD:Australian Dollar:A$"
     )
-    SEED_COMPANIES: str = Field(default="DEEL:Deel,OTHER:Other")
-    SEED_BANKS: str = Field(default="SANTANDER:Santander")
+    SEED_CATEGORIES: str = Field(
+        default="TAXES:Taxes,HEALTH_INSURANCE:Health Insurance,ACCOUNTING:Accounting,OTHER:Other"
+    )
+    SEED_BANKS: str = Field(default="OTHER:Other")
+    SEED_COMPANIES: str = Field(default="OTHER:Other")
 
     # Database
     POSTGRES_HOST: str = Field(default="localhost")
