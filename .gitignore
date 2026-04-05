@@ -161,9 +161,8 @@ cython_debug/
 
 # Local logs
 /logs/*
+backend/logs/*
+frontend/logs/*
 
 # SSL Certificates
 certs/
-
-# Logs
-backend/logs/

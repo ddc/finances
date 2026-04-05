@@ -1,8 +1,12 @@
-FROM python:3.14.3-alpine3.23 AS python-base
+ARG PYTHON_IMAGE=python:3.14.3-alpine3.23
+FROM ${PYTHON_IMAGE} AS python-base
 
 LABEL Description="Finances Backend"
 
-ENV WORKDIR=/app \
+ARG LOG_DIRECTORY="/app/logs"
+
+ENV LOG_DIRECTORY="${LOG_DIRECTORY}" \
+    WORKDIR=/app \
     TERM=xterm \
     TZ="UTC" \
     PYTHONUNBUFFERED=1 \
@@ -28,6 +32,8 @@ RUN set -ex && \
 
 FROM python-base AS final
 
+RUN apk update && apk upgrade --no-cache
+
 COPY --chmod=555 manage.py ${WORKDIR}/
 COPY --chmod=555 finances ${WORKDIR}/finances
 COPY --chmod=555 core ${WORKDIR}/core
@@ -35,12 +41,13 @@ COPY --chmod=555 pyproject.toml ${WORKDIR}/
 COPY --chmod=555 uv.lock ${WORKDIR}/
 
 RUN set -ex && \
+    mkdir -p ${LOG_DIRECTORY} && \
     apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
     uv sync --frozen --no-dev && \
     apk del .build-deps && \
     uv cache clean && \
     mkdir -p ${WORKDIR}/staticfiles && \
-    chown -R appuser:appuser ${WORKDIR}
+    chown -R appuser:appuser ${WORKDIR} ${LOG_DIRECTORY}
 
 USER appuser
 
