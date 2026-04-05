@@ -88,7 +88,7 @@ export default function NfeSamples() {
       flex: 3,
       valueGetter: (value: string) => value.substring(0, 100) + (value.length > 100 ? "..." : ""),
     },
-    { field: "created_at", headerName: t("nfeSamples.created"), flex: 1, valueGetter: (value: string) => new Date(value).toLocaleDateString() },
+    { field: "created_at", headerName: t("nfeSamples.created"), flex: 1, valueGetter: (value: string) => value.split("T")[0] },
     ...(isAdmin
       ? [
           {
