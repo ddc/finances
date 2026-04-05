@@ -1,4 +1,6 @@
 ARG BUN_IMAGE=oven/bun:1.3.11-alpine
+ARG NGINX_IMAGE=nginx:1.29.7-alpine3.23
+
 FROM ${BUN_IMAGE} AS build
 
 WORKDIR /app
@@ -7,7 +9,6 @@ RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build
 
-ARG NGINX_IMAGE=nginx:1.29.7-alpine3.23
 FROM ${NGINX_IMAGE} AS final
 RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d && \
     touch /var/run/nginx.pid && chown nginx:nginx /var/run/nginx.pid && \
