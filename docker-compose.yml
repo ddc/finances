@@ -14,7 +14,7 @@ services:
       - static_files:/app/staticfiles
       - ./backend/logs:/app/logs
     networks:
-      - finances_network
+      - postgres_network
     command:
       - sh
       - -c
@@ -44,7 +44,7 @@ services:
       - static_files:/app/staticfiles:ro
       - ./certs:/etc/nginx/certs:ro
     networks:
-      - finances_network
+      - postgres_network
     depends_on:
       backend:
         condition: service_healthy
@@ -53,5 +53,6 @@ volumes:
   static_files:
 
 networks:
-  finances_network:
-    name: finances_network
+  postgres_network:
+    name: postgres_network
+    external: true
