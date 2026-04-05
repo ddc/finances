@@ -210,7 +210,7 @@ export default function Deposits() {
             <Card sx={{ flex: 1 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>{t("deposits.totalForeign")} vs BRL</Typography>
-                <ResponsiveContainer width="100%" height={250}>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
                       data={overviewPieData}
@@ -239,7 +239,7 @@ export default function Deposits() {
             <Card sx={{ flex: 1 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>{t("filters.currency")}</Typography>
-                <ResponsiveContainer width="100%" height={250}>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
                       data={currencyTotals}
@@ -268,7 +268,7 @@ export default function Deposits() {
             <Card sx={{ flex: 1 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>{t("deposits.company")}</Typography>
-                <ResponsiveContainer width="100%" height={250}>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
                       data={companyTotals}

@@ -114,6 +114,7 @@ class LoginView(APIView):
             key="auth_token",
             value=token.key,
             httponly=True,
+            secure=True,
             samesite="Lax",
             max_age=settings.ENV.TOKEN_EXPIRY_HOURS * 3600,
             path="/",

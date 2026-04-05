@@ -274,7 +274,7 @@ export default function Dashboard() {
             <Card sx={{ flex: "1 1 calc(25% - 12px)", minWidth: 260 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>{t("dashboard.expensesByCategory")}</Typography>
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie data={expenseByCategoryPie} cx="50%" cy="50%" outerRadius={70} dataKey="value"
                       label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
@@ -294,7 +294,7 @@ export default function Dashboard() {
             <Card sx={{ flex: "1 1 calc(25% - 12px)", minWidth: 260 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>{t("dashboard.depositsByCurrency")}</Typography>
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie data={depositByCurrencyPie} cx="50%" cy="50%" outerRadius={70} dataKey="value"
                       label={({ name, value }) => `${name}: ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
@@ -314,7 +314,7 @@ export default function Dashboard() {
             <Card sx={{ flex: "1 1 calc(25% - 12px)", minWidth: 260 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>{t("dashboard.depositsByCompany")}</Typography>
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie data={depositByCompanyPie} cx="50%" cy="50%" outerRadius={70} dataKey="value"
                       label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
@@ -334,7 +334,7 @@ export default function Dashboard() {
             <Card sx={{ flex: "1 1 calc(25% - 12px)", minWidth: 260 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>{t("dashboard.transfersByBank")}</Typography>
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie data={transferByBankPie} cx="50%" cy="50%" outerRadius={70} dataKey="value"
                       label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
