@@ -60,7 +60,7 @@ services:
     volumes:
       - static_files:/app/staticfiles:ro
       - ./certs:/etc/nginx/certs:ro
-      - ./frontend/logs:/app/logs
+      - frontend_logs:/app/logs
     networks:
       - postgres_network
     healthcheck:

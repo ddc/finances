@@ -20,6 +20,9 @@ sudo find "$PROJECT_DIR" -type f -exec chmod 644 {} +
 sudo chmod 600 "$PROJECT_DIR/.env"
 sudo chmod 755 "$PROJECT_DIR/utilities"/*.sh
 
+# fix nginx logs dir ownership (nginx container runs as UID 101)
+sudo chown 101:101 "$PROJECT_DIR/frontend/logs"
+
 # start containers
 #./utilities/start.sh
 
