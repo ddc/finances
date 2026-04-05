@@ -120,7 +120,7 @@ openssl x509 -req -in "$CERT_DIR/${SERVER_FILENAMES_PREFIX}.csr" \
 # Set permissions
 chmod 600 "$CERT_DIR/${CA_FILENAMES_PREFIX}.key"
 chmod 644 "$CERT_DIR/${CA_FILENAMES_PREFIX}.crt"
-chmod 600 "$CERT_DIR/${SERVER_FILENAMES_PREFIX}.key"
+chmod 644 "$CERT_DIR/${SERVER_FILENAMES_PREFIX}.key"
 chmod 644 "$CERT_DIR/${SERVER_FILENAMES_PREFIX}.crt"
 
 # Clean up temporary files
