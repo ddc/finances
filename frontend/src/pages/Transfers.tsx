@@ -4,7 +4,7 @@ import {
   TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
   Card, CardContent,
 } from "@mui/material";
-import { Add, Edit, Delete, Visibility } from "@mui/icons-material";
+import { Add, Edit, Delete, Description } from "@mui/icons-material";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import type { GridColDef } from "@mui/x-data-grid";
@@ -122,38 +122,27 @@ export default function Transfers() {
       valueGetter: (value: string) => depositLabel(value),
     },
     {
-      field: "transfer_file",
-      headerName: t("transfers.transferFile"),
-      width: 80,
+      field: "actions",
+      headerName: t("common.actions"),
+      width: isAdmin ? 150 : 60,
       sortable: false,
       filterable: false,
       renderCell: (params: { row: Transfer }) => (
         <>
           {params.row.has_transfer_file && (
             <IconButton size="small" title={t("transfers.transferFile")} onClick={() => window.open(`/api/v1/transfers/${params.row.id}/file/`, "_blank")}>
-              <Visibility fontSize="small" />
+              <Description fontSize="small" color="info" />
             </IconButton>
+          )}
+          {isAdmin && (
+            <>
+              <IconButton size="small" onClick={() => handleOpen(params.row)}><Edit fontSize="small" /></IconButton>
+              <IconButton size="small" color="error" onClick={() => setDeleteId(params.row.id)}><Delete fontSize="small" /></IconButton>
+            </>
           )}
         </>
       ),
     } as GridColDef,
-    ...(isAdmin
-      ? [
-          {
-            field: "actions",
-            headerName: t("common.actions"),
-            width: 120,
-            sortable: false,
-            filterable: false,
-            renderCell: (params: { row: Transfer }) => (
-              <>
-                <IconButton size="small" onClick={() => handleOpen(params.row)}><Edit fontSize="small" /></IconButton>
-                <IconButton size="small" color="error" onClick={() => setDeleteId(params.row.id)}><Delete fontSize="small" /></IconButton>
-              </>
-            ),
-          } as GridColDef,
-        ]
-      : []),
   ];
 
   // Pie chart data: breakdown by bank
