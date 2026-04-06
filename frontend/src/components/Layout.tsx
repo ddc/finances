@@ -29,8 +29,8 @@ export default function Layout() {
 
   const navItems = [
     { label: t("nav.dashboard"), path: "/", icon: <DashboardIcon /> },
-    { label: t("nav.expenses"), path: "/expenses", icon: <Receipt /> },
     { label: t("nav.deposits"), path: "/deposits", icon: <AccountBalance /> },
+    { label: t("nav.expenses"), path: "/expenses", icon: <Receipt /> },
     { label: t("nav.transfers"), path: "/transfers", icon: <SwapHoriz /> },
     { label: t("nav.nfeSamples"), path: "/nfe-samples", icon: <Description /> },
   ];

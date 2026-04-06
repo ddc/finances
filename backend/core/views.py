@@ -178,8 +178,19 @@ class ExpenseViewSet(LoggingModelViewSet):
     serializer_class = ExpenseSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    def _save_file(self, instance, request):
+        f = request.FILES.get("receipt_file")
+        if f:
+            instance.receipt_file = f.read()
+            instance.save()
+
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        instance = serializer.save(created_by=self.request.user)
+        self._save_file(instance, self.request)
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        self._save_file(instance, self.request)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -303,6 +314,18 @@ class NfeSampleViewSet(LoggingModelViewSet):
         if month:
             qs = qs.filter(created_at__month=month)
         return qs
+
+
+class ExpenseFileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        expense = Expense.objects.get(pk=pk)
+        if not expense.receipt_file:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        response = HttpResponse(bytes(expense.receipt_file), content_type="application/pdf")
+        response["Content-Disposition"] = 'inline; filename="' + str(pk) + '_receipt.pdf"'
+        return response
 
 
 class DepositFileView(APIView):

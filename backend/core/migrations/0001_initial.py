@@ -181,6 +181,7 @@ class Migration(migrations.Migration):
                 ("expense_date", models.DateField()),
                 ("description", models.TextField(blank=True, default="")),
                 ("amount", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("receipt_file", models.BinaryField(blank=True, null=True)),
                 (
                     "created_by",
                     models.ForeignKey(

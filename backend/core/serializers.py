@@ -30,6 +30,7 @@ class BankSerializer(serializers.ModelSerializer):
 class ExpenseSerializer(serializers.ModelSerializer):
     category_code = serializers.CharField(source="category.code", read_only=True)
     category_label = serializers.CharField(source="category.label", read_only=True)
+    has_receipt_file = serializers.SerializerMethodField()
 
     class Meta:
         model = Expense
@@ -41,11 +42,15 @@ class ExpenseSerializer(serializers.ModelSerializer):
             "category_label",
             "description",
             "amount",
+            "has_receipt_file",
             "created_by",
             "created_at",
             "updated_at",
         ]
         read_only_fields = ["id", "created_by", "created_at", "updated_at", "category_code", "category_label"]
+
+    def get_has_receipt_file(self, obj):
+        return bool(obj.receipt_file)
 
 
 class DepositSerializer(serializers.ModelSerializer):

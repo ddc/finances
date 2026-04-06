@@ -59,7 +59,7 @@ describe("Expenses API", () => {
     const expense = { expense_date: "2026-01-05", category: "cat-uuid-1", amount: 100 };
     mockClient.post.mockResolvedValueOnce({ data: { id: "1", ...expense } });
     const result = await createExpense(expense);
-    expect(mockClient.post).toHaveBeenCalledWith("/expenses/", expense);
+    expect(mockClient.post).toHaveBeenCalledWith("/expenses/", expect.any(FormData));
     expect(result.id).toBe("1");
   });
 
