@@ -48,13 +48,15 @@
 |-----------------|------------------------------------------------------|
 | Backend         | Django 6.0 + Django REST Framework                   |
 | Frontend        | React 19 + Vite + MUI + Recharts                     |
-| Database        | PostgreSQL                                           |
+| Database        | PostgreSQL (data + file storage)                     |
 | Auth            | httpOnly cookie + token expiration                   |
-| i18n            | EN-US, PT-BR                                         |
+| SSL             | TLSv1.3 self-signed certificates                    |
+| i18n            | EN-US, PT-BR (locale-aware number formatting)        |
+| File Storage    | PDF files stored in PostgreSQL (BinaryField)         |
 | Package Manager | uv (backend), bun (frontend)                         |
 | Linting         | ruff (backend), eslint (frontend)                    |
 | Testing         | pytest + testcontainers (backend), vitest (frontend) |
-| Deploy          | Docker Compose                                       |
+| Deploy          | Docker Compose with HTTPS                            |
 
 ## Timezone Handling
 
@@ -99,6 +101,14 @@ Base URL: `/api/v1/`
 | GET/POST       | /nfe-samples/      | List / Create NFE samples | Read: all, Write: admin |
 | GET/PUT/DELETE | /nfe-samples/{id}/ | Detail / Update / Delete  | Read: all, Write: admin |
 
+### File Downloads (PDF stored in PostgreSQL)
+
+| Method | Endpoint                        | Description          | Auth     |
+|--------|---------------------------------|----------------------|----------|
+| GET    | /deposits/{id}/file/nfe/        | Download NFE PDF     | Required |
+| GET    | /deposits/{id}/file/invoice/    | Download Invoice PDF | Required |
+| GET    | /transfers/{id}/file/           | Download Transfer PDF| Required |
+
 ### Lookup Tables (read-only)
 
 | Method | Endpoint             | Description             | Auth     |
@@ -141,7 +151,15 @@ Generate a secret key:
 python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
-### 3. Start the application
+### 3. Generate SSL certificates
+
+```bash
+./utilities/create_ssl_certs.sh
+```
+
+Import `certs/finances_ca.crt` into your browser's trusted certificate authorities.
+
+### 4. Start the application
 
 ```bash
 docker compose up -d --build
@@ -155,7 +173,7 @@ On startup, the backend automatically:
 - Collects static files
 - Starts gunicorn
 
-### 4. Seed data
+### 5. Seed data
 
 Seed data runs automatically on every deploy. To run it manually:
 
@@ -177,7 +195,7 @@ Or create a user manually:
 docker compose exec backend uv run --frozen --no-sync python manage.py createsuperuser
 ```
 
-### 5. Managing lookup tables
+### 6. Managing lookup tables
 
 Expense categories, currencies, companies, and banks can be added, edited, or removed via the Django admin panel at
 `/admin/`. The frontend dropdowns update automatically from the database — no code changes needed.
