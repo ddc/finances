@@ -33,7 +33,7 @@ dev = [
 linter-backend.shell = "uv run ruff check --fix . && uv run ruff format ."
 profile-backend = "uv run python -m cProfile -o cprofile_unit.prof -m pytest tests/unit"
 profile-backend-integration = "uv run python -m cProfile -o cprofile_integration.prof -m pytest tests/integration"
-test-backend.shell = "uv run coverage run -m pytest tests/unit && uv run coverage report && mkdir -p coverage-reports && uv run coverage xml -o coverage-reports/coverage-python.xml"
+test-backend.shell = "uv run coverage run -m pytest tests/unit && uv run coverage report && mkdir -p ../coverage-reports && uv run coverage xml"
 test-backend-integration = "uv run pytest tests/integration"
 test-backend-docker = "uv run pytest tests/docker"
 hadolint-backend.shell = "docker run --rm -i -v $(pwd)/../.hadolint.yml:/.config/hadolint.yml:ro hadolint/hadolint < Dockerfile"
@@ -66,7 +66,7 @@ omit = [
 ]
 
 [tool.coverage.xml]
-output = "coverage-reports/coverage-python.xml"
+output = "../coverage-reports/coverage-python.xml"
 
 [tool.coverage.report]
 show_missing = true
