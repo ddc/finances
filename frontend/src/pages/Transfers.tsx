@@ -4,7 +4,7 @@ import {
   TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
   Card, CardContent,
 } from "@mui/material";
-import { Add, Edit, Delete } from "@mui/icons-material";
+import { Add, Edit, Delete, Visibility } from "@mui/icons-material";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import type { GridColDef } from "@mui/x-data-grid";
@@ -30,7 +30,9 @@ const EMPTY_FORM = () => ({
 });
 
 export default function Transfers() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const numberLocale = i18n.language === "pt-BR" ? "pt-BR" : "en-US";
+  const formatNumber = (value: number) => Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 });
 
   const { isAdmin } = useAuth();
   const [rows, setRows] = useState<Transfer[]>([]);
@@ -44,6 +46,7 @@ export default function Transfers() {
   const [form, setForm] = useState(EMPTY_FORM());
   const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [transferFile, setTransferFile] = useState<File | null>(null);
 
   useEffect(() => { listBanks().then(setBanks); }, []);
 
@@ -78,6 +81,7 @@ export default function Transfers() {
       setForm({ ...EMPTY_FORM(), bank: defaultBank ? defaultBank.id : "" });
     }
     setSubmitted(false);
+    setTransferFile(null);
     setDialogOpen(true);
   };
 
@@ -91,9 +95,9 @@ export default function Transfers() {
       amount_brl: Number(form.amount_brl),
     };
     if (editingId) {
-      await updateTransfer(editingId, payload);
+      await updateTransfer(editingId, payload, transferFile || undefined);
     } else {
-      await createTransfer(payload);
+      await createTransfer(payload, transferFile || undefined);
     }
     setDialogOpen(false);
     load();
@@ -110,13 +114,29 @@ export default function Transfers() {
   const columns: GridColDef[] = [
     { field: "transfer_date", headerName: t("transfers.transferDate"), flex: 1 },
     { field: "bank_label", headerName: t("transfers.bank"), flex: 1 },
-    { field: "amount_brl", headerName: t("transfers.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) },
+    { field: "amount_brl", headerName: t("transfers.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     {
       field: "deposit",
       headerName: t("transfers.deposit"),
       flex: 2,
       valueGetter: (value: string) => depositLabel(value),
     },
+    {
+      field: "transfer_file",
+      headerName: t("transfers.transferFile"),
+      width: 80,
+      sortable: false,
+      filterable: false,
+      renderCell: (params: { row: Transfer }) => (
+        <>
+          {params.row.has_transfer_file && (
+            <IconButton size="small" title={t("transfers.transferFile")} onClick={() => window.open(`/api/v1/transfers/${params.row.id}/file/`, "_blank")}>
+              <Visibility fontSize="small" />
+            </IconButton>
+          )}
+        </>
+      ),
+    } as GridColDef,
     ...(isAdmin
       ? [
           {
@@ -169,7 +189,7 @@ export default function Transfers() {
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
             <Typography color="text.secondary" variant="body2">{t("transfers.total")}</Typography>
             <Typography variant="h6" sx={{ color: "#22c55e" }}>
-              R$ {rows.reduce((sum, r) => sum + Number(r.amount_brl), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              R$ {rows.reduce((sum, r) => sum + Number(r.amount_brl), 0).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
             </Typography>
           </CardContent>
         </Card>
@@ -181,7 +201,7 @@ export default function Transfers() {
               <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
                 <Typography color="text.secondary" variant="body2">{"Total " + bank.label}</Typography>
                 <Typography variant="h6" sx={{ color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }}>
-                  R$ {bankTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  R$ {bankTotal.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
                 </Typography>
               </CardContent>
             </Card>
@@ -204,13 +224,13 @@ export default function Transfers() {
                   cy="50%"
                   outerRadius={100}
                   dataKey="value"
-                  label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                  label={({ name, value }) => `${name}: R$ ${value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}`}
                 >
                   {bankTotals.map((entry) => (
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
-                <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                 <Legend formatter={(value, entry) => {
                   const total = bankTotals.reduce((s, d) => s + d.value, 0);
                   const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
@@ -260,6 +280,18 @@ export default function Transfers() {
             onChange={(e) => setForm({ ...form, amount_brl: e.target.value })}
             required error={submitted && !form.amount_brl}
           />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button variant="outlined" component="label">
+              {t("transfers.uploadTransfer")}
+              <input type="file" accept=".pdf" hidden onChange={(e) => setTransferFile(e.target.files?.[0] || null)} />
+            </Button>
+            {transferFile && <Typography variant="body2">{transferFile.name}</Typography>}
+            {!transferFile && editingId && rows.find((r) => r.id === editingId)?.has_transfer_file && (
+              <Typography variant="body2" color="text.secondary">
+                Current: Transfer uploaded
+              </Typography>
+            )}
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>{t("common.cancel")}</Button>

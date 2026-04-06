@@ -5,11 +5,16 @@ from django.db.models import Sum
 from django.db.models.functions import ExtractMonth
 
 
-def get_dashboard_data(year, month=None):
-    settings.LOG.info("Building dashboard data: year=" + str(year) + ", month=" + str(month))
-    deposit_qs = Deposit.objects.filter(deposit_date__year=year)
-    expense_qs = Expense.objects.filter(expense_date__year=year)
-    transfer_qs = Transfer.objects.filter(transfer_date__year=year)
+def get_dashboard_data(year=None, month=None):
+    settings.LOG.debug("Building dashboard data: year=" + str(year) + ", month=" + str(month))
+    deposit_qs = Deposit.objects.all()
+    expense_qs = Expense.objects.all()
+    transfer_qs = Transfer.objects.all()
+
+    if year:
+        deposit_qs = deposit_qs.filter(deposit_date__year=year)
+        expense_qs = expense_qs.filter(expense_date__year=year)
+        transfer_qs = transfer_qs.filter(transfer_date__year=year)
 
     if month:
         deposit_qs = deposit_qs.filter(deposit_date__month=month)

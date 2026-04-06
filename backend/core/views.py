@@ -15,9 +15,9 @@ from core.serializers import (
 )
 from core.services.dashboard import get_dashboard_data
 from core.services.ptax import get_ptax_rate
-from datetime import datetime as dt
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.http import HttpResponse
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -144,7 +144,8 @@ class DashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        year = int(request.query_params.get("year", dt.now().year))
+        year_param = request.query_params.get("year")
+        year = int(year_param) if year_param else None
         month_param = request.query_params.get("month")
         month = int(month_param) if month_param else None
         currency = request.query_params.get("currency", "USD").upper()
@@ -164,11 +165,11 @@ class DashboardView(APIView):
         if ptax:
             data["ptax_compra"] = str(ptax["compra"])
             data["ptax_venda"] = str(ptax["venda"])
-            data["ptax_fetched_at"] = dt.now().isoformat()
+            data["ptax_data_hora"] = ptax.get("data_hora", "")
         else:
             data["ptax_compra"] = None
             data["ptax_venda"] = None
-            data["ptax_fetched_at"] = None
+            data["ptax_data_hora"] = None
         return Response(data)
 
 
@@ -199,8 +200,23 @@ class DepositViewSet(LoggingModelViewSet):
     serializer_class = DepositSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    def _save_files(self, instance, request):
+        nfe = request.FILES.get("nfe_file")
+        invoice = request.FILES.get("invoice_file")
+        if nfe:
+            instance.nfe_file = nfe.read()
+        if invoice:
+            instance.invoice_file = invoice.read()
+        if nfe or invoice:
+            instance.save()
+
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        instance = serializer.save(created_by=self.request.user)
+        self._save_files(instance, self.request)
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        self._save_files(instance, self.request)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -218,8 +234,19 @@ class TransferViewSet(LoggingModelViewSet):
     serializer_class = TransferSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+    def _save_file(self, instance, request):
+        f = request.FILES.get("transfer_file")
+        if f:
+            instance.transfer_file = f.read()
+            instance.save()
+
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        instance = serializer.save(created_by=self.request.user)
+        self._save_file(instance, self.request)
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        self._save_file(instance, self.request)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -276,3 +303,33 @@ class NfeSampleViewSet(LoggingModelViewSet):
         if month:
             qs = qs.filter(created_at__month=month)
         return qs
+
+
+class DepositFileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk, file_type):
+        deposit = Deposit.objects.get(pk=pk)
+        if file_type == "nfe":
+            file_data = deposit.nfe_file
+        elif file_type == "invoice":
+            file_data = deposit.invoice_file
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        if not file_data:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        response = HttpResponse(bytes(file_data), content_type="application/pdf")
+        response["Content-Disposition"] = 'inline; filename="' + str(pk) + "_" + file_type + '.pdf"'
+        return response
+
+
+class TransferFileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        transfer = Transfer.objects.get(pk=pk)
+        if not transfer.transfer_file:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        response = HttpResponse(bytes(transfer.transfer_file), content_type="application/pdf")
+        response["Content-Disposition"] = 'inline; filename="' + str(pk) + '_transfer.pdf"'
+        return response

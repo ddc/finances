@@ -5,7 +5,7 @@ import {
 } from "@mui/material";
 import { Refresh } from "@mui/icons-material";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from "recharts";
 import { useTranslation } from "react-i18next";
@@ -20,7 +20,8 @@ const PIE_COLORS = ["#6366f1", "#ef4444", "#3b82f6", "#22c55e"];
 const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
 export default function Dashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const numberLocale = i18n.language === "pt-BR" ? "pt-BR" : "en-US";
   const monthKeys = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
   const MONTH_NAMES = monthKeys.map((k) => t(`months.${k}`));
 
@@ -137,18 +138,16 @@ export default function Dashboard() {
     return value + " (" + pct + "%)";
   };
 
-  const hasDetailPies = expenseByCategoryPie.length > 0 || depositByCurrencyPie.length > 0 || depositByCompanyPie.length > 0 || transferByBankPie.length > 0;
-
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <Typography variant="h5">{t("nav.dashboard")} — {filterLabel}</Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          {data.ptax_compra && (
-            <Chip label={`${currency} ${t("dashboard.buy")}: R$ ${data.ptax_compra}`} color="success" variant="outlined" />
+          {data.ptax_data_hora && data.ptax_compra && (
+            <Chip label={data.ptax_data_hora.split(".")[0] + " | " + currency + " " + t("dashboard.buy") + ": R$ " + data.ptax_compra} color="success" variant="outlined" />
           )}
-          {data.ptax_venda && (
-            <Chip label={`${currency} ${t("dashboard.sell")}: R$ ${data.ptax_venda}`} color="info" variant="outlined" />
+          {data.ptax_data_hora && data.ptax_venda && (
+            <Chip label={data.ptax_data_hora.split(".")[0] + " | " + currency + " " + t("dashboard.sell") + ": R$ " + data.ptax_venda} color="info" variant="outlined" />
           )}
           <Tooltip title="Refresh">
             <IconButton
@@ -213,7 +212,7 @@ export default function Dashboard() {
                 {t("dashboard.totalIncomeForeign", { currency: curr.code })}
               </Typography>
               <Typography variant="h5" sx={{ color: currencyColor(curr.code) }}>
-                {curr.symbol} {Number(data.summary.income_by_currency[curr.code] || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                {curr.symbol} {Number(data.summary.income_by_currency[curr.code] || 0).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
               </Typography>
             </CardContent>
           </Card>
@@ -232,7 +231,7 @@ export default function Dashboard() {
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
               <Typography color="text.secondary" gutterBottom>{card.label}</Typography>
               <Typography variant="h5" sx={{ color: card.color }}>
-                {card.prefix} {Number(card.value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                {card.prefix} {Number(card.value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
               </Typography>
             </CardContent>
           </Card>
@@ -252,115 +251,139 @@ export default function Dashboard() {
                       cy="50%"
                       outerRadius={100}
                       dataKey="value"
-                      label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                      label={({ name, value }) => `${name}: R$ ${value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}`}
                     >
                       {pieData.map((entry, i) => (
                         <Cell key={entry.name} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                       ))}
                     </Pie>
-                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`} />
+                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => `R$ ${Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}`} />
                     <Legend formatter={legendWithPct(pieData)} />
                   </PieChart>
                 ) : (
-                  <BarChart data={barData}>
+                  <AreaChart data={barData}>
+                    <defs>
+                      <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
                     <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} />
                     <Legend />
-                    <Bar dataKey="Income" fill="#22c55e" />
-                    <Bar dataKey="Expenses" fill="#ef4444" />
-                  </BarChart>
+                    <Area type="monotone" dataKey="Income" stroke="#22c55e" fillOpacity={1} fill="url(#colorIncome)" />
+                    <Area type="monotone" dataKey="Expenses" stroke="#ef4444" fillOpacity={1} fill="url(#colorExpenses)" />
+                  </AreaChart>
                 )}
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
       {/* Detail pie charts — 2x2 grid */}
-      {hasDetailPies && (
-        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, mt: 2 }}>
-          {depositByCurrencyPie.length > 0 && (
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>{t("dashboard.depositsByCurrency")}</Typography>
-                <ResponsiveContainer width="100%" height={350}>
-                  <PieChart>
-                    <Pie data={depositByCurrencyPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
-                      label={({ name, value }) => name + ": " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    >
-                      {depositByCurrencyPie.map((entry) => (
-                        <Cell key={entry.name} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
-                    <Legend formatter={legendWithPct(depositByCurrencyPie)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
-          {depositByCompanyPie.length > 0 && (
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>{t("dashboard.depositsByCompany")}</Typography>
-                <ResponsiveContainer width="100%" height={350}>
-                  <PieChart>
-                    <Pie data={depositByCompanyPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
-                      label={({ name, value }) => name + ": R$ " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    >
-                      {depositByCompanyPie.map((entry) => (
-                        <Cell key={entry.name} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
-                    <Legend formatter={legendWithPct(depositByCompanyPie)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
-          {expenseByCategoryPie.length > 0 && (
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>{t("dashboard.expensesByCategory")}</Typography>
-                <ResponsiveContainer width="100%" height={350}>
-                  <PieChart>
-                    <Pie data={expenseByCategoryPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
-                      label={({ name, value }) => name + ": R$ " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    >
-                      {expenseByCategoryPie.map((entry) => (
-                        <Cell key={entry.name} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
-                    <Legend formatter={legendWithPct(expenseByCategoryPie)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
-          {transferByBankPie.length > 0 && (
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>{t("dashboard.transfersByBank")}</Typography>
-                <ResponsiveContainer width="100%" height={350}>
-                  <PieChart>
-                    <Pie data={transferByBankPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
-                      label={({ name, value }) => name + ": R$ " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    >
-                      {transferByBankPie.map((entry) => (
-                        <Cell key={entry.name} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
-                    <Legend formatter={legendWithPct(transferByBankPie)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
-        </Box>
-      )}
+      <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, mt: 2 }}>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>{t("dashboard.depositsByCurrency")}</Typography>
+            {depositByCurrencyPie.length > 0 ? (
+              <ResponsiveContainer width="100%" height={350}>
+                <PieChart>
+                  <Pie data={depositByCurrencyPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
+                    label={({ name, value }) => name + ": " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
+                  >
+                    {depositByCurrencyPie.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
+                  <Legend formatter={legendWithPct(depositByCurrencyPie)} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <Box sx={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Typography color="text.secondary">No data</Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>{t("dashboard.depositsByCompany")}</Typography>
+            {depositByCompanyPie.length > 0 ? (
+              <ResponsiveContainer width="100%" height={350}>
+                <PieChart>
+                  <Pie data={depositByCompanyPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
+                    label={({ name, value }) => name + ": R$ " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
+                  >
+                    {depositByCompanyPie.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
+                  <Legend formatter={legendWithPct(depositByCompanyPie)} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <Box sx={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Typography color="text.secondary">No data</Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>{t("dashboard.expensesByCategory")}</Typography>
+            {expenseByCategoryPie.length > 0 ? (
+              <ResponsiveContainer width="100%" height={350}>
+                <PieChart>
+                  <Pie data={expenseByCategoryPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
+                    label={({ name, value }) => name + ": R$ " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
+                  >
+                    {expenseByCategoryPie.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
+                  <Legend formatter={legendWithPct(expenseByCategoryPie)} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <Box sx={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Typography color="text.secondary">No data</Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>{t("dashboard.transfersByBank")}</Typography>
+            {transferByBankPie.length > 0 ? (
+              <ResponsiveContainer width="100%" height={350}>
+                <PieChart>
+                  <Pie data={transferByBankPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
+                    label={({ name, value }) => name + ": R$ " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
+                  >
+                    {transferByBankPie.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
+                  <Legend formatter={legendWithPct(transferByBankPie)} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <Box sx={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Typography color="text.secondary">No data</Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      </Box>
 
       {/* Recent Activity - bottom, columns of 10 */}
       <Card sx={{ mt: 2 }}>

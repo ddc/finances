@@ -24,7 +24,9 @@ const today = () => new Date().toISOString().split("T")[0];
 const EMPTY_FORM = () => ({ expense_date: today(), category: "" as string, description: "", amount: "" });
 
 export default function Expenses() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const numberLocale = i18n.language === "pt-BR" ? "pt-BR" : "en-US";
+  const formatNumber = (value: number) => Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 });
 
   const { isAdmin } = useAuth();
   const [rows, setRows] = useState<Expense[]>([]);
@@ -97,7 +99,7 @@ export default function Expenses() {
     { field: "expense_date", headerName: t("expenses.date"), flex: 1 },
     { field: "category_label", headerName: t("expenses.category"), flex: 1 },
     { field: "description", headerName: t("expenses.description"), flex: 2 },
-    { field: "amount", headerName: t("expenses.amount"), flex: 1, type: "number", valueFormatter: (value: number) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) },
+    { field: "amount", headerName: t("expenses.amount"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     ...(isAdmin
       ? [
           {
@@ -150,7 +152,7 @@ export default function Expenses() {
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
             <Typography color="text.secondary" variant="body2">{t("expenses.total")}</Typography>
             <Typography variant="h6" sx={{ color: "#ef4444" }}>
-              R$ {rows.reduce((sum, r) => sum + Number(r.amount), 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              R$ {rows.reduce((sum, r) => sum + Number(r.amount), 0).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
             </Typography>
           </CardContent>
         </Card>
@@ -162,7 +164,7 @@ export default function Expenses() {
               <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
                 <Typography color="text.secondary" variant="body2">{"Total " + cat.label}</Typography>
                 <Typography variant="h6" sx={{ color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }}>
-                  R$ {catTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  R$ {catTotal.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
                 </Typography>
               </CardContent>
             </Card>
@@ -185,13 +187,13 @@ export default function Expenses() {
                   cy="50%"
                   outerRadius={100}
                   dataKey="value"
-                  label={({ name, value }) => `${name}: R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                  label={({ name, value }) => `${name}: R$ ${value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}`}
                 >
                   {pieData.map((entry) => (
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
-                <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                 <Legend formatter={(value, entry) => {
                   const total = pieData.reduce((s, d) => s + d.value, 0);
                   const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
