@@ -9,6 +9,39 @@ from tests.conftest import TEST_USER_PASSWORD
 pytestmark = pytest.mark.django_db
 
 
+@pytest.fixture
+def user():
+    return User.objects.create_user(username="testuser", password=TEST_USER_PASSWORD)
+
+
+@pytest.fixture
+def currency():
+    return Currency.objects.create(code="USD", label="US Dollar", symbol="$")
+
+
+@pytest.fixture
+def company():
+    return Company.objects.create(code="DEEL", label="Deel")
+
+
+@pytest.fixture
+def bank():
+    return Bank.objects.create(code="SANTANDER", label="Santander")
+
+
+@pytest.fixture
+def deposit(user, currency, company):
+    return Deposit.objects.create(
+        deposit_date=date(2026, 1, 2),
+        company=company,
+        invoice_number="INV-001",
+        currency=currency,
+        amount_foreign=Decimal("1115.00"),
+        amount_brl=Decimal("5894.49"),
+        created_by=user,
+    )
+
+
 class TestExpenseSerializer:
     def test_valid_expense(self):
         cat = ExpenseCategory.objects.create(code="TAXES", label="Taxes")
@@ -24,53 +57,26 @@ class TestExpenseSerializer:
 
 
 class TestDepositSerializer:
-    def test_valid_deposit(self):
-        curr = Currency.objects.create(code="USD", label="US Dollar", symbol="$")
-        comp = Company.objects.create(code="DEEL", label="Deel")
+    def test_valid_deposit(self, currency, company):
         data = {
             "deposit_date": "2026-01-02",
-            "company": str(comp.id),
+            "company": str(company.id),
             "invoice_number": "INV-001",
-            "currency": str(curr.id),
+            "currency": str(currency.id),
             "amount_foreign": "1115.00",
             "amount_brl": "5894.49",
         }
         serializer = DepositSerializer(data=data)
         assert serializer.is_valid(), serializer.errors
 
-    def test_has_file_flags(self):
-        user = User.objects.create_user(username="depuser", password=TEST_USER_PASSWORD)
-        curr = Currency.objects.create(code="USD", label="US Dollar", symbol="$")
-        comp = Company.objects.create(code="DEEL", label="Deel")
-        deposit = Deposit.objects.create(
-            deposit_date=date(2026, 1, 2),
-            company=comp,
-            invoice_number="INV-001",
-            currency=curr,
-            amount_foreign=Decimal("1115.00"),
-            amount_brl=Decimal("5894.49"),
-            created_by=user,
-        )
+    def test_has_file_flags(self, deposit):
         data = DepositSerializer(deposit).data
         assert data["has_nfe_file"] is False
         assert data["has_invoice_file"] is False
 
 
 class TestTransferSerializer:
-    def test_valid_transfer(self):
-        user = User.objects.create_user(username="testuser2", password=TEST_USER_PASSWORD)
-        curr = Currency.objects.create(code="USD", label="US Dollar", symbol="$")
-        comp = Company.objects.create(code="DEEL", label="Deel")
-        bank = Bank.objects.create(code="SANTANDER", label="Santander")
-        deposit = Deposit.objects.create(
-            deposit_date=date(2026, 1, 2),
-            company=comp,
-            invoice_number="INV-001",
-            currency=curr,
-            amount_foreign=Decimal("1115.00"),
-            amount_brl=Decimal("5894.49"),
-            created_by=user,
-        )
+    def test_valid_transfer(self, deposit, bank):
         data = {
             "transfer_date": "2026-01-02",
             "deposit": str(deposit.id),
@@ -80,20 +86,7 @@ class TestTransferSerializer:
         serializer = TransferSerializer(data=data)
         assert serializer.is_valid(), serializer.errors
 
-    def test_has_transfer_file_flag(self):
-        user = User.objects.create_user(username="truser", password=TEST_USER_PASSWORD)
-        curr = Currency.objects.create(code="USD", label="US Dollar", symbol="$")
-        comp = Company.objects.create(code="DEEL", label="Deel")
-        bank = Bank.objects.create(code="SANTANDER", label="Santander")
-        deposit = Deposit.objects.create(
-            deposit_date=date(2026, 1, 2),
-            company=comp,
-            invoice_number="INV-001",
-            currency=curr,
-            amount_foreign=Decimal("1115.00"),
-            amount_brl=Decimal("5894.49"),
-            created_by=user,
-        )
+    def test_has_transfer_file_flag(self, deposit, bank, user):
         transfer = Transfer.objects.create(
             transfer_date=date(2026, 1, 2),
             deposit=deposit,
