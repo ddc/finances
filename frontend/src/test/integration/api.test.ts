@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import client from "../../api/client";
 import { login, logout, getMe } from "../../api/auth";
-import { listExpenses, createExpense, deleteExpense } from "../../api/expenses";
+import { listExpenses, createExpense, updateExpense, deleteExpense } from "../../api/expenses";
 import { listDeposits, createDeposit } from "../../api/deposits";
 import { listTransfers, createTransfer } from "../../api/transfers";
 import { listNfeSamples, createNfeSample } from "../../api/nfeSamples";
@@ -60,6 +60,16 @@ describe("Expenses API", () => {
     mockClient.post.mockResolvedValueOnce({ data: { id: "1", ...expense } });
     const result = await createExpense(expense);
     expect(mockClient.post).toHaveBeenCalledWith("/expenses/", expect.any(FormData));
+    expect(result.id).toBe("1");
+  });
+
+  it("updateExpense sends FormData", async () => {
+    const expense = { expense_date: "2026-01-05", category: "cat-uuid-1", amount: 200 };
+    mockClient.put.mockResolvedValueOnce({ data: { id: "1", ...expense } });
+    const result = await updateExpense("1", expense);
+    const call = mockClient.put.mock.calls[0];
+    expect(call[0]).toBe("/expenses/1/");
+    expect(call[1]).toBeInstanceOf(FormData);
     expect(result.id).toBe("1");
   });
 

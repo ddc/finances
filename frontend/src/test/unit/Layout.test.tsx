@@ -1,15 +1,17 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { AuthContext, type AuthContextType } from "../../hooks/useAuth";
 import { ThemeModeContext } from "../../hooks/useThemeMode";
 import Layout from "../../components/Layout";
 
+const mockLogout = vi.fn();
+
 const mockAuth: AuthContextType = {
   user: { id: "1", username: "admin", role: "admin" },
   token: "test-token",
   login: async () => {},
-  logout: async () => {},
+  logout: mockLogout,
   isAdmin: true,
 };
 
@@ -48,5 +50,37 @@ describe("Layout", () => {
   it("renders user icon button", () => {
     renderLayout();
     expect(screen.getByTestId("AccountCircleIcon")).toBeInTheDocument();
+  });
+
+  it("toggles drawer on menu icon click", () => {
+    renderLayout();
+    const toggleBtn = screen.getByTestId("ChevronLeftIcon").closest("button")!;
+    fireEvent.click(toggleBtn);
+    expect(screen.getByTestId("MenuIcon")).toBeInTheDocument();
+  });
+
+  it("opens user menu and shows username", () => {
+    renderLayout();
+    const userBtn = screen.getByTestId("AccountCircleIcon").closest("button")!;
+    fireEvent.click(userBtn);
+    expect(screen.getByText("admin (admin)")).toBeInTheDocument();
+    expect(screen.getByText("Admin Panel")).toBeInTheDocument();
+    expect(screen.getByText("Logout")).toBeInTheDocument();
+  });
+
+  it("calls logout when clicking logout menu item", async () => {
+    renderLayout();
+    const userBtn = screen.getByTestId("AccountCircleIcon").closest("button")!;
+    fireEvent.click(userBtn);
+    fireEvent.click(screen.getByText("Logout"));
+    await waitFor(() => expect(mockLogout).toHaveBeenCalled());
+  });
+
+  it("opens language menu and shows options", () => {
+    renderLayout();
+    const langBtn = screen.getByTestId("LanguageIcon").closest("button")!;
+    fireEvent.click(langBtn);
+    expect(screen.getByText("EN-US")).toBeInTheDocument();
+    expect(screen.getByText("PT-BR")).toBeInTheDocument();
   });
 });

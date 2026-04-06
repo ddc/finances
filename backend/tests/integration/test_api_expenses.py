@@ -1,9 +1,11 @@
+import io
 import pytest
 from core.models import ExpenseCategory
 
 pytestmark = [pytest.mark.django_db, pytest.mark.integration]
 
 BASE_URL = "/api/v1/expenses"
+FILE_URL = "/api/v1/expenses"
 
 
 class TestExpenseCRUD:
@@ -71,3 +73,44 @@ class TestExpenseCRUD:
         )
         response = viewer_client.get(f"{BASE_URL}/")
         assert response.status_code == 200
+
+
+class TestExpenseFileUpload:
+    def test_upload_receipt_file(self, admin_client, expense_category):
+        data = {"expense_date": "2026-01-05", "category": str(expense_category.id), "amount": "100.00"}
+        create = admin_client.post(f"{BASE_URL}/", data)
+        assert create.status_code == 201
+        expense_id = create.data["id"]
+        assert create.data["has_receipt_file"] is False
+
+        pdf_content = b"%PDF-1.4 fake receipt content"
+        receipt_file = io.BytesIO(pdf_content)
+        receipt_file.name = "receipt.pdf"
+        response = admin_client.put(
+            f"{BASE_URL}/{expense_id}/", {**data, "receipt_file": receipt_file}, format="multipart"
+        )
+        assert response.status_code == 200
+        assert response.data["has_receipt_file"] is True
+
+    def test_download_receipt_file(self, admin_client, expense_category):
+        data = {"expense_date": "2026-01-05", "category": str(expense_category.id), "amount": "100.00"}
+        create = admin_client.post(f"{BASE_URL}/", data)
+        expense_id = create.data["id"]
+
+        pdf_content = b"%PDF-1.4 receipt download test"
+        receipt_file = io.BytesIO(pdf_content)
+        receipt_file.name = "receipt.pdf"
+        admin_client.put(f"{BASE_URL}/{expense_id}/", {**data, "receipt_file": receipt_file}, format="multipart")
+
+        response = admin_client.get(f"{FILE_URL}/{expense_id}/file/")
+        assert response.status_code == 200
+        assert response["Content-Type"] == "application/pdf"
+        assert pdf_content == response.content
+
+    def test_download_nonexistent_file_returns_404(self, admin_client, expense_category):
+        data = {"expense_date": "2026-01-05", "category": str(expense_category.id), "amount": "100.00"}
+        create = admin_client.post(f"{BASE_URL}/", data)
+        expense_id = create.data["id"]
+
+        response = admin_client.get(f"{FILE_URL}/{expense_id}/file/")
+        assert response.status_code == 404
