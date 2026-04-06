@@ -230,6 +230,15 @@ jobs:
           name: frontend-coverage
           path: coverage-reports
 
+      - name: Verify coverage files
+        run: |
+          echo "=== Coverage reports directory ==="
+          find coverage-reports -type f
+          echo "=== Backend coverage.xml sources ==="
+          head -20 coverage-reports/coverage-python.xml
+          echo "=== Frontend lcov.info ==="
+          head -10 coverage-reports/lcov.info
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v7
         env:
