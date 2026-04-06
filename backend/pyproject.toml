@@ -33,7 +33,7 @@ dev = [
 linter-backend.shell = "uv run ruff check --fix . && uv run ruff format ."
 profile-backend = "uv run python -m cProfile -o cprofile_unit.prof -m pytest tests/unit"
 profile-backend-integration = "uv run python -m cProfile -o cprofile_integration.prof -m pytest tests/integration"
-test-backend.shell = "uv run coverage run -m pytest tests/unit && uv run coverage report && uv run coverage xml"
+test-backend.shell = "uv run coverage run -m pytest tests/unit && uv run coverage report && mkdir -p coverage-reports && uv run coverage xml -o coverage-reports/coverage.xml"
 test-backend-integration = "uv run pytest tests/integration"
 test-backend-docker = "uv run pytest tests/docker"
 hadolint-backend.shell = "docker run --rm -i -v $(pwd)/../.hadolint.yml:/.config/hadolint.yml:ro hadolint/hadolint < Dockerfile"
@@ -41,7 +41,7 @@ update-backend.shell = "uv run ruff check --fix . && uv run ruff format . && uv 
 migration-backend = "uv run --frozen python manage.py migrate"
 # --- Frontend ---
 linter-frontend.shell = "cd ../frontend && bun run lint"
-test-frontend.shell = "cd ../frontend && bunx vitest run src/test/unit"
+test-frontend.shell = "cd ../frontend && bunx vitest run src/test/unit --coverage"
 test-frontend-integration.shell = "cd ../frontend && bunx vitest run src/test/integration"
 sync-version.shell = "python3 -c \"import tomllib,json,pathlib; v=tomllib.load(open('pyproject.toml','rb'))['project']['version']; p=pathlib.Path('../frontend/package.json'); d=json.loads(p.read_text()); d['version']=v; p.write_text(json.dumps(d,indent=2)+'\\n'); print('Synced version: '+v)\""
 update-frontend.shell = "cd ../frontend && bun update && bun run build"
@@ -60,6 +60,7 @@ markers = [
 ]
 
 [tool.coverage.run]
+relative_files = true
 omit = [
   "tests/*",
   "*/__init__.py"
