@@ -59,6 +59,8 @@ export interface Deposit {
   exchange_rate: number | null;
   amount_foreign: number;
   amount_brl: number;
+  has_nfe_file: boolean;
+  has_invoice_file: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -72,6 +74,7 @@ export interface Transfer {
   bank_code: string;
   bank_label: string;
   amount_brl: number;
+  has_transfer_file: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -92,7 +95,7 @@ export interface DashboardData {
   currency: string;
   ptax_compra: string | null;
   ptax_venda: string | null;
-  ptax_fetched_at: string | null;
+  ptax_data_hora: string | null;
   summary: {
     income_by_currency: Record<string, number>;
     total_income_brl: number;

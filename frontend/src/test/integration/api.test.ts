@@ -77,11 +77,13 @@ describe("Deposits API", () => {
     expect(mockClient.get).toHaveBeenCalledWith("/deposits/", { params: { year: "2026", month: "1" } });
   });
 
-  it("createDeposit sends payload", async () => {
+  it("createDeposit sends payload as FormData", async () => {
     const deposit = { deposit_date: "2026-01-02", invoice_number: "INV-001" };
     mockClient.post.mockResolvedValueOnce({ data: { id: "1", ...deposit } });
     const result = await createDeposit(deposit);
-    expect(mockClient.post).toHaveBeenCalledWith("/deposits/", deposit);
+    const call = mockClient.post.mock.calls[0];
+    expect(call[0]).toBe("/deposits/");
+    expect(call[1]).toBeInstanceOf(FormData);
     expect(result.id).toBe("1");
   });
 });
@@ -93,11 +95,13 @@ describe("Transfers API", () => {
     expect(mockClient.get).toHaveBeenCalledWith("/transfers/", { params: { year: "2026", bank: "some-uuid" } });
   });
 
-  it("createTransfer sends payload", async () => {
+  it("createTransfer sends payload as FormData", async () => {
     const transfer = { transfer_date: "2026-01-02", deposit: "dep-1", bank: "bank-uuid-1", amount_brl: 5890 };
     mockClient.post.mockResolvedValueOnce({ data: { id: "1", ...transfer } });
     const result = await createTransfer(transfer);
-    expect(mockClient.post).toHaveBeenCalledWith("/transfers/", transfer);
+    const call = mockClient.post.mock.calls[0];
+    expect(call[0]).toBe("/transfers/");
+    expect(call[1]).toBeInstanceOf(FormData);
     expect(result.id).toBe("1");
   });
 });

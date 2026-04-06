@@ -60,6 +60,7 @@ def get_ptax_rate(currency: str = "USD"):
         result = {
             "compra": Decimal(str(latest["cotacaoCompra"])),
             "venda": Decimal(str(latest["cotacaoVenda"])),
+            "data_hora": latest.get("dataHoraCotacao", ""),
             "fetched_at": now,
         }
         _cache[currency] = result

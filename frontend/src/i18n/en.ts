@@ -84,6 +84,12 @@ export default {
     totalForeign: "Total Foreign",
     totalBrl: "Total BRL",
     company: "Company",
+    nfeFile: "NFE File",
+    invoiceFile: "Invoice File",
+    uploadNfe: "Upload NFE",
+    uploadInvoice: "Upload Invoice",
+    viewFile: "View",
+    downloadFile: "Download",
   },
   transfers: {
     title: "Transfers",
@@ -94,6 +100,8 @@ export default {
     amountBrl: "Amount BRL",
     deposit: "Deposit",
     total: "Total BRL",
+    transferFile: "Transfer File",
+    uploadTransfer: "Upload Transfer",
   },
   nfeSamples: {
     title: "NFE Samples",

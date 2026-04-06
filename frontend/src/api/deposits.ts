@@ -6,13 +6,25 @@ export const listDeposits = async (params?: Record<string, string>): Promise<Dep
   return data;
 };
 
-export const createDeposit = async (deposit: Partial<Deposit>): Promise<Deposit> => {
-  const { data } = await client.post<Deposit>("/deposits/", deposit);
+export const createDeposit = async (deposit: Partial<Deposit>, nfeFile?: File, invoiceFile?: File): Promise<Deposit> => {
+  const formData = new FormData();
+  Object.entries(deposit).forEach(([key, value]) => {
+    if (value !== null && value !== undefined) formData.append(key, String(value));
+  });
+  if (nfeFile) formData.append("nfe_file", nfeFile);
+  if (invoiceFile) formData.append("invoice_file", invoiceFile);
+  const { data } = await client.post<Deposit>("/deposits/", formData);
   return data;
 };
 
-export const updateDeposit = async (id: string, deposit: Partial<Deposit>): Promise<Deposit> => {
-  const { data } = await client.put<Deposit>(`/deposits/${id}/`, deposit);
+export const updateDeposit = async (id: string, deposit: Partial<Deposit>, nfeFile?: File, invoiceFile?: File): Promise<Deposit> => {
+  const formData = new FormData();
+  Object.entries(deposit).forEach(([key, value]) => {
+    if (value !== null && value !== undefined) formData.append(key, String(value));
+  });
+  if (nfeFile) formData.append("nfe_file", nfeFile);
+  if (invoiceFile) formData.append("invoice_file", invoiceFile);
+  const { data } = await client.put<Deposit>(`/deposits/${id}/`, formData);
   return data;
 };
 

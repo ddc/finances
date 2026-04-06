@@ -4,7 +4,7 @@ import {
   TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
   Card, CardContent,
 } from "@mui/material";
-import { Add, Edit, Delete } from "@mui/icons-material";
+import { Add, Edit, Delete, Visibility } from "@mui/icons-material";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import type { GridColDef } from "@mui/x-data-grid";
@@ -35,7 +35,9 @@ const EMPTY_FORM = () => ({
 });
 
 export default function Deposits() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const numberLocale = i18n.language === "pt-BR" ? "pt-BR" : "en-US";
+  const formatNumber = (value: number) => Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 });
 
   const { isAdmin } = useAuth();
   const [rows, setRows] = useState<Deposit[]>([]);
@@ -48,6 +50,8 @@ export default function Deposits() {
   const [form, setForm] = useState(EMPTY_FORM());
   const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [nfeFile, setNfeFile] = useState<File | null>(null);
+  const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
 
   useEffect(() => { listCompanies().then(setCompanies); }, []);
   useEffect(() => { listCurrencies().then(setCurrencies); }, []);
@@ -82,6 +86,8 @@ export default function Deposits() {
       setForm({ ...EMPTY_FORM(), company: companies[0]?.id || "", currency: defaultCurr ? defaultCurr.id : (currencies[0]?.id || "") });
     }
     setSubmitted(false);
+    setNfeFile(null);
+    setInvoiceFile(null);
     setDialogOpen(true);
   };
 
@@ -102,9 +108,9 @@ export default function Deposits() {
       amount_brl: Number(form.amount_brl),
     };
     if (editingId) {
-      await updateDeposit(editingId, payload);
+      await updateDeposit(editingId, payload, nfeFile || undefined, invoiceFile || undefined);
     } else {
-      await createDeposit(payload);
+      await createDeposit(payload, nfeFile || undefined, invoiceFile || undefined);
     }
     setDialogOpen(false);
     load();
@@ -126,9 +132,30 @@ export default function Deposits() {
     { field: "company_label", headerName: t("deposits.company"), flex: 1 },
     { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 1 },
     { field: "currency_code", headerName: t("deposits.currency"), flex: 0.5 },
-    { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) },
-    { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1, type: "number", valueFormatter: (value: number) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) },
-    { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) },
+    { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : formatNumber(Number(value)) },
+    { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
+    { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
+    {
+      field: "files",
+      headerName: t("deposits.nfeFile"),
+      width: 100,
+      sortable: false,
+      filterable: false,
+      renderCell: (params: { row: Deposit }) => (
+        <>
+          {params.row.has_nfe_file && (
+            <IconButton size="small" title={t("deposits.nfeFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/nfe/`, "_blank")}>
+              <Visibility fontSize="small" />
+            </IconButton>
+          )}
+          {params.row.has_invoice_file && (
+            <IconButton size="small" title={t("deposits.invoiceFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/invoice/`, "_blank")}>
+              <Visibility fontSize="small" color="secondary" />
+            </IconButton>
+          )}
+        </>
+      ),
+    } as GridColDef,
     ...(isAdmin
       ? [
           {
@@ -188,7 +215,7 @@ export default function Deposits() {
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
             <Typography color="text.secondary" variant="body2">{t("deposits.totalBrl")}</Typography>
             <Typography variant="h6" sx={{ color: "#22c55e" }}>
-              R$ {totalBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              R$ {totalBrl.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
             </Typography>
           </CardContent>
         </Card>
@@ -197,7 +224,7 @@ export default function Deposits() {
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
               <Typography color="text.secondary" variant="body2">{"Total " + ct.name}</Typography>
               <Typography variant="h6" sx={{ color: ct.color }}>
-                {ct.symbol} {ct.value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                {ct.symbol} {ct.value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
               </Typography>
             </CardContent>
           </Card>
@@ -222,13 +249,13 @@ export default function Deposits() {
                       cy="50%"
                       outerRadius={80}
                       dataKey="value"
-                      label={({ name, value }) => name + ": " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      label={({ name, value }) => name + ": " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
                     >
                       {overviewPieData.map((entry) => (
                         <Cell key={entry.name} fill={entry.color} />
                       ))}
                     </Pie>
-                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                     <Legend formatter={(value, entry) => {
                       const total = overviewPieData.reduce((s, d) => s + d.value, 0);
                       const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
@@ -251,13 +278,13 @@ export default function Deposits() {
                       cy="50%"
                       outerRadius={80}
                       dataKey="value"
-                      label={({ name, value }) => name + ": " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      label={({ name, value }) => name + ": " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
                     >
                       {currencyTotals.map((entry) => (
                         <Cell key={entry.name} fill={entry.color} />
                       ))}
                     </Pie>
-                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                     <Legend formatter={(value, entry) => {
                       const total = currencyTotals.reduce((s, d) => s + d.value, 0);
                       const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
@@ -280,13 +307,13 @@ export default function Deposits() {
                       cy="50%"
                       outerRadius={80}
                       dataKey="value"
-                      label={({ name, value }) => name + ": R$ " + value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      label={({ name, value }) => name + ": R$ " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
                     >
                       {companyTotals.map((entry) => (
                         <Cell key={entry.name} fill={entry.color} />
                       ))}
                     </Pie>
-                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} />
+                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                     <Legend formatter={(value, entry) => {
                       const total = companyTotals.reduce((s, d) => s + d.value, 0);
                       const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
@@ -368,6 +395,30 @@ export default function Deposits() {
             onChange={(e) => setForm({ ...form, amount_brl: e.target.value })}
             required error={submitted && !form.amount_brl}
           />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button variant="outlined" component="label">
+              {t("deposits.uploadNfe")}
+              <input type="file" accept=".pdf" hidden onChange={(e) => setNfeFile(e.target.files?.[0] || null)} />
+            </Button>
+            {nfeFile && <Typography variant="body2">{nfeFile.name}</Typography>}
+            {!nfeFile && editingId && rows.find((r) => r.id === editingId)?.has_nfe_file && (
+              <Typography variant="body2" color="text.secondary">
+                Current: NFE uploaded
+              </Typography>
+            )}
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button variant="outlined" component="label">
+              {t("deposits.uploadInvoice")}
+              <input type="file" accept=".pdf" hidden onChange={(e) => setInvoiceFile(e.target.files?.[0] || null)} />
+            </Button>
+            {invoiceFile && <Typography variant="body2">{invoiceFile.name}</Typography>}
+            {!invoiceFile && editingId && rows.find((r) => r.id === editingId)?.has_invoice_file && (
+              <Typography variant="body2" color="text.secondary">
+                Current: Invoice uploaded
+              </Typography>
+            )}
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>{t("common.cancel")}</Button>

@@ -3,6 +3,7 @@ from core.views import (
     CompanyViewSet,
     CurrencyViewSet,
     DashboardView,
+    DepositFileView,
     DepositViewSet,
     ExpenseCategoryViewSet,
     ExpenseViewSet,
@@ -10,6 +11,7 @@ from core.views import (
     LogoutView,
     MeView,
     NfeSampleViewSet,
+    TransferFileView,
     TransferViewSet,
 )
 from django.urls import include, path
@@ -30,5 +32,7 @@ urlpatterns = [
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("auth/me/", MeView.as_view(), name="auth-me"),
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
+    path("deposits/<uuid:pk>/file/<str:file_type>/", DepositFileView.as_view(), name="deposit-file"),
+    path("transfers/<uuid:pk>/file/", TransferFileView.as_view(), name="transfer-file"),
     path("", include(router.urls)),
 ]

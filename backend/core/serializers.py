@@ -54,6 +54,8 @@ class DepositSerializer(serializers.ModelSerializer):
     period_end = serializers.DateField(required=False, allow_null=True)
     invoice_number = serializers.CharField(required=False, allow_blank=True)
     exchange_rate = serializers.DecimalField(max_digits=10, decimal_places=4, required=False, allow_null=True)
+    has_nfe_file = serializers.SerializerMethodField()
+    has_invoice_file = serializers.SerializerMethodField()
     company_code = serializers.CharField(source="company.code", read_only=True)
     company_label = serializers.CharField(source="company.label", read_only=True)
     currency_code = serializers.CharField(source="currency.code", read_only=True)
@@ -77,6 +79,8 @@ class DepositSerializer(serializers.ModelSerializer):
             "exchange_rate",
             "amount_foreign",
             "amount_brl",
+            "has_nfe_file",
+            "has_invoice_file",
             "created_by",
             "created_at",
             "updated_at",
@@ -92,8 +96,15 @@ class DepositSerializer(serializers.ModelSerializer):
             "currency_symbol",
         ]
 
+    def get_has_nfe_file(self, obj):
+        return bool(obj.nfe_file)
+
+    def get_has_invoice_file(self, obj):
+        return bool(obj.invoice_file)
+
 
 class TransferSerializer(serializers.ModelSerializer):
+    has_transfer_file = serializers.SerializerMethodField()
     bank_code = serializers.CharField(source="bank.code", read_only=True)
     bank_label = serializers.CharField(source="bank.label", read_only=True)
 
@@ -107,11 +118,15 @@ class TransferSerializer(serializers.ModelSerializer):
             "bank_code",
             "bank_label",
             "amount_brl",
+            "has_transfer_file",
             "created_by",
             "created_at",
             "updated_at",
         ]
         read_only_fields = ["id", "created_by", "created_at", "updated_at", "bank_code", "bank_label"]
+
+    def get_has_transfer_file(self, obj):
+        return bool(obj.transfer_file)
 
 
 class NfeSerializer(serializers.ModelSerializer):
