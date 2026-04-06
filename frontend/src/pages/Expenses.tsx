@@ -97,7 +97,7 @@ export default function Expenses() {
     { field: "expense_date", headerName: t("expenses.date"), flex: 1 },
     { field: "category_label", headerName: t("expenses.category"), flex: 1 },
     { field: "description", headerName: t("expenses.description"), flex: 2 },
-    { field: "amount", headerName: t("expenses.amount"), flex: 1, type: "number" },
+    { field: "amount", headerName: t("expenses.amount"), flex: 1, type: "number", valueFormatter: (value: number) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) },
     ...(isAdmin
       ? [
           {
