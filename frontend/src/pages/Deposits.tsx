@@ -5,7 +5,7 @@ import {
   Card, CardContent,
 } from "@mui/material";
 import { Add, Edit, Delete, Description, Receipt } from "@mui/icons-material";
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import type { GridColDef } from "@mui/x-data-grid";
 import StyledDataGrid from "../components/StyledDataGrid";
@@ -169,27 +169,27 @@ export default function Deposits() {
   const currencyTotals = currencies.map((curr, i) => ({
     name: curr.code,
     value: rows.filter((r) => r.currency_code === curr.code).reduce((sum, r) => sum + Number(r.amount_foreign), 0),
-    color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
+    fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
     symbol: curr.symbol,
   })).filter((d) => d.value > 0);
 
   const totalForeign = currencyTotals.reduce((sum, c) => sum + c.value, 0);
 
   const overviewPieData = [
-    { name: t("deposits.totalForeign"), value: totalForeign, color: "#8b5cf6" },
-    { name: "BRL", value: totalBrl, color: "#22c55e" },
+    { name: t("deposits.totalForeign"), value: totalForeign, fill: "#8b5cf6" },
+    { name: "BRL", value: totalBrl, fill: "#22c55e" },
   ].filter((d) => d.value > 0);
 
   const companyTotalsBrl = companies.map((comp, i) => ({
     name: comp.label,
     value: rows.filter((r) => r.company_code === comp.code).reduce((sum, r) => sum + Number(r.amount_brl), 0),
-    color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
+    fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
   })).filter((d) => d.value > 0);
 
   const companyTotalsForeign = companies.map((comp, i) => ({
     name: comp.label,
     value: rows.filter((r) => r.company_code === comp.code).reduce((sum, r) => sum + Number(r.amount_foreign), 0),
-    color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
+    fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
   })).filter((d) => d.value > 0);
 
   return (
@@ -218,7 +218,7 @@ export default function Deposits() {
           <Card key={ct.name} sx={{ minWidth: 160 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
               <Typography color="text.secondary" variant="body2">{"Total " + ct.name}</Typography>
-              <Typography variant="h6" sx={{ color: ct.color }}>
+              <Typography variant="h6" sx={{ color: ct.fill }}>
                 {ct.symbol} {ct.value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
               </Typography>
             </CardContent>
@@ -239,11 +239,7 @@ export default function Deposits() {
                 <PieChart>
                   <Pie data={overviewPieData} cx="50%" cy="50%" outerRadius={100} dataKey="value"
                     label={({ name, value }) => name + ": " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
-                  >
-                    {overviewPieData.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
+                  />
                   <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                   <Legend formatter={(value, entry) => {
                     const total = overviewPieData.reduce((s, d) => s + d.value, 0);
@@ -267,11 +263,7 @@ export default function Deposits() {
                 <PieChart>
                   <Pie data={currencyTotals} cx="50%" cy="50%" outerRadius={100} dataKey="value"
                     label={({ name, value }) => name + ": " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
-                  >
-                    {currencyTotals.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
+                  />
                   <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                   <Legend formatter={(value, entry) => {
                     const total = currencyTotals.reduce((s, d) => s + d.value, 0);
@@ -295,11 +287,7 @@ export default function Deposits() {
                 <PieChart>
                   <Pie data={companyTotalsBrl} cx="50%" cy="50%" outerRadius={100} dataKey="value"
                     label={({ name, value }) => name + ": R$ " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
-                  >
-                    {companyTotalsBrl.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
+                  />
                   <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                   <Legend formatter={(value, entry) => {
                     const total = companyTotalsBrl.reduce((s, d) => s + d.value, 0);
@@ -323,11 +311,7 @@ export default function Deposits() {
                 <PieChart>
                   <Pie data={companyTotalsForeign} cx="50%" cy="50%" outerRadius={100} dataKey="value"
                     label={({ name, value }) => name + ": " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
-                  >
-                    {companyTotalsForeign.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
+                  />
                   <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                   <Legend formatter={(value, entry) => {
                     const total = companyTotalsForeign.reduce((s, d) => s + d.value, 0);

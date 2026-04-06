@@ -5,7 +5,7 @@ import {
   Card, CardContent,
 } from "@mui/material";
 import { Add, Edit, Delete, Description } from "@mui/icons-material";
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import type { GridColDef } from "@mui/x-data-grid";
 import StyledDataGrid from "../components/StyledDataGrid";
@@ -149,7 +149,7 @@ export default function Transfers() {
   const bankTotals = banks.map((bank, i) => ({
     name: bank.label,
     value: rows.filter((r) => r.bank_code === bank.code).reduce((sum, r) => sum + Number(r.amount_brl), 0),
-    color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
+    fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
   })).filter((d) => d.value > 0);
 
   return (
@@ -214,11 +214,7 @@ export default function Transfers() {
                   outerRadius={100}
                   dataKey="value"
                   label={({ name, value }) => `${name}: R$ ${value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}`}
-                >
-                  {bankTotals.map((entry) => (
-                    <Cell key={entry.name} fill={entry.color} />
-                  ))}
-                </Pie>
+                />
                 <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                 <Legend formatter={(value, entry) => {
                   const total = bankTotals.reduce((s, d) => s + d.value, 0);
