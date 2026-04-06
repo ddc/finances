@@ -212,7 +212,7 @@ jobs:
           docker compose -f docker-compose.yml config --quiet
 
   sonarcloud:
-    name: SonarCloud Analysis
+    name: SonarCloud Code Analysis
     runs-on: ubuntu-latest
     needs: [test-backend, test-frontend]
     steps:
