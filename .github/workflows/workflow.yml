@@ -163,7 +163,12 @@ jobs:
 
       - name: Run backend tests with coverage
         working-directory: backend
-        run: mkdir -p ../coverage-reports && uv run --no-sync coverage run -m pytest tests/unit && uv run --no-sync coverage report && uv run --no-sync coverage xml && sed -i 's|<source>.*</source>|<source>backend</source>|' ../coverage-reports/coverage-python.xml
+        run: |
+          mkdir -p ../coverage-reports
+          uv run --no-sync coverage run -m pytest tests/unit
+          uv run --no-sync coverage report
+          uv run --no-sync coverage xml
+          sed -i 's|<source>.*</source>|<source>backend</source>|' ../coverage-reports/coverage-python.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5
