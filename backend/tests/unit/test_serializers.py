@@ -1,5 +1,5 @@
 import pytest
-from core.models import Bank, Company, Currency, Deposit, ExpenseCategory, Transfer
+from core.models import Bank, Company, Currency, Deposit, Expense, ExpenseCategory, Transfer
 from core.serializers import DepositSerializer, ExpenseSerializer, TransferSerializer
 from datetime import date
 from decimal import Decimal
@@ -54,6 +54,17 @@ class TestExpenseSerializer:
         serializer = ExpenseSerializer(data=data)
         assert not serializer.is_valid()
         assert "category" in serializer.errors
+
+    def test_has_receipt_file_flag(self, user):
+        cat = ExpenseCategory.objects.create(code="TAXES", label="Taxes")
+        expense = Expense.objects.create(
+            expense_date=date(2026, 1, 5),
+            category=cat,
+            amount=Decimal("100.00"),
+            created_by=user,
+        )
+        data = ExpenseSerializer(expense).data
+        assert data["has_receipt_file"] is False
 
 
 class TestDepositSerializer:

@@ -13,6 +13,10 @@
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=plastic&logo=creativecommons&logoColor=FFFFFF" alt="License: MIT"/></a>
     <a href="https://github.com/ddc/finances/releases/latest"><img src="https://img.shields.io/github/v/release/ddc/finances?style=plastic&logo=github&logoColor=white" alt="Release"/></a>
     <br>
+    <a href="https://github.com/ddc/finances/issues"><img src="https://img.shields.io/github/issues/ddc/finances?style=plastic&logo=github&logoColor=white" alt="issues"/></a>
+    <a href="https://github.com/ddc/finances/actions/workflows/workflow.yml"><img src="https://img.shields.io/github/actions/workflow/status/ddc/finances/workflow.yml?style=plastic&logo=github&logoColor=white&label=CI%2FCD%20Pipeline" alt="CI/CD Pipeline"/></a>
+    <a href="https://actions-badge.atrox.dev/ddc/finances/goto?ref=main"><img src="https://img.shields.io/endpoint.svg?url=https%3A//actions-badge.atrox.dev/ddc/finances/badge?ref=main&label=build&logo=github&style=plastic" alt="Build Status"/></a>
+    <br>
     <a href="https://www.python.org/downloads"><img src="https://img.shields.io/badge/python-3.14-blue.svg?style=plastic&logo=python&logoColor=3776AB" alt="Python"/></a>
     <a href="https://www.djangoproject.com"><img src="https://img.shields.io/badge/Django-6.0-092E20.svg?style=plastic&logo=django&logoColor=white" alt="Django"/></a>
     <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61DAFB.svg?style=plastic&logo=react&logoColor=white" alt="React"/></a>
@@ -20,13 +24,11 @@
     <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json&style=plastic" alt="uv"/></a>
     <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=plastic" alt="Ruff"/></a>
     <br>
-    <a href="https://github.com/ddc/finances/issues"><img src="https://img.shields.io/github/issues/ddc/finances?style=plastic&logo=github&logoColor=white" alt="issues"/></a>
-    <a href="https://codecov.io/gh/ddc/finances"><img src="https://img.shields.io/codecov/c/github/ddc/finances?token=Y43wp9vain&style=plastic&logo=codecov" alt="codecov"/></a>
     <a href="https://sonarcloud.io/component_measures?id=ddc_finances&metric=coverage"><img src="https://img.shields.io/sonar/coverage/ddc_finances?server=https%3A%2F%2Fsonarcloud.io&style=plastic&logo=sonarqubecloud&logoColor=white" alt="SonarCloud Coverage"/></a>
-    <a href="https://sonarcloud.io/dashboard?id=ddc_finances"><img src="https://img.shields.io/sonar/quality_gate/ddc_finances?server=https%3A%2F%2Fsonarcloud.io&style=plastic&logo=sonarqubecloud&logoColor=white" alt="Quality Gate Status"/></a>
     <a href="https://sonarcloud.io/component_measures?id=ddc_finances&metric=Security"><img src="https://sonarcloud.io/api/project_badges/measure?project=ddc_finances&metric=security_rating" alt="Security Rating"/></a>
-    <a href="https://github.com/ddc/finances/actions/workflows/workflow.yml"><img src="https://img.shields.io/github/actions/workflow/status/ddc/finances/workflow.yml?style=plastic&logo=github&logoColor=white&label=CI%2FCD%20Pipeline" alt="CI/CD Pipeline"/></a>
-    <a href="https://actions-badge.atrox.dev/ddc/finances/goto?ref=main"><img src="https://img.shields.io/endpoint.svg?url=https%3A//actions-badge.atrox.dev/ddc/finances/badge?ref=main&label=build&logo=github&style=plastic" alt="Build Status"/></a>
+    <a href="https://sonarcloud.io/component_measures?id=ddc_finances&metric=Reliability"><img src="https://sonarcloud.io/api/project_badges/measure?project=ddc_finances&metric=reliability_rating" alt="Reliability Rating"/></a>
+    <a href="https://sonarcloud.io/component_measures?id=ddc_finances&metric=Maintainability"><img src="https://sonarcloud.io/api/project_badges/measure?project=ddc_finances&metric=sqale_rating" alt="Maintainability Rating"/></a>
+    <a href="https://sonarcloud.io/dashboard?id=ddc_finances"><img src="https://img.shields.io/sonar/quality_gate/ddc_finances?server=https%3A%2F%2Fsonarcloud.io&style=plastic&logo=sonarqubecloud&logoColor=white" alt="Quality Gate Status"/></a>
 </p>
 
 ## Table of Contents
