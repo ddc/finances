@@ -316,6 +316,12 @@ class NfeSampleViewSet(LoggingModelViewSet):
         return qs
 
 
+def _pdf_response(file_data, pk, suffix):
+    response = HttpResponse(bytes(file_data), content_type="application/pdf")
+    response["Content-Disposition"] = 'inline; filename="' + str(pk) + "_" + suffix + '.pdf"'
+    return response
+
+
 class ExpenseFileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -323,9 +329,7 @@ class ExpenseFileView(APIView):
         expense = Expense.objects.get(pk=pk)
         if not expense.receipt_file:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        response = HttpResponse(bytes(expense.receipt_file), content_type="application/pdf")
-        response["Content-Disposition"] = 'inline; filename="' + str(pk) + '_receipt.pdf"'
-        return response
+        return _pdf_response(expense.receipt_file, pk, "receipt")
 
 
 class DepositFileView(APIView):
@@ -341,9 +345,7 @@ class DepositFileView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         if not file_data:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        response = HttpResponse(bytes(file_data), content_type="application/pdf")
-        response["Content-Disposition"] = 'inline; filename="' + str(pk) + "_" + file_type + '.pdf"'
-        return response
+        return _pdf_response(file_data, pk, file_type)
 
 
 class TransferFileView(APIView):
@@ -353,6 +355,4 @@ class TransferFileView(APIView):
         transfer = Transfer.objects.get(pk=pk)
         if not transfer.transfer_file:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        response = HttpResponse(bytes(transfer.transfer_file), content_type="application/pdf")
-        response["Content-Disposition"] = 'inline; filename="' + str(pk) + '_transfer.pdf"'
-        return response
+        return _pdf_response(transfer.transfer_file, pk, "transfer")
