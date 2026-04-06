@@ -78,6 +78,7 @@ export default {
     periodStart: "Period Start",
     periodEnd: "Period End",
     currency: "Currency",
+    exchangeRate: "Exchange Rate",
     amountForeign: "Amount Foreign",
     amountBrl: "Amount BRL",
     totalForeign: "Total Foreign",

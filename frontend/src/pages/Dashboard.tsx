@@ -25,7 +25,7 @@ export default function Dashboard() {
   const MONTH_NAMES = monthKeys.map((k) => t(`months.${k}`));
 
   const currentYear = new Date().getFullYear();
-  const [year, setYear] = useState(currentYear);
+  const [year, setYear] = useState<number | "">(currentYear);
   const [month, setMonth] = useState<number | "">("");
   const [currency, setCurrency] = useState("USD");
   const [data, setData] = useState<DashboardData | null>(null);
@@ -49,10 +49,11 @@ export default function Dashboard() {
   }, []);
 
   const fetchData = useCallback(() => {
-    const params: Record<string, string> = { year: String(year) };
+    const params: Record<string, string> = {};
+    if (year) params.year = String(year);
     if (month) params.month = String(month);
 
-    getDashboard(year, month || undefined, currency).then(setData);
+    getDashboard(year || undefined, month || undefined, currency).then(setData);
     listExpenses(params).then(setExpenses);
     listDeposits(params).then(setDeposits);
     listTransfers(params).then(setTransfers);
@@ -67,7 +68,7 @@ export default function Dashboard() {
     return idx >= 0 ? DYNAMIC_COLORS[idx % DYNAMIC_COLORS.length] : "#94a3b8";
   };
 
-  const filterLabel = month ? `${MONTH_NAMES[month - 1]} ${year}` : `${year}`;
+  const filterLabel = month ? `${MONTH_NAMES[month - 1]}${year ? ` ${year}` : ""}` : year ? `${year}` : t("filters.all");
 
   const pieData = [
     { name: "Income", value: Number(data.summary.total_income_brl) },
@@ -186,7 +187,11 @@ export default function Dashboard() {
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 100 }}>
             <InputLabel>{t("filters.year")}</InputLabel>
-            <Select value={year} label={t("filters.year")} onChange={(e) => setYear(Number(e.target.value))}>
+            <Select value={year} label={t("filters.year")} onChange={(e) => {
+                const val = e.target.value as string | number;
+                setYear(val === "" ? "" : Number(val));
+              }}>
+              <MenuItem value="">{t("filters.all")}</MenuItem>
               {Array.from({ length: 5 }, (_, i) => currentYear - i).map((y) => (
                 <MenuItem key={y} value={y}>{y}</MenuItem>
               ))}
@@ -199,7 +204,7 @@ export default function Dashboard() {
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
         {currencies.map((curr) => (
           <Card key={curr.id} sx={{ flex: "1 1 0", minWidth: 0 }}>
-            <CardContent>
+            <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
               <Typography color="text.secondary" gutterBottom>
                 {t("dashboard.totalIncomeForeign", { currency: curr.code })}
               </Typography>
@@ -220,7 +225,7 @@ export default function Dashboard() {
           { label: t("dashboard.netBalance"), value: data.summary.net_balance_brl, color: Number(data.summary.net_balance_brl) >= 0 ? "#22c55e" : "#ef4444", prefix: "R$" },
         ].map((card) => (
           <Card key={card.label} sx={{ flex: "1 1 0", minWidth: 0 }}>
-            <CardContent>
+            <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
               <Typography color="text.secondary" gutterBottom>{card.label}</Typography>
               <Typography variant="h5" sx={{ color: card.color }}>
                 {card.prefix} {Number(card.value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
@@ -259,7 +264,7 @@ export default function Dashboard() {
                     <YAxis />
                     <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} />
                     <Legend />
-                    <Bar dataKey="Income" fill="#6366f1" />
+                    <Bar dataKey="Income" fill="#22c55e" />
                     <Bar dataKey="Expenses" fill="#ef4444" />
                   </BarChart>
                 )}

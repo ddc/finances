@@ -84,6 +84,7 @@ class Deposit(BaseModel):
     period_start = models.DateField(null=True, blank=True)
     period_end = models.DateField(null=True, blank=True)
     currency = models.ForeignKey(Currency, on_delete=models.PROTECT, related_name="deposits")
+    exchange_rate = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
     amount_foreign = models.DecimalField(max_digits=10, decimal_places=2)
     amount_brl = models.DecimalField(max_digits=10, decimal_places=2)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="deposits")

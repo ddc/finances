@@ -53,6 +53,7 @@ class DepositSerializer(serializers.ModelSerializer):
     period_start = serializers.DateField(required=False, allow_null=True)
     period_end = serializers.DateField(required=False, allow_null=True)
     invoice_number = serializers.CharField(required=False, allow_blank=True)
+    exchange_rate = serializers.DecimalField(max_digits=10, decimal_places=4, required=False, allow_null=True)
     company_code = serializers.CharField(source="company.code", read_only=True)
     company_label = serializers.CharField(source="company.label", read_only=True)
     currency_code = serializers.CharField(source="currency.code", read_only=True)
@@ -73,6 +74,7 @@ class DepositSerializer(serializers.ModelSerializer):
             "currency",
             "currency_code",
             "currency_symbol",
+            "exchange_rate",
             "amount_foreign",
             "amount_brl",
             "created_by",

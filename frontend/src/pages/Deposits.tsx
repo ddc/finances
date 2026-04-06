@@ -29,6 +29,7 @@ const EMPTY_FORM = () => ({
   period_start: "",
   period_end: "",
   currency: "" as string,
+  exchange_rate: "",
   amount_foreign: "",
   amount_brl: "",
 });
@@ -71,6 +72,7 @@ export default function Deposits() {
         period_start: deposit.period_start || "",
         period_end: deposit.period_end || "",
         currency: deposit.currency,
+        exchange_rate: deposit.exchange_rate ? String(deposit.exchange_rate) : "",
         amount_foreign: String(deposit.amount_foreign),
         amount_brl: String(deposit.amount_brl),
       });
@@ -95,6 +97,7 @@ export default function Deposits() {
       period_start: form.period_start || null,
       period_end: form.period_end || null,
       currency: form.currency,
+      exchange_rate: form.exchange_rate ? Number(form.exchange_rate) : null,
       amount_foreign: Number(form.amount_foreign),
       amount_brl: Number(form.amount_brl),
     };
@@ -117,14 +120,15 @@ export default function Deposits() {
 
   const columns: GridColDef[] = [
     { field: "deposit_date", headerName: t("deposits.depositDate"), flex: 1 },
-    { field: "company_label", headerName: t("deposits.company"), flex: 1 },
     { field: "invoice_issue_date", headerName: t("deposits.issueDate"), flex: 1 },
-    { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 1 },
     { field: "period_start", headerName: t("deposits.periodStart"), flex: 1 },
     { field: "period_end", headerName: t("deposits.periodEnd"), flex: 1 },
+    { field: "company_label", headerName: t("deposits.company"), flex: 1 },
+    { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 1 },
     { field: "currency_code", headerName: t("deposits.currency"), flex: 0.5 },
-    { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1, type: "number" },
-    { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number" },
+    { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => value != null ? Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : "" },
+    { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1, type: "number", valueFormatter: (value: number) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) },
+    { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) },
     ...(isAdmin
       ? [
           {
@@ -350,6 +354,10 @@ export default function Deposits() {
               ))}
             </Select>
           </FormControl>
+          <TextField
+            label={t("deposits.exchangeRate")} type="number" value={form.exchange_rate}
+            onChange={(e) => setForm({ ...form, exchange_rate: e.target.value })}
+          />
           <TextField
             label={t("deposits.amountForeign")} type="number" value={form.amount_foreign}
             onChange={(e) => setForm({ ...form, amount_foreign: e.target.value })}

@@ -110,7 +110,7 @@ export default function Transfers() {
   const columns: GridColDef[] = [
     { field: "transfer_date", headerName: t("transfers.transferDate"), flex: 1 },
     { field: "bank_label", headerName: t("transfers.bank"), flex: 1 },
-    { field: "amount_brl", headerName: t("transfers.amountBrl"), flex: 1, type: "number" },
+    { field: "amount_brl", headerName: t("transfers.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) },
     {
       field: "deposit",
       headerName: t("transfers.deposit"),
