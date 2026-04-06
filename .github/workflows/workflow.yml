@@ -63,7 +63,7 @@ jobs:
         with:
           timeout_minutes: 2
           max_attempts: 3
-          command: cd backend && uv run --no-sync coverage run -m pytest tests/unit && uv run --no-sync coverage report && mkdir -p coverage-reports && uv run --no-sync coverage xml -o coverage-reports/coverage.xml
+          command: cd backend && uv run --no-sync coverage run -m pytest tests/unit && uv run --no-sync coverage report && mkdir -p coverage-reports && uv run --no-sync coverage xml -o coverage-reports/coverage-python.xml
           shell: bash
 
       - name: Upload coverage to Codecov
@@ -78,7 +78,7 @@ jobs:
         uses: actions/upload-artifact@v7.0.0
         with:
           name: backend-coverage
-          path: backend/coverage-reports/coverage.xml
+          path: backend/coverage-reports/coverage-python.xml
 
   test-frontend:
     name: Frontend Unit Tests
