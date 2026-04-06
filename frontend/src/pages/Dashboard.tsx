@@ -68,7 +68,11 @@ export default function Dashboard() {
     return idx >= 0 ? DYNAMIC_COLORS[idx % DYNAMIC_COLORS.length] : "#94a3b8";
   };
 
-  const filterLabel = month ? `${MONTH_NAMES[month - 1]}${year ? ` ${year}` : ""}` : year ? `${year}` : t("filters.all");
+  const filterLabel = (() => {
+    if (month) return MONTH_NAMES[month - 1] + (year ? " " + year : "");
+    if (year) return String(year);
+    return t("filters.all");
+  })();
 
   const pieData = [
     { name: "Income", value: Number(data.summary.total_income_brl) },

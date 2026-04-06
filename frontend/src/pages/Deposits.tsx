@@ -126,7 +126,7 @@ export default function Deposits() {
     { field: "company_label", headerName: t("deposits.company"), flex: 1 },
     { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 1 },
     { field: "currency_code", headerName: t("deposits.currency"), flex: 0.5 },
-    { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => value != null ? Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : "" },
+    { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) },
     { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1, type: "number", valueFormatter: (value: number) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) },
     { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) },
     ...(isAdmin
