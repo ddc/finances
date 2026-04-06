@@ -4,7 +4,7 @@ import {
   TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
   Card, CardContent,
 } from "@mui/material";
-import { Add, Edit, Delete } from "@mui/icons-material";
+import { Add, Edit, Delete, Description } from "@mui/icons-material";
 import { PieChart, Pie, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import type { GridColDef } from "@mui/x-data-grid";
@@ -39,6 +39,7 @@ export default function Expenses() {
   const [form, setForm] = useState(EMPTY_FORM());
   const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   useEffect(() => { listExpenseCategories().then(setCategories); }, []);
 
@@ -62,6 +63,7 @@ export default function Expenses() {
       setForm({ ...EMPTY_FORM(), category: defaultCat ? defaultCat.id : (categories[0]?.id || "") });
     }
     setSubmitted(false);
+    setReceiptFile(null);
     setDialogOpen(true);
   };
 
@@ -77,9 +79,9 @@ export default function Expenses() {
       amount: Number(form.amount),
     };
     if (editingId) {
-      await updateExpense(editingId, payload);
+      await updateExpense(editingId, payload, receiptFile || undefined);
     } else {
-      await createExpense(payload);
+      await createExpense(payload, receiptFile || undefined);
     }
     setDialogOpen(false);
     load();
@@ -100,23 +102,28 @@ export default function Expenses() {
     { field: "category_label", headerName: t("expenses.category"), flex: 1 },
     { field: "description", headerName: t("expenses.description"), flex: 2 },
     { field: "amount", headerName: t("expenses.amount"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
-    ...(isAdmin
-      ? [
-          {
-            field: "actions",
-            headerName: t("common.actions"),
-            width: 120,
-            sortable: false,
-            filterable: false,
-            renderCell: (params: { row: Expense }) => (
-              <>
-                <IconButton size="small" onClick={() => handleOpen(params.row)}><Edit fontSize="small" /></IconButton>
-                <IconButton size="small" color="error" onClick={() => setDeleteId(params.row.id)}><Delete fontSize="small" /></IconButton>
-              </>
-            ),
-          } as GridColDef,
-        ]
-      : []),
+    {
+      field: "actions",
+      headerName: t("common.actions"),
+      width: isAdmin ? 150 : 60,
+      sortable: false,
+      filterable: false,
+      renderCell: (params: { row: Expense }) => (
+        <>
+          {params.row.has_receipt_file && (
+            <IconButton size="small" title={t("expenses.receiptFile")} onClick={() => window.open(`/api/v1/expenses/${params.row.id}/file/`, "_blank")}>
+              <Description fontSize="small" color="info" />
+            </IconButton>
+          )}
+          {isAdmin && (
+            <>
+              <IconButton size="small" onClick={() => handleOpen(params.row)}><Edit fontSize="small" /></IconButton>
+              <IconButton size="small" color="error" onClick={() => setDeleteId(params.row.id)}><Delete fontSize="small" /></IconButton>
+            </>
+          )}
+        </>
+      ),
+    } as GridColDef,
   ];
 
   // Pie chart data: breakdown by category
@@ -233,6 +240,18 @@ export default function Expenses() {
             error={submitted && selectedCatCode === "OTHER" && !form.description}
           />
           <TextField label={t("expenses.amount")} type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required error={submitted && !form.amount} />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button variant="outlined" component="label">
+              {t("expenses.uploadReceipt")}
+              <input type="file" accept=".pdf" hidden onChange={(e) => setReceiptFile(e.target.files?.[0] || null)} />
+            </Button>
+            {receiptFile && <Typography variant="body2">{receiptFile.name}</Typography>}
+            {!receiptFile && editingId && rows.find((r) => r.id === editingId)?.has_receipt_file && (
+              <Typography variant="body2" color="text.secondary">
+                Current: Receipt uploaded
+              </Typography>
+            )}
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogOpen(false)}>{t("common.cancel")}</Button>

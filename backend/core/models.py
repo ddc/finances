@@ -70,6 +70,7 @@ class Expense(BaseModel):
     category = models.ForeignKey(ExpenseCategory, on_delete=models.PROTECT, related_name="expenses")
     description = models.TextField(blank=True, default="")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    receipt_file = models.BinaryField(null=True, blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="expenses")
 
     def __str__(self):

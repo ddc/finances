@@ -60,6 +60,8 @@ export default {
     description: "Description",
     amount: "Amount R$",
     total: "Total BRL",
+    receiptFile: "Receipt File",
+    uploadReceipt: "Upload Receipt",
     categories: {
       TAXES: "Taxes",
       HEALTH_INSURANCE: "Health Insurance",

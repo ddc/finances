@@ -38,6 +38,7 @@ export interface Expense {
   category_label: string;
   description: string;
   amount: number;
+  has_receipt_file: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;

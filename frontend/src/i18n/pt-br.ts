@@ -60,6 +60,8 @@ export default {
     description: "Descrição",
     amount: "Valor R$",
     total: "Total BRL",
+    receiptFile: "Comprovante",
+    uploadReceipt: "Anexar Comprovante",
     categories: {
       TAXES: "Impostos",
       HEALTH_INSURANCE: "Plano de Saúde",
@@ -86,8 +88,8 @@ export default {
     company: "Empresa",
     nfeFile: "Arquivo NFE",
     invoiceFile: "Arquivo Fatura",
-    uploadNfe: "Salvar NFE",
-    uploadInvoice: "Salvar Fatura",
+    uploadNfe: "Anexar NFE",
+    uploadInvoice: "Anexar Fatura",
     viewFile: "Ver",
     downloadFile: "Baixar",
   },
@@ -101,7 +103,7 @@ export default {
     deposit: "Depósito",
     total: "Total BRL",
     transferFile: "Arquivo Transferência",
-    uploadTransfer: "Salvar Transferência",
+    uploadTransfer: "Anexar Transferência",
   },
   nfeSamples: {
     title: "Modelos NFE",
