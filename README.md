@@ -22,7 +22,7 @@
     <br>
     <a href="https://github.com/ddc/finances/issues"><img src="https://img.shields.io/github/issues/ddc/finances?style=plastic&logo=github&logoColor=white" alt="issues"/></a>
     <a href="https://codecov.io/gh/ddc/finances"><img src="https://img.shields.io/codecov/c/github/ddc/finances?token=Y43wp9vain&style=plastic&logo=codecov" alt="codecov"/></a>
-    <a href="https://sonarcloud.io/component_measures/metric/coverage/list?id=ddc_finances"><img src="https://sonarcloud.io/api/project_badges/measure?project=ddc_finances&metric=coverage" alt="SonarCloud Coverage"/></a>
+    <a href="https://sonarcloud.io/component_measures?id=ddc_finances&metric=coverage"><img src="https://sonarcloud.io/api/project_badges/measure?project=ddc_finances&metric=coverage" alt="SonarCloud Coverage"/></a>
     <a href="https://sonarcloud.io/dashboard?id=ddc_finances"><img src="https://img.shields.io/sonar/quality_gate/ddc_finances?server=https%3A%2F%2Fsonarcloud.io&style=plastic&logo=sonarqubecloud&logoColor=white" alt="Quality Gate Status"/></a>
     <a href="https://sonarcloud.io/component_measures?id=ddc_finances&metric=Security"><img src="https://sonarcloud.io/api/project_badges/measure?project=ddc_finances&metric=security_rating" alt="Security Rating"/></a>
     <a href="https://github.com/ddc/finances/actions/workflows/workflow.yml"><img src="https://img.shields.io/github/actions/workflow/status/ddc/finances/workflow.yml?style=plastic&logo=github&logoColor=white&label=CI%2FCD%20Pipeline" alt="CI/CD Pipeline"/></a>
@@ -52,7 +52,7 @@
 | Frontend        | React 19 + Vite + MUI + Recharts                     |
 | Database        | PostgreSQL (data + file storage)                     |
 | Auth            | httpOnly cookie + token expiration                   |
-| SSL             | TLSv1.3 self-signed certificates                    |
+| SSL             | TLSv1.3 self-signed certificates                     |
 | i18n            | EN-US, PT-BR (locale-aware number formatting)        |
 | File Storage    | PDF files stored in PostgreSQL (BinaryField)         |
 | Package Manager | uv (backend), bun (frontend)                         |
@@ -105,11 +105,11 @@ Base URL: `/api/v1/`
 
 ### File Downloads (PDF stored in PostgreSQL)
 
-| Method | Endpoint                        | Description          | Auth     |
-|--------|---------------------------------|----------------------|----------|
-| GET    | /deposits/{id}/file/nfe/        | Download NFE PDF     | Required |
-| GET    | /deposits/{id}/file/invoice/    | Download Invoice PDF | Required |
-| GET    | /transfers/{id}/file/           | Download Transfer PDF| Required |
+| Method | Endpoint                     | Description           | Auth     |
+|--------|------------------------------|-----------------------|----------|
+| GET    | /deposits/{id}/file/nfe/     | Download NFE PDF      | Required |
+| GET    | /deposits/{id}/file/invoice/ | Download Invoice PDF  | Required |
+| GET    | /transfers/{id}/file/        | Download Transfer PDF | Required |
 
 ### Lookup Tables (read-only)
 
