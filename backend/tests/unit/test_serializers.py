@@ -1,5 +1,5 @@
 import pytest
-from core.models import Bank, Company, Currency, Deposit, ExpenseCategory
+from core.models import Bank, Company, Currency, Deposit, ExpenseCategory, Transfer
 from core.serializers import DepositSerializer, ExpenseSerializer, TransferSerializer
 from datetime import date
 from decimal import Decimal
@@ -38,6 +38,23 @@ class TestDepositSerializer:
         serializer = DepositSerializer(data=data)
         assert serializer.is_valid(), serializer.errors
 
+    def test_has_file_flags(self):
+        user = User.objects.create_user(username="depuser", password=TEST_USER_PASSWORD)
+        curr = Currency.objects.create(code="USD", label="US Dollar", symbol="$")
+        comp = Company.objects.create(code="DEEL", label="Deel")
+        deposit = Deposit.objects.create(
+            deposit_date=date(2026, 1, 2),
+            company=comp,
+            invoice_number="INV-001",
+            currency=curr,
+            amount_foreign=Decimal("1115.00"),
+            amount_brl=Decimal("5894.49"),
+            created_by=user,
+        )
+        data = DepositSerializer(deposit).data
+        assert data["has_nfe_file"] is False
+        assert data["has_invoice_file"] is False
+
 
 class TestTransferSerializer:
     def test_valid_transfer(self):
@@ -62,3 +79,27 @@ class TestTransferSerializer:
         }
         serializer = TransferSerializer(data=data)
         assert serializer.is_valid(), serializer.errors
+
+    def test_has_transfer_file_flag(self):
+        user = User.objects.create_user(username="truser", password=TEST_USER_PASSWORD)
+        curr = Currency.objects.create(code="USD", label="US Dollar", symbol="$")
+        comp = Company.objects.create(code="DEEL", label="Deel")
+        bank = Bank.objects.create(code="SANTANDER", label="Santander")
+        deposit = Deposit.objects.create(
+            deposit_date=date(2026, 1, 2),
+            company=comp,
+            invoice_number="INV-001",
+            currency=curr,
+            amount_foreign=Decimal("1115.00"),
+            amount_brl=Decimal("5894.49"),
+            created_by=user,
+        )
+        transfer = Transfer.objects.create(
+            transfer_date=date(2026, 1, 2),
+            deposit=deposit,
+            bank=bank,
+            amount_brl=Decimal("5890.00"),
+            created_by=user,
+        )
+        data = TransferSerializer(transfer).data
+        assert data["has_transfer_file"] is False
