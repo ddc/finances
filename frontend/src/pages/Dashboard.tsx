@@ -143,11 +143,14 @@ export default function Dashboard() {
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <Typography variant="h5">{t("nav.dashboard")} — {filterLabel}</Typography>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          {data.ptax_data_hora && data.ptax_compra && (
-            <Chip label={data.ptax_data_hora.split(".")[0] + " | " + currency + " " + t("dashboard.buy") + ": R$ " + data.ptax_compra} color="success" variant="outlined" />
+          {data.ptax_data_hora && (
+            <Chip label={"PTAX " + data.ptax_data_hora.split(".")[0]} variant="outlined" />
           )}
-          {data.ptax_data_hora && data.ptax_venda && (
-            <Chip label={data.ptax_data_hora.split(".")[0] + " | " + currency + " " + t("dashboard.sell") + ": R$ " + data.ptax_venda} color="info" variant="outlined" />
+          {data.ptax_compra && (
+            <Chip label={currency + " " + t("dashboard.buy") + ": R$ " + data.ptax_compra} color="success" variant="outlined" />
+          )}
+          {data.ptax_venda && (
+            <Chip label={currency + " " + t("dashboard.sell") + ": R$ " + data.ptax_venda} color="info" variant="outlined" />
           )}
           <Tooltip title="Refresh">
             <IconButton
