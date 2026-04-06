@@ -1,8 +1,10 @@
+import io
 import pytest
 
 pytestmark = [pytest.mark.django_db, pytest.mark.integration]
 
 BASE_URL = "/api/v1/deposits"
+FILE_URL = "/api/v1/deposits"
 
 
 def _valid_deposit(currency, company):
@@ -38,3 +40,68 @@ class TestDepositCRUD:
         create = admin_client.post(f"{BASE_URL}/", _valid_deposit(currency, company))
         response = admin_client.delete(f"{BASE_URL}/{create.data['id']}/")
         assert response.status_code == 204
+
+
+class TestDepositFileUpload:
+    def test_upload_nfe_file(self, admin_client, currency, company):
+        # Create deposit first
+        data = _valid_deposit(currency, company)
+        create = admin_client.post(f"{BASE_URL}/", data)
+        assert create.status_code == 201
+        deposit_id = create.data["id"]
+        assert create.data["has_nfe_file"] is False
+
+        # Upload NFE file via PUT
+        pdf_content = b"%PDF-1.4 fake pdf content for testing"
+        nfe_file = io.BytesIO(pdf_content)
+        nfe_file.name = "test_nfe.pdf"
+        update_data = {**data, "nfe_file": nfe_file}
+        response = admin_client.put(f"{BASE_URL}/{deposit_id}/", update_data, format="multipart")
+        assert response.status_code == 200
+        assert response.data["has_nfe_file"] is True
+
+    def test_upload_invoice_file(self, admin_client, currency, company):
+        data = _valid_deposit(currency, company)
+        create = admin_client.post(f"{BASE_URL}/", data)
+        deposit_id = create.data["id"]
+
+        pdf_content = b"%PDF-1.4 fake invoice content"
+        invoice_file = io.BytesIO(pdf_content)
+        invoice_file.name = "test_invoice.pdf"
+        update_data = {**data, "invoice_file": invoice_file}
+        response = admin_client.put(f"{BASE_URL}/{deposit_id}/", update_data, format="multipart")
+        assert response.status_code == 200
+        assert response.data["has_invoice_file"] is True
+
+    def test_download_nfe_file(self, admin_client, currency, company):
+        data = _valid_deposit(currency, company)
+        create = admin_client.post(f"{BASE_URL}/", data)
+        deposit_id = create.data["id"]
+
+        # Upload
+        pdf_content = b"%PDF-1.4 nfe download test"
+        nfe_file = io.BytesIO(pdf_content)
+        nfe_file.name = "nfe.pdf"
+        admin_client.put(f"{BASE_URL}/{deposit_id}/", {**data, "nfe_file": nfe_file}, format="multipart")
+
+        # Download
+        response = admin_client.get(f"{FILE_URL}/{deposit_id}/file/nfe/")
+        assert response.status_code == 200
+        assert response["Content-Type"] == "application/pdf"
+        assert pdf_content == response.content
+
+    def test_download_nonexistent_file_returns_404(self, admin_client, currency, company):
+        data = _valid_deposit(currency, company)
+        create = admin_client.post(f"{BASE_URL}/", data)
+        deposit_id = create.data["id"]
+
+        response = admin_client.get(f"{FILE_URL}/{deposit_id}/file/nfe/")
+        assert response.status_code == 404
+
+    def test_download_invalid_file_type_returns_404(self, admin_client, currency, company):
+        data = _valid_deposit(currency, company)
+        create = admin_client.post(f"{BASE_URL}/", data)
+        deposit_id = create.data["id"]
+
+        response = admin_client.get(f"{FILE_URL}/{deposit_id}/file/invalid/")
+        assert response.status_code == 404
