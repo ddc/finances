@@ -206,7 +206,7 @@ jobs:
       - name: Validate compose file
         run: |
           cp .env.example .env
-          docker compose -f docker-compose-test.yml config --quiet
+          docker compose -f docker-compose.yml config --quiet
 
   create-release:
     name: Create Release
