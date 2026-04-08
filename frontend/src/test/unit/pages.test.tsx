@@ -178,7 +178,9 @@ describe("Expenses page", () => {
     render(<Wrapper><Expenses /></Wrapper>);
     await waitFor(() => screen.getByText("Add Expense"));
     fireEvent.click(screen.getByText("Add Expense"));
+    expect(screen.getByText("Save")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Cancel"));
+    await waitFor(() => expect(screen.queryByText("Save")).not.toBeInTheDocument());
   });
 
   it("renders with empty data", async () => {
@@ -215,7 +217,9 @@ describe("Deposits page", () => {
     render(<Wrapper><Deposits /></Wrapper>);
     await waitFor(() => screen.getByText("Add Deposit"));
     fireEvent.click(screen.getByText("Add Deposit"));
+    expect(screen.getByText("Save")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Cancel"));
+    await waitFor(() => expect(screen.queryByText("Save")).not.toBeInTheDocument());
   });
 
   it("renders with empty data", async () => {
@@ -247,7 +251,9 @@ describe("Transfers page", () => {
     render(<Wrapper><Transfers /></Wrapper>);
     await waitFor(() => screen.getByText("Add Transfer"));
     fireEvent.click(screen.getByText("Add Transfer"));
+    expect(screen.getByText("Save")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Cancel"));
+    await waitFor(() => expect(screen.queryByText("Save")).not.toBeInTheDocument());
   });
 
   it("renders with empty data", async () => {
@@ -279,7 +285,9 @@ describe("NfeSamples page", () => {
     render(<Wrapper><NfeSamples /></Wrapper>);
     await waitFor(() => screen.getByText("Add NFE Sample"));
     fireEvent.click(screen.getByText("Add NFE Sample"));
+    expect(screen.getByText("Save")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Cancel"));
+    await waitFor(() => expect(screen.queryByText("Save")).not.toBeInTheDocument());
   });
 
   it("renders with empty data", async () => {
@@ -363,7 +371,9 @@ describe("Login page", () => {
 
   it("toggles remember me", () => {
     render(<Wrapper><Login /></Wrapper>);
-    const checkbox = screen.getByRole("checkbox");
+    const checkbox = screen.getByRole("checkbox") as HTMLInputElement;
+    expect(checkbox.checked).toBe(false);
     fireEvent.click(checkbox);
+    expect(checkbox.checked).toBe(true);
   });
 });
