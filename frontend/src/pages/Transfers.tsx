@@ -7,6 +7,8 @@ import {
 import { Add, Edit, Delete, Description } from "@mui/icons-material";
 import { PieChart, Pie, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
 import type { GridColDef } from "@mui/x-data-grid";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
@@ -238,11 +240,11 @@ export default function Transfers() {
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{editingId ? t("transfers.editTransfer") : t("transfers.addTransfer")}</DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: "16px !important" }}>
-          <TextField
-            label={t("transfers.transferDate")} type="date" value={form.transfer_date}
-            onChange={(e) => setForm({ ...form, transfer_date: e.target.value })}
-            slotProps={{ inputLabel: { shrink: true } }}
-            required error={submitted && !form.transfer_date}
+          <DatePicker
+            label={t("transfers.transferDate")}
+            value={form.transfer_date ? dayjs(form.transfer_date) : null}
+            onChange={(v) => setForm({ ...form, transfer_date: v ? v.format("YYYY-MM-DD") : "" })}
+            slotProps={{ textField: { required: true, error: submitted && !form.transfer_date } }}
           />
           <FormControl fullWidth required error={submitted && !form.deposit}>
             <InputLabel>{t("transfers.deposit")}</InputLabel>
