@@ -7,6 +7,8 @@ import {
 import { Add, Edit, Delete, Description } from "@mui/icons-material";
 import { PieChart, Pie, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
 import type { GridColDef } from "@mui/x-data-grid";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
@@ -219,11 +221,11 @@ export default function Expenses() {
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{editingId ? t("expenses.editExpense") : t("expenses.addExpense")}</DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: "16px !important" }}>
-          <TextField
-            label={t("expenses.date")} type="date" value={form.expense_date}
-            onChange={(e) => setForm({ ...form, expense_date: e.target.value })}
-            slotProps={{ inputLabel: { shrink: true } }}
-            required error={submitted && !form.expense_date}
+          <DatePicker
+            label={t("expenses.date")}
+            value={form.expense_date ? dayjs(form.expense_date) : null}
+            onChange={(v) => setForm({ ...form, expense_date: v ? v.format("YYYY-MM-DD") : "" })}
+            slotProps={{ textField: { required: true, error: submitted && !form.expense_date } }}
           />
           <FormControl fullWidth required error={submitted && !form.category}>
             <InputLabel>{t("expenses.category")}</InputLabel>

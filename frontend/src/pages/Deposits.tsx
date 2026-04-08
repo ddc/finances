@@ -7,6 +7,8 @@ import {
 import { Add, Edit, Delete, Description, Receipt } from "@mui/icons-material";
 import { PieChart, Pie, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
 import type { GridColDef } from "@mui/x-data-grid";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
@@ -340,11 +342,11 @@ export default function Deposits() {
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{editingId ? t("deposits.editDeposit") : t("deposits.addDeposit")}</DialogTitle>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: "16px !important" }}>
-          <TextField
-            label={t("deposits.depositDate")} type="date" value={form.deposit_date}
-            onChange={(e) => setForm({ ...form, deposit_date: e.target.value })}
-            slotProps={{ inputLabel: { shrink: true } }}
-            required error={submitted && !form.deposit_date}
+          <DatePicker
+            label={t("deposits.depositDate")}
+            value={form.deposit_date ? dayjs(form.deposit_date) : null}
+            onChange={(v) => setForm({ ...form, deposit_date: v ? v.format("YYYY-MM-DD") : "" })}
+            slotProps={{ textField: { required: true, error: submitted && !form.deposit_date } }}
           />
           <FormControl fullWidth required error={submitted && !form.company}>
             <InputLabel>{t("deposits.company")}</InputLabel>
@@ -358,22 +360,26 @@ export default function Deposits() {
             label={t("deposits.invoiceNumber")} value={form.invoice_number}
             onChange={(e) => setForm({ ...form, invoice_number: e.target.value })}
           />
-          <TextField
-            label={t("deposits.issueDate")} type="date" value={form.invoice_issue_date}
-            onChange={(e) => setForm({ ...form, invoice_issue_date: e.target.value })}
-            slotProps={{ inputLabel: { shrink: true } }}
+          <DatePicker
+            label={t("deposits.issueDate")}
+            value={form.invoice_issue_date ? dayjs(form.invoice_issue_date) : null}
+            onChange={(v) => setForm({ ...form, invoice_issue_date: v ? v.format("YYYY-MM-DD") : "" })}
           />
-          <TextField
-            label={t("deposits.periodStart")} type="date" value={form.period_start}
-            onChange={(e) => setForm({ ...form, period_start: e.target.value })}
-            slotProps={{ inputLabel: { shrink: true } }}
+          <DatePicker
+            label={t("deposits.periodStart")}
+            value={form.period_start ? dayjs(form.period_start) : null}
+            onChange={(v) => setForm({ ...form, period_start: v ? v.format("YYYY-MM-DD") : "" })}
           />
-          <TextField
-            label={t("deposits.periodEnd")} type="date" value={form.period_end}
-            onChange={(e) => setForm({ ...form, period_end: e.target.value })}
-            slotProps={{ inputLabel: { shrink: true } }}
-            error={submitted && !!form.period_start && !!form.period_end && form.period_end < form.period_start}
-            helperText={submitted && !!form.period_start && !!form.period_end && form.period_end < form.period_start ? "Period end cannot be before period start" : ""}
+          <DatePicker
+            label={t("deposits.periodEnd")}
+            value={form.period_end ? dayjs(form.period_end) : null}
+            onChange={(v) => setForm({ ...form, period_end: v ? v.format("YYYY-MM-DD") : "" })}
+            slotProps={{
+              textField: {
+                error: submitted && !!form.period_start && !!form.period_end && form.period_end < form.period_start,
+                helperText: submitted && !!form.period_start && !!form.period_end && form.period_end < form.period_start ? "Period end cannot be before period start" : "",
+              },
+            }}
           />
           <FormControl fullWidth required error={submitted && !form.currency}>
             <InputLabel>{t("deposits.currency")}</InputLabel>
