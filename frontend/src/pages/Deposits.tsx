@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import type { GridColDef } from "@mui/x-data-grid";
+import CurrencyField from "../components/CurrencyField";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
 import { listDeposits, createDeposit, updateDeposit, deleteDeposit } from "../api/deposits";
@@ -389,22 +390,20 @@ export default function Deposits() {
               ))}
             </Select>
           </FormControl>
-          <TextField
+          <CurrencyField
             label={t("deposits.exchangeRate")} value={form.exchange_rate}
-            onChange={(e) => setForm({ ...form, exchange_rate: e.target.value.replace(",", ".") })}
-            slotProps={{ htmlInput: { inputMode: "decimal" } }}
+            onChange={(v) => setForm({ ...form, exchange_rate: v })}
+            decimalPlaces={4}
           />
-          <TextField
+          <CurrencyField
             label={t("deposits.amountForeign")} value={form.amount_foreign}
-            onChange={(e) => setForm({ ...form, amount_foreign: e.target.value.replace(",", ".") })}
+            onChange={(v) => setForm({ ...form, amount_foreign: v })}
             required error={submitted && !form.amount_foreign}
-            slotProps={{ htmlInput: { inputMode: "decimal" } }}
           />
-          <TextField
+          <CurrencyField
             label={t("deposits.amountBrl")} value={form.amount_brl}
-            onChange={(e) => setForm({ ...form, amount_brl: e.target.value.replace(",", ".") })}
+            onChange={(v) => setForm({ ...form, amount_brl: v })}
             required error={submitted && !form.amount_brl}
-            slotProps={{ htmlInput: { inputMode: "decimal" } }}
           />
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
