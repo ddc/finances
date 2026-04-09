@@ -331,6 +331,23 @@ class TestDepositViewSet:
         response = admin_client.delete(f"/api/v1/deposits/{create.data['id']}/")
         assert response.status_code == 204
 
+    def test_create_with_nfe_file(self, admin_client, currency, company):
+        nfe = io.BytesIO(b"%PDF nfe")
+        nfe.name = "my_nfe.pdf"
+        data = {**self._data(currency, company), "nfe_file": nfe}
+        response = admin_client.post("/api/v1/deposits/", data, format="multipart")
+        assert response.status_code == 201
+        assert response.data["has_nfe_file"] is True
+
+    def test_update_with_invoice_file(self, admin_client, currency, company):
+        create = admin_client.post("/api/v1/deposits/", self._data(currency, company))
+        invoice = io.BytesIO(b"%PDF invoice")
+        invoice.name = "my_invoice.pdf"
+        data = {**self._data(currency, company), "invoice_file": invoice}
+        response = admin_client.put(f"/api/v1/deposits/{create.data['id']}/", data, format="multipart")
+        assert response.status_code == 200
+        assert response.data["has_invoice_file"] is True
+
 
 # --- Deposit File Views ---
 
@@ -434,6 +451,23 @@ class TestTransferViewSet:
         )
         response = admin_client.delete(f"/api/v1/transfers/{create.data['id']}/")
         assert response.status_code == 204
+
+    def test_create_with_file(self, admin_client, deposit, bank):
+        f = io.BytesIO(b"%PDF transfer")
+        f.name = "my_transfer.pdf"
+        response = admin_client.post(
+            "/api/v1/transfers/",
+            {
+                "transfer_date": "2026-01-02",
+                "deposit": str(deposit.id),
+                "bank": str(bank.id),
+                "amount_brl": "5890.00",
+                "transfer_file": f,
+            },
+            format="multipart",
+        )
+        assert response.status_code == 201
+        assert response.data["has_transfer_file"] is True
 
 
 # --- Transfer File View ---
