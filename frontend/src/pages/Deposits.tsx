@@ -390,18 +390,21 @@ export default function Deposits() {
             </Select>
           </FormControl>
           <TextField
-            label={t("deposits.exchangeRate")} type="number" value={form.exchange_rate}
-            onChange={(e) => setForm({ ...form, exchange_rate: e.target.value })}
+            label={t("deposits.exchangeRate")} value={form.exchange_rate}
+            onChange={(e) => setForm({ ...form, exchange_rate: e.target.value.replace(",", ".") })}
+            slotProps={{ htmlInput: { inputMode: "decimal" } }}
           />
           <TextField
-            label={t("deposits.amountForeign")} type="number" value={form.amount_foreign}
-            onChange={(e) => setForm({ ...form, amount_foreign: e.target.value })}
+            label={t("deposits.amountForeign")} value={form.amount_foreign}
+            onChange={(e) => setForm({ ...form, amount_foreign: e.target.value.replace(",", ".") })}
             required error={submitted && !form.amount_foreign}
+            slotProps={{ htmlInput: { inputMode: "decimal" } }}
           />
           <TextField
-            label={t("deposits.amountBrl")} type="number" value={form.amount_brl}
-            onChange={(e) => setForm({ ...form, amount_brl: e.target.value })}
+            label={t("deposits.amountBrl")} value={form.amount_brl}
+            onChange={(e) => setForm({ ...form, amount_brl: e.target.value.replace(",", ".") })}
             required error={submitted && !form.amount_brl}
+            slotProps={{ htmlInput: { inputMode: "decimal" } }}
           />
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">

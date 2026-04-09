@@ -263,9 +263,10 @@ export default function Transfers() {
             </Select>
           </FormControl>
           <TextField
-            label={t("transfers.amountBrl")} type="number" value={form.amount_brl}
-            onChange={(e) => setForm({ ...form, amount_brl: e.target.value })}
+            label={t("transfers.amountBrl")} value={form.amount_brl}
+            onChange={(e) => setForm({ ...form, amount_brl: e.target.value.replace(",", ".") })}
             required error={submitted && !form.amount_brl}
+            slotProps={{ htmlInput: { inputMode: "decimal" } }}
           />
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">

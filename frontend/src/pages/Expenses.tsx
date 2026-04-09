@@ -241,7 +241,7 @@ export default function Expenses() {
             required={selectedCatCode === "OTHER"}
             error={submitted && selectedCatCode === "OTHER" && !form.description}
           />
-          <TextField label={t("expenses.amount")} type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required error={submitted && !form.amount} />
+          <TextField label={t("expenses.amount")} value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value.replace(",", ".") })} required error={submitted && !form.amount} slotProps={{ htmlInput: { inputMode: "decimal" } }} />
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
               {t("expenses.uploadReceipt")}
