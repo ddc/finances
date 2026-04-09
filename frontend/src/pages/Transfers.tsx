@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
+  FormControl, InputLabel, Select, MenuItem, IconButton,
   Card, CardContent,
 } from "@mui/material";
 import { Add, Edit, Delete, Description } from "@mui/icons-material";
@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import type { GridColDef } from "@mui/x-data-grid";
+import CurrencyField from "../components/CurrencyField";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
 import { listTransfers, createTransfer, updateTransfer, deleteTransfer } from "../api/transfers";
@@ -262,11 +263,10 @@ export default function Transfers() {
               ))}
             </Select>
           </FormControl>
-          <TextField
+          <CurrencyField
             label={t("transfers.amountBrl")} value={form.amount_brl}
-            onChange={(e) => setForm({ ...form, amount_brl: e.target.value.replace(",", ".") })}
+            onChange={(v) => setForm({ ...form, amount_brl: v })}
             required error={submitted && !form.amount_brl}
-            slotProps={{ htmlInput: { inputMode: "decimal" } }}
           />
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">

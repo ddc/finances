@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import type { GridColDef } from "@mui/x-data-grid";
+import CurrencyField from "../components/CurrencyField";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
 import { listExpenses, createExpense, updateExpense, deleteExpense } from "../api/expenses";
@@ -241,7 +242,7 @@ export default function Expenses() {
             required={selectedCatCode === "OTHER"}
             error={submitted && selectedCatCode === "OTHER" && !form.description}
           />
-          <TextField label={t("expenses.amount")} value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value.replace(",", ".") })} required error={submitted && !form.amount} slotProps={{ htmlInput: { inputMode: "decimal" } }} />
+          <CurrencyField label={t("expenses.amount")} value={form.amount} onChange={(v) => setForm({ ...form, amount: v })} required error={submitted && !form.amount} />
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
               {t("expenses.uploadReceipt")}
