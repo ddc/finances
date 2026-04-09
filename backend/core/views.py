@@ -182,6 +182,7 @@ class ExpenseViewSet(LoggingModelViewSet):
         f = request.FILES.get("receipt_file")
         if f:
             instance.receipt_file = f.read()
+            instance.receipt_filename = f.name
             instance.save()
 
     def perform_create(self, serializer):
@@ -216,8 +217,10 @@ class DepositViewSet(LoggingModelViewSet):
         invoice = request.FILES.get("invoice_file")
         if nfe:
             instance.nfe_file = nfe.read()
+            instance.nfe_filename = nfe.name
         if invoice:
             instance.invoice_file = invoice.read()
+            instance.invoice_filename = invoice.name
         if nfe or invoice:
             instance.save()
 
@@ -249,6 +252,7 @@ class TransferViewSet(LoggingModelViewSet):
         f = request.FILES.get("transfer_file")
         if f:
             instance.transfer_file = f.read()
+            instance.transfer_filename = f.name
             instance.save()
 
     def perform_create(self, serializer):
@@ -316,9 +320,9 @@ class NfeSampleViewSet(LoggingModelViewSet):
         return qs
 
 
-def _pdf_response(file_data, pk, suffix):
+def _pdf_response(file_data, filename):
     response = HttpResponse(bytes(file_data), content_type="application/pdf")
-    response["Content-Disposition"] = 'inline; filename="' + str(pk) + "_" + suffix + '.pdf"'
+    response["Content-Disposition"] = 'inline; filename="' + filename + '"'
     return response
 
 
@@ -329,7 +333,7 @@ class ExpenseFileView(APIView):
         expense = Expense.objects.get(pk=pk)
         if not expense.receipt_file:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        return _pdf_response(expense.receipt_file, pk, "receipt")
+        return _pdf_response(expense.receipt_file, expense.receipt_filename or str(pk) + "_receipt.pdf")
 
 
 class DepositFileView(APIView):
@@ -339,13 +343,15 @@ class DepositFileView(APIView):
         deposit = Deposit.objects.get(pk=pk)
         if file_type == "nfe":
             file_data = deposit.nfe_file
+            filename = deposit.nfe_filename
         elif file_type == "invoice":
             file_data = deposit.invoice_file
+            filename = deposit.invoice_filename
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
         if not file_data:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        return _pdf_response(file_data, pk, file_type)
+        return _pdf_response(file_data, filename or str(pk) + "_" + file_type + ".pdf")
 
 
 class TransferFileView(APIView):
@@ -355,4 +361,4 @@ class TransferFileView(APIView):
         transfer = Transfer.objects.get(pk=pk)
         if not transfer.transfer_file:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        return _pdf_response(transfer.transfer_file, pk, "transfer")
+        return _pdf_response(transfer.transfer_file, transfer.transfer_filename or str(pk) + "_transfer.pdf")

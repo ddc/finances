@@ -71,6 +71,7 @@ class Expense(BaseModel):
     description = models.TextField(blank=True, default="")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     receipt_file = models.BinaryField(null=True, blank=True)
+    receipt_filename = models.CharField(max_length=255, blank=True, default="")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="expenses")
 
     def __str__(self):
@@ -89,7 +90,9 @@ class Deposit(BaseModel):
     amount_foreign = models.DecimalField(max_digits=10, decimal_places=2)
     amount_brl = models.DecimalField(max_digits=10, decimal_places=2)
     nfe_file = models.BinaryField(null=True, blank=True)
+    nfe_filename = models.CharField(max_length=255, blank=True, default="")
     invoice_file = models.BinaryField(null=True, blank=True)
+    invoice_filename = models.CharField(max_length=255, blank=True, default="")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="deposits")
 
     def __str__(self):
@@ -102,6 +105,7 @@ class Transfer(BaseModel):
     bank = models.ForeignKey(Bank, on_delete=models.PROTECT, related_name="transfers")
     amount_brl = models.DecimalField(max_digits=10, decimal_places=2)
     transfer_file = models.BinaryField(null=True, blank=True)
+    transfer_filename = models.CharField(max_length=255, blank=True, default="")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="transfers")
 
     def __str__(self):
