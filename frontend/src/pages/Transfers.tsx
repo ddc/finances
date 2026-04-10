@@ -21,6 +21,7 @@ import { MonthFilter, YearFilter } from "../components/PageFilters";
 import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
 import type { Transfer, Deposit, BankOption } from "../types";
+import { currencyFlag } from "../utils/currencyFlags";
 
 const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
@@ -66,7 +67,7 @@ export default function Transfers() {
 
   const depositLabel = (id: string) => {
     const d = deposits.find((dep) => dep.id === id);
-    return d ? d.company_label + " - " + d.currency_code + " " + d.amount_foreign + " - " + d.deposit_date : id;
+    return d ? d.company_label + " - " + d.currency_code + " " + formatNumber(Number(d.amount_foreign)) + " - BRL " + formatNumber(Number(d.amount_brl)) + " - " + d.deposit_date : id;
   };
 
   const handleOpen = (transfer?: Transfer) => {
@@ -179,7 +180,7 @@ export default function Transfers() {
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
         <Card sx={{ minWidth: 200 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-            <Typography color="text.secondary" variant="body2">{t("transfers.total")}</Typography>
+            <Typography color="text.secondary" variant="body2">{t("transfers.total")} {currencyFlag("BRL")}</Typography>
             <Typography variant="h6" sx={{ color: "#22c55e" }}>
               R$ {rows.reduce((sum, r) => sum + Number(r.amount_brl), 0).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
             </Typography>
@@ -207,7 +208,7 @@ export default function Transfers() {
       {bankTotals.length > 0 && (
         <Card sx={{ mb: 2 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>{t("dashboard.overview")}</Typography>
+            <Typography variant="h6" gutterBottom>{t("dashboard.transfersByBank")}</Typography>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -251,7 +252,7 @@ export default function Transfers() {
             <InputLabel>{t("transfers.deposit")}</InputLabel>
             <Select value={form.deposit} label={t("transfers.deposit")} onChange={(e) => setForm({ ...form, deposit: e.target.value })}>
               {deposits.map((d) => (
-                <MenuItem key={d.id} value={d.id}>{d.company_label} - {d.currency_code} {d.amount_foreign} - {d.deposit_date}</MenuItem>
+                <MenuItem key={d.id} value={d.id}>{depositLabel(d.id)}</MenuItem>
               ))}
             </Select>
           </FormControl>

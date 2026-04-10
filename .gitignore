@@ -168,3 +168,4 @@ frontend/logs/*
 
 # SSL Certificates
 certs/
+/node_modules/

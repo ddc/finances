@@ -20,6 +20,7 @@ import { MonthFilter, YearFilter } from "../components/PageFilters";
 import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
 import type { Expense, ExpenseCategory } from "../types";
+import { currencyFlag } from "../utils/currencyFlags";
 
 const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
@@ -160,7 +161,7 @@ export default function Expenses() {
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
         <Card sx={{ minWidth: 200 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-            <Typography color="text.secondary" variant="body2">{t("expenses.total")}</Typography>
+            <Typography color="text.secondary" variant="body2">{t("expenses.total")} {currencyFlag("BRL")}</Typography>
             <Typography variant="h6" sx={{ color: "#ef4444" }}>
               R$ {rows.reduce((sum, r) => sum + Number(r.amount), 0).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
             </Typography>
@@ -185,31 +186,30 @@ export default function Expenses() {
         </Box>
       </Box>
 
-      {pieData.length > 0 && (
         <Card sx={{ mb: 2 }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>{t("dashboard.overview")}</Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: R$ ${value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}`}
-                />
-                <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
-                <Legend formatter={(value, entry) => {
-                  const total = pieData.reduce((s, d) => s + d.value, 0);
-                  const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
-                  return value + " (" + pct + "%)";
-                }} />
-              </PieChart>
-            </ResponsiveContainer>
+            <Typography variant="h6" gutterBottom>{t("dashboard.expensesByCategory")}</Typography>
+            {pieData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={350}>
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" outerRadius={100} dataKey="value"
+                    label={({ name, value }) => `${name}: R$ ${value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}`}
+                  />
+                  <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
+                  <Legend formatter={(value, entry) => {
+                    const total = pieData.reduce((s, d) => s + d.value, 0);
+                    const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
+                    return value + " (" + pct + "%)";
+                  }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <Box sx={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Typography color="text.secondary">{t("common.noData")}</Typography>
+              </Box>
+            )}
           </CardContent>
         </Card>
-      )}
 
       <StyledDataGrid
         rows={rows}

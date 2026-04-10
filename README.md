@@ -109,6 +109,7 @@ Base URL: `/api/v1/`
 
 | Method | Endpoint                     | Description           | Auth     |
 |--------|------------------------------|-----------------------|----------|
+| GET    | /expenses/{id}/file/         | Download Receipt PDF  | Required |
 | GET    | /deposits/{id}/file/nfe/     | Download NFE PDF      | Required |
 | GET    | /deposits/{id}/file/invoice/ | Download Invoice PDF  | Required |
 | GET    | /transfers/{id}/file/        | Download Transfer PDF | Required |
@@ -271,15 +272,35 @@ uv run poe sync-version              # sync pyproject.toml version to package.js
 
 For local development with a containerized PostgreSQL:
 
+### 1. Start the database
+
 ```bash
 docker compose -f docker-compose-localdb.yml up -d
 ```
 
-Set `.env`:
+This starts PostgreSQL, runs migrations, and seeds lookup data automatically.
+
+Set `POSTGRES_HOST` in `.env`:
 
 ```
-POSTGRES_HOST=finances_database
+POSTGRES_HOST=localhost
 ```
+
+### 2. Start the backend
+
+```bash
+cd backend
+uv run python manage.py runserver 8000
+```
+
+### 3. Start the frontend
+
+```bash
+cd frontend
+bun run dev
+```
+
+Open `http://localhost:5173` in the browser. The Vite dev server proxies API requests to the backend at `http://localhost:8000`.
 
 ## License
 Released under the [MIT License](LICENSE)
