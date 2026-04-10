@@ -161,7 +161,7 @@ beforeEach(() => {
 describe("Expenses page", () => {
   it("renders page with summary cards", async () => {
     render(<Wrapper><Expenses /></Wrapper>);
-    await waitFor(() => expect(screen.getByText("Total BRL")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Total BRL/)).toBeInTheDocument());
     expect(mockListExpenses).toHaveBeenCalled();
   });
 
@@ -200,7 +200,7 @@ describe("Expenses page", () => {
 describe("Deposits page", () => {
   it("renders page with currency cards", async () => {
     render(<Wrapper><Deposits /></Wrapper>);
-    await waitFor(() => expect(screen.getByText("Total BRL")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Total BRL/)).toBeInTheDocument());
     expect(mockListDeposits).toHaveBeenCalled();
   });
 
@@ -234,7 +234,7 @@ describe("Deposits page", () => {
 describe("Transfers page", () => {
   it("renders page with summary", async () => {
     render(<Wrapper><Transfers /></Wrapper>);
-    await waitFor(() => expect(screen.getByText("Total BRL")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Total BRL/)).toBeInTheDocument());
     expect(mockListTransfers).toHaveBeenCalled();
   });
 

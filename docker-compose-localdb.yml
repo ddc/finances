@@ -44,12 +44,13 @@ services:
     env_file: .env
     environment:
       DOCKER_BUILDKIT: 1
+      LOG_DIRECTORY: /app/logs
     networks:
       - finances_network
     depends_on:
       finances_database:
         condition: service_healthy
-    command: ["sh", "-c", "uv run --frozen --no-sync python manage.py migrate && touch /tmp/migrate_done && sleep infinity"]
+    command: ["sh", "-c", "uv run --frozen --no-sync python manage.py migrate && uv run --frozen --no-sync python manage.py seed_data && touch /tmp/migrate_done && sleep infinity"]
     deploy:
       restart_policy:
         delay: 60s

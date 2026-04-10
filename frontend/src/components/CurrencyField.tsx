@@ -13,49 +13,39 @@ interface CurrencyFieldProps {
 
 function formatForDisplay(raw: string, locale: string, decimalPlaces: number): string {
   const num = Number(raw);
-  if (!raw || isNaN(num)) return raw;
+  if (!raw || Number.isNaN(num)) return raw;
   return num.toLocaleString(locale, { minimumFractionDigits: decimalPlaces, maximumFractionDigits: decimalPlaces });
 }
 
 function parseToRaw(display: string, locale: string): string {
   if (!display) return "";
   if (locale === "pt-BR") {
-    return display.replace(/\./g, "").replace(",", ".");
+    return display.replaceAll(".", "").replace(",", ".");
   }
-  return display.replace(/,/g, "");
+  return display.replaceAll(",", "");
 }
 
 export default function CurrencyField({ label, value, onChange, required, error, decimalPlaces = 2 }: CurrencyFieldProps) {
   const { i18n } = useTranslation();
   const locale = i18n.language === "pt-BR" ? "pt-BR" : "en-US";
   const [display, setDisplay] = useState(() => formatForDisplay(value, locale, decimalPlaces));
-  const [focused, setFocused] = useState(false);
+  const [prevValue, setPrevValue] = useState(value);
 
-  const handleFocus = () => {
-    setFocused(true);
-    setDisplay(value);
-  };
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setDisplay(formatForDisplay(value, locale, decimalPlaces));
+  }
 
   const handleBlur = () => {
-    setFocused(false);
     const raw = parseToRaw(display, locale);
     const num = Number(raw);
-    if (raw && !isNaN(num)) {
-      onChange(raw);
-      setDisplay(formatForDisplay(raw, locale, decimalPlaces));
-    } else {
-      onChange(raw);
-      setDisplay(display);
-    }
+    const formatted = raw && !Number.isNaN(num) ? formatForDisplay(raw, locale, decimalPlaces) : display;
+    onChange(raw);
+    setDisplay(formatted);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value;
-    setDisplay(v);
-    if (focused) {
-      const raw = parseToRaw(v, locale);
-      onChange(raw);
-    }
+    setDisplay(e.target.value);
   };
 
   return (
@@ -63,7 +53,6 @@ export default function CurrencyField({ label, value, onChange, required, error,
       label={label}
       value={display}
       onChange={handleChange}
-      onFocus={handleFocus}
       onBlur={handleBlur}
       required={required}
       error={error}

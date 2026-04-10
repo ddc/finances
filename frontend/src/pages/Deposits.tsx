@@ -20,8 +20,8 @@ import { MonthFilter, YearFilter } from "../components/PageFilters";
 import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
 import type { Deposit, CurrencyOption, CompanyOption } from "../types";
-
-const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
+import { currencyFlag } from "../utils/currencyFlags";
+import { CURRENCY_ORDER, currencyColor, DYNAMIC_COLORS } from "../utils/chartColors";
 
 const today = () => new Date().toISOString().split("T")[0];
 const EMPTY_FORM = () => ({
@@ -57,7 +57,16 @@ export default function Deposits() {
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
 
   useEffect(() => { listCompanies().then(setCompanies); }, []);
-  useEffect(() => { listCurrencies().then(setCurrencies); }, []);
+  useEffect(() => {
+    listCurrencies().then((list) => {
+      const sorted = [...list].sort((a, b) => {
+        const ai = CURRENCY_ORDER.indexOf(a.code);
+        const bi = CURRENCY_ORDER.indexOf(b.code);
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+      });
+      setCurrencies(sorted);
+    });
+  }, []);
 
   const load = useCallback(() => {
     const params: Record<string, string> = {};
@@ -135,7 +144,7 @@ export default function Deposits() {
     { field: "company_label", headerName: t("deposits.company"), flex: 1 },
     { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 1 },
     { field: "currency_code", headerName: t("deposits.currency"), flex: 0.7 },
-    { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : formatNumber(Number(value)) },
+    { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) },
     { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     {
@@ -169,17 +178,17 @@ export default function Deposits() {
 
   const totalBrl = rows.reduce((sum, r) => sum + Number(r.amount_brl), 0);
 
-  const currencyTotals = currencies.map((curr, i) => ({
+  const currencyTotals = currencies.map((curr) => ({
     name: curr.code,
     value: rows.filter((r) => r.currency_code === curr.code).reduce((sum, r) => sum + Number(r.amount_foreign), 0),
-    fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
+    fill: currencyColor(curr.code),
     symbol: curr.symbol,
   })).filter((d) => d.value > 0);
 
   const totalForeign = currencyTotals.reduce((sum, c) => sum + c.value, 0);
 
   const overviewPieData = [
-    { name: t("deposits.totalForeign"), value: totalForeign, fill: "#8b5cf6" },
+    { name: t("deposits.foreign"), value: totalForeign, fill: "#8b5cf6" },
     { name: "BRL", value: totalBrl, fill: "#22c55e" },
   ].filter((d) => d.value > 0);
 
@@ -189,9 +198,27 @@ export default function Deposits() {
     fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
   })).filter((d) => d.value > 0);
 
-  const companyTotalsForeign = companies.map((comp, i) => ({
+  const companyCurrencyPie = (() => {
+    const map = new Map<string, { value: number; symbol: string }>();
+    for (const r of rows) {
+      const key = r.company_label + " (" + r.currency_code + ")";
+      const existing = map.get(key);
+      map.set(key, { value: (existing?.value || 0) + Number(r.amount_foreign), symbol: r.currency_symbol });
+    }
+    return Array.from(map.entries())
+      .map(([name, { value, symbol }], i) => ({ name, value, symbol, fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }))
+      .filter((d) => d.value > 0);
+  })();
+
+  const brlByCurrencyPie = currencies.map((curr) => ({
+    name: curr.code,
+    value: rows.filter((r) => r.currency_code === curr.code).reduce((sum, r) => sum + Number(r.amount_brl), 0),
+    fill: currencyColor(curr.code),
+  })).filter((d) => d.value > 0);
+
+  const depositsCountPie = companies.map((comp, i) => ({
     name: comp.label,
-    value: rows.filter((r) => r.company_code === comp.code).reduce((sum, r) => sum + Number(r.amount_foreign), 0),
+    value: rows.filter((r) => r.company_code === comp.code).length,
     fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
   })).filter((d) => d.value > 0);
 
@@ -211,7 +238,7 @@ export default function Deposits() {
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
         <Card sx={{ minWidth: 160 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-            <Typography color="text.secondary" variant="body2">{t("deposits.totalBrl")}</Typography>
+            <Typography color="text.secondary" variant="body2">{t("deposits.totalBrl")} {currencyFlag("BRL")}</Typography>
             <Typography variant="h6" sx={{ color: "#22c55e" }}>
               R$ {totalBrl.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
             </Typography>
@@ -220,7 +247,7 @@ export default function Deposits() {
         {currencyTotals.map((ct) => (
           <Card key={ct.name} sx={{ minWidth: 160 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-              <Typography color="text.secondary" variant="body2">{"Total " + ct.name}</Typography>
+              <Typography color="text.secondary" variant="body2">{"Total " + ct.name + " " + currencyFlag(ct.name)}</Typography>
               <Typography variant="h6" sx={{ color: ct.fill }}>
                 {ct.symbol} {ct.value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
               </Typography>
@@ -236,7 +263,7 @@ export default function Deposits() {
       <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, mb: 2 }}>
         <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>{t("deposits.totalForeign")} vs BRL</Typography>
+            <Typography variant="h6" gutterBottom>{t("dashboard.depositsForeignVsBrl")}</Typography>
             {overviewPieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={350}>
                 <PieChart>
@@ -253,21 +280,21 @@ export default function Deposits() {
               </ResponsiveContainer>
             ) : (
               <Box sx={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Typography color="text.secondary">No data</Typography>
+                <Typography color="text.secondary">{t("common.noData")}</Typography>
               </Box>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>{t("filters.currency")}</Typography>
+            <Typography variant="h6" gutterBottom>{t("dashboard.depositsByCurrency")}</Typography>
             {currencyTotals.length > 0 ? (
               <ResponsiveContainer width="100%" height={350}>
                 <PieChart>
                   <Pie data={currencyTotals} cx="50%" cy="50%" outerRadius={100} dataKey="value"
-                    label={({ name, value }) => name + ": " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
+                    label={({ name, value, ...rest }) => name + ": " + (rest as unknown as Record<string, string>).symbol + " " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
                   />
-                  <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
+                  <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value, _name, props) => (props.payload as Record<string, string>).symbol + " " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                   <Legend formatter={(value, entry) => {
                     const total = currencyTotals.reduce((s, d) => s + d.value, 0);
                     const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
@@ -277,14 +304,14 @@ export default function Deposits() {
               </ResponsiveContainer>
             ) : (
               <Box sx={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Typography color="text.secondary">No data</Typography>
+                <Typography color="text.secondary">{t("common.noData")}</Typography>
               </Box>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>{t("deposits.company")} (BRL)</Typography>
+            <Typography variant="h6" gutterBottom>{t("dashboard.depositsByCompany")}</Typography>
             {companyTotalsBrl.length > 0 ? (
               <ResponsiveContainer width="100%" height={350}>
                 <PieChart>
@@ -301,23 +328,23 @@ export default function Deposits() {
               </ResponsiveContainer>
             ) : (
               <Box sx={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Typography color="text.secondary">No data</Typography>
+                <Typography color="text.secondary">{t("common.noData")}</Typography>
               </Box>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>{t("deposits.company")} ({t("deposits.totalForeign")})</Typography>
-            {companyTotalsForeign.length > 0 ? (
+            <Typography variant="h6" gutterBottom>{t("dashboard.depositsCompanyCurrency")}</Typography>
+            {companyCurrencyPie.length > 0 ? (
               <ResponsiveContainer width="100%" height={350}>
                 <PieChart>
-                  <Pie data={companyTotalsForeign} cx="50%" cy="50%" outerRadius={100} dataKey="value"
-                    label={({ name, value }) => name + ": " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
+                  <Pie data={companyCurrencyPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
+                    label={({ name, value, ...rest }) => name + ": " + (rest as unknown as Record<string, string>).symbol + " " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
                   />
-                  <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
+                  <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value, _name, props) => (props.payload as Record<string, string>).symbol + " " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                   <Legend formatter={(value, entry) => {
-                    const total = companyTotalsForeign.reduce((s, d) => s + d.value, 0);
+                    const total = companyCurrencyPie.reduce((s, d) => s + d.value, 0);
                     const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
                     return value + " (" + pct + "%)";
                   }} />
@@ -325,7 +352,55 @@ export default function Deposits() {
               </ResponsiveContainer>
             ) : (
               <Box sx={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Typography color="text.secondary">No data</Typography>
+                <Typography color="text.secondary">{t("common.noData")}</Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>{t("dashboard.brlByCurrency")}</Typography>
+            {brlByCurrencyPie.length > 0 ? (
+              <ResponsiveContainer width="100%" height={350}>
+                <PieChart>
+                  <Pie data={brlByCurrencyPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
+                    label={({ name, value }) => name + ": R$ " + value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
+                  />
+                  <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
+                  <Legend formatter={(value, entry) => {
+                    const total = brlByCurrencyPie.reduce((s, d) => s + d.value, 0);
+                    const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
+                    return value + " (" + pct + "%)";
+                  }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <Box sx={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Typography color="text.secondary">{t("common.noData")}</Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>{t("dashboard.depositsCount")}</Typography>
+            {depositsCountPie.length > 0 ? (
+              <ResponsiveContainer width="100%" height={350}>
+                <PieChart>
+                  <Pie data={depositsCountPie} cx="50%" cy="50%" outerRadius={100} dataKey="value"
+                    label={({ name, value }) => name + ": " + value}
+                  />
+                  <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} />
+                  <Legend formatter={(value, entry) => {
+                    const total = depositsCountPie.reduce((s, d) => s + d.value, 0);
+                    const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
+                    return value + " (" + pct + "%)";
+                  }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <Box sx={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Typography color="text.secondary">{t("common.noData")}</Typography>
               </Box>
             )}
           </CardContent>
