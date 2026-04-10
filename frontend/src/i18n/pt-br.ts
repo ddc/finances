@@ -71,7 +71,7 @@ export default {
     date: "Data",
     category: "Categoria",
     description: "Descrição",
-    amount: "Valor R$",
+    amount: "Valor BRL",
     total: "Total BRL",
     receiptFile: "Comprovante",
     uploadReceipt: "Anexar Comprovante",

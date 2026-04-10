@@ -71,7 +71,7 @@ export default {
     date: "Date",
     category: "Category",
     description: "Description",
-    amount: "Amount R$",
+    amount: "Amount BRL",
     total: "Total BRL",
     receiptFile: "Receipt File",
     uploadReceipt: "Upload Receipt",
