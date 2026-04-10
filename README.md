@@ -50,8 +50,8 @@
 
 | Layer           | Technology                                           |
 |-----------------|------------------------------------------------------|
-| Backend         | Django 6.0 + Django REST Framework                   |
-| Frontend        | React 19 + Vite + MUI + Recharts                     |
+| Backend         | Django + Django REST Framework                       |
+| Frontend        | React+ Vite + MUI + Recharts                         |
 | Database        | PostgreSQL (data + file storage)                     |
 | Auth            | httpOnly cookie + token expiration                   |
 | SSL             | TLSv1.3 self-signed certificates                     |
