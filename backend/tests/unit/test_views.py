@@ -281,7 +281,7 @@ class TestExpenseFileView:
             receipt_file=b"%PDF-1.4 test",
             created_by=admin_user,
         )
-        response = admin_client.get(f"/api/v1/expenses/{expense.id}/file/")
+        response = admin_client.get(f"/api/v1/expenses/{expense.id}/file/receipt/")
         assert response.status_code == 200
         assert response["Content-Type"] == "application/pdf"
 
@@ -292,7 +292,7 @@ class TestExpenseFileView:
             amount=100,
             created_by=admin_user,
         )
-        response = admin_client.get(f"/api/v1/expenses/{expense.id}/file/")
+        response = admin_client.get(f"/api/v1/expenses/{expense.id}/file/receipt/")
         assert response.status_code == 404
 
 

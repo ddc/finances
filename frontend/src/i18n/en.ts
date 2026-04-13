@@ -73,8 +73,10 @@ export default {
     description: "Description",
     amount: "Amount BRL",
     total: "Total BRL",
-    receiptFile: "Receipt File",
+    receiptFile: "Receipt",
     uploadReceipt: "Upload Receipt",
+    nfeFile: "NFE",
+    uploadNfe: "Upload NFE",
     categories: {
       TAXES: "Taxes",
       HEALTH_INSURANCE: "Health Insurance",
@@ -105,12 +107,15 @@ export default {
     depositsCount: "Deposits Count by Company",
     totalBrl: "Total BRL",
     company: "Company",
-    nfeFile: "NFE File",
-    invoiceFile: "Invoice File",
+    nfeFile: "NFE",
+    invoiceFile: "Invoice",
     uploadNfe: "Upload NFE",
     uploadInvoice: "Upload Invoice",
     viewFile: "View",
     downloadFile: "Download",
+    companies: {
+      OTHER: "Other",
+    },
   },
   transfers: {
     title: "Transfers",
@@ -121,8 +126,11 @@ export default {
     amountBrl: "Amount BRL",
     deposit: "Deposit",
     total: "Total BRL",
-    transferFile: "Transfer File",
-    uploadTransfer: "Upload Transfer",
+    transferFile: "Receipt",
+    uploadTransfer: "Upload Receipt",
+    banks: {
+      OTHER: "Other",
+    },
   },
   nfeSamples: {
     title: "NFE Samples",
@@ -136,6 +144,7 @@ export default {
   common: {
     save: "Save",
     cancel: "Cancel",
+    edit: "Edit",
     delete: "Delete",
     confirmDelete: "Confirm Delete",
     actions: "Actions",

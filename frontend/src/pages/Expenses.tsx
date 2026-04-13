@@ -4,7 +4,7 @@ import {
   TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
   Card, CardContent,
 } from "@mui/material";
-import { Add, Edit, Delete, Description } from "@mui/icons-material";
+import { Add, Edit, Delete, Description, Receipt } from "@mui/icons-material";
 import { PieChart, Pie, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -44,6 +44,7 @@ export default function Expenses() {
   const [submitted, setSubmitted] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [nfeFile, setNfeFile] = useState<File | null>(null);
 
   useEffect(() => { listExpenseCategories().then(setCategories); }, []);
 
@@ -68,6 +69,7 @@ export default function Expenses() {
     }
     setSubmitted(false);
     setReceiptFile(null);
+    setNfeFile(null);
     setDialogOpen(true);
   };
 
@@ -83,9 +85,9 @@ export default function Expenses() {
       amount: Number(form.amount),
     };
     if (editingId) {
-      await updateExpense(editingId, payload, receiptFile || undefined);
+      await updateExpense(editingId, payload, receiptFile || undefined, nfeFile || undefined);
     } else {
-      await createExpense(payload, receiptFile || undefined);
+      await createExpense(payload, receiptFile || undefined, nfeFile || undefined);
     }
     setDialogOpen(false);
     load();
@@ -101,28 +103,41 @@ export default function Expenses() {
 
   const selectedCatCode = categories.find((c) => c.id === form.category)?.code;
 
+  const categoryName = (code: string, fallback: string) => {
+    const key = "expenses.categories." + code;
+    const translated = t(key);
+    return translated === key ? fallback : translated;
+  };
+
+  const translateCategory = (row: Expense) => categoryName(row.category_code, row.category_label);
+
   const columns: GridColDef[] = [
     { field: "expense_date", headerName: t("expenses.date"), flex: 1 },
-    { field: "category_label", headerName: t("expenses.category"), flex: 1 },
+    { field: "category_label", headerName: t("expenses.category"), flex: 1, valueGetter: (_value, row: Expense) => translateCategory(row) },
     { field: "description", headerName: t("expenses.description"), flex: 2 },
     { field: "amount", headerName: t("expenses.amount"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     {
       field: "actions",
       headerName: t("common.actions"),
-      width: isAdmin ? 150 : 60,
+      width: isAdmin ? 180 : 100,
       sortable: false,
       filterable: false,
       renderCell: (params: { row: Expense }) => (
         <>
           {params.row.has_receipt_file && (
-            <IconButton size="small" title={t("expenses.receiptFile")} onClick={() => window.open(`/api/v1/expenses/${params.row.id}/file/`, "_blank")}>
+            <IconButton size="small" title={t("expenses.receiptFile")} onClick={() => window.open(`/api/v1/expenses/${params.row.id}/file/receipt/`, "_blank")}>
               <Description fontSize="small" color="info" />
+            </IconButton>
+          )}
+          {params.row.has_nfe_file && (
+            <IconButton size="small" title={t("expenses.nfeFile")} onClick={() => window.open(`/api/v1/expenses/${params.row.id}/file/nfe/`, "_blank")}>
+              <Receipt fontSize="small" color="success" />
             </IconButton>
           )}
           {isAdmin && (
             <>
-              <IconButton size="small" onClick={() => handleOpen(params.row)}><Edit fontSize="small" /></IconButton>
-              <IconButton size="small" color="error" onClick={() => setDeleteId(params.row.id)}><Delete fontSize="small" /></IconButton>
+              <IconButton size="small" title={t("common.edit")} onClick={() => handleOpen(params.row)}><Edit fontSize="small" /></IconButton>
+              <IconButton size="small" title={t("common.delete")} color="error" onClick={() => setDeleteId(params.row.id)}><Delete fontSize="small" /></IconButton>
             </>
           )}
         </>
@@ -132,7 +147,7 @@ export default function Expenses() {
 
   // Pie chart data: breakdown by category
   const pieData = categories.map((cat, i) => ({
-    name: cat.label,
+    name: categoryName(cat.code, cat.label),
     value: rows.filter((r) => r.category_code === cat.code).reduce((sum, r) => sum + Number(r.amount), 0),
     fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
   })).filter((d) => d.value > 0);
@@ -145,7 +160,7 @@ export default function Expenses() {
           <Select value={categoryFilter} label={t("filters.category")} onChange={(e) => setCategoryFilter(e.target.value)}>
             <MenuItem value="">{t("filters.all")}</MenuItem>
             {categories.map((c) => (
-              <MenuItem key={c.id} value={c.id}>{c.label}</MenuItem>
+              <MenuItem key={c.id} value={c.id}>{categoryName(c.code, c.label)}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -173,7 +188,7 @@ export default function Expenses() {
           return (
             <Card key={cat.code} sx={{ minWidth: 200 }}>
               <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-                <Typography color="text.secondary" variant="body2">{"Total " + cat.label}</Typography>
+                <Typography color="text.secondary" variant="body2">{"Total " + categoryName(cat.code, cat.label)}</Typography>
                 <Typography variant="h6" sx={{ color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }}>
                   R$ {catTotal.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
                 </Typography>
@@ -232,7 +247,7 @@ export default function Expenses() {
             <InputLabel>{t("expenses.category")}</InputLabel>
             <Select value={form.category} label={t("expenses.category")} onChange={(e) => setForm({ ...form, category: e.target.value })}>
               {categories.map((c) => (
-                <MenuItem key={c.id} value={c.id}>{c.label}</MenuItem>
+                <MenuItem key={c.id} value={c.id}>{categoryName(c.code, c.label)}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -252,6 +267,18 @@ export default function Expenses() {
             {!receiptFile && editingId && rows.find((r) => r.id === editingId)?.has_receipt_file && (
               <Typography variant="body2" color="text.secondary">
                 Current: Receipt uploaded
+              </Typography>
+            )}
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button variant="outlined" component="label">
+              {t("expenses.uploadNfe")}
+              <input type="file" accept=".pdf" hidden onChange={(e) => setNfeFile(e.target.files?.[0] || null)} />
+            </Button>
+            {nfeFile && <Typography variant="body2">{nfeFile.name}</Typography>}
+            {!nfeFile && editingId && rows.find((r) => r.id === editingId)?.has_nfe_file && (
+              <Typography variant="body2" color="text.secondary">
+                Current: NFE uploaded
               </Typography>
             )}
           </Box>

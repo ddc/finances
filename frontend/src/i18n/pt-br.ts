@@ -73,8 +73,10 @@ export default {
     description: "Descrição",
     amount: "Valor BRL",
     total: "Total BRL",
-    receiptFile: "Comprovante",
-    uploadReceipt: "Anexar Comprovante",
+    receiptFile: "Boleto",
+    uploadReceipt: "Anexar Boleto",
+    nfeFile: "NFE",
+    uploadNfe: "Anexar NFE",
     categories: {
       TAXES: "Impostos",
       HEALTH_INSURANCE: "Plano de Saúde",
@@ -105,12 +107,15 @@ export default {
     depositsCount: "Quantidade de Depósitos por Empresa",
     totalBrl: "Total BRL",
     company: "Empresa",
-    nfeFile: "Arquivo NFE",
-    invoiceFile: "Arquivo Fatura",
+    nfeFile: "NFE",
+    invoiceFile: "Fatura",
     uploadNfe: "Anexar NFE",
     uploadInvoice: "Anexar Fatura",
     viewFile: "Ver",
     downloadFile: "Baixar",
+    companies: {
+      OTHER: "Outros",
+    },
   },
   transfers: {
     title: "Transferências",
@@ -121,8 +126,11 @@ export default {
     amountBrl: "Valor BRL",
     deposit: "Depósito",
     total: "Total BRL",
-    transferFile: "Arquivo Transferência",
-    uploadTransfer: "Anexar Transferência",
+    transferFile: "Comprovante",
+    uploadTransfer: "Anexar Comprovante",
+    banks: {
+      OTHER: "Outros",
+    },
   },
   nfeSamples: {
     title: "Modelos NFE",
@@ -136,6 +144,7 @@ export default {
   common: {
     save: "Salvar",
     cancel: "Cancelar",
+    edit: "Editar",
     delete: "Excluir",
     confirmDelete: "Confirmar Exclusão",
     actions: "Ações",
