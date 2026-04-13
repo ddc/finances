@@ -271,9 +271,25 @@ class TestExpenseFileUpload:
         assert response.status_code == 200
         assert response.data["has_receipt_file"] is True
 
+    def test_create_with_nfe(self, admin_client, expense_category):
+        nfe = io.BytesIO(b"%PDF-1.4 fake nfe")
+        nfe.name = "nfe.pdf"
+        response = admin_client.post(
+            "/api/v1/expenses/",
+            {
+                "expense_date": "2026-01-05",
+                "category": str(expense_category.id),
+                "amount": "100.00",
+                "nfe_file": nfe,
+            },
+            format="multipart",
+        )
+        assert response.status_code == 201
+        assert response.data["has_nfe_file"] is True
+
 
 class TestExpenseFileView:
-    def test_download(self, admin_client, admin_user, expense_category):
+    def test_download_receipt(self, admin_client, admin_user, expense_category):
         expense = Expense.objects.create(
             expense_date="2026-01-05",
             category=expense_category,
@@ -285,7 +301,29 @@ class TestExpenseFileView:
         assert response.status_code == 200
         assert response["Content-Type"] == "application/pdf"
 
-    def test_download_404(self, admin_client, admin_user, expense_category):
+    def test_download_nfe(self, admin_client, admin_user, expense_category):
+        expense = Expense.objects.create(
+            expense_date="2026-01-05",
+            category=expense_category,
+            amount=100,
+            nfe_file=b"%PDF-1.4 nfe",
+            created_by=admin_user,
+        )
+        response = admin_client.get(f"/api/v1/expenses/{expense.id}/file/nfe/")
+        assert response.status_code == 200
+        assert response["Content-Type"] == "application/pdf"
+
+    def test_download_invalid_type_404(self, admin_client, admin_user, expense_category):
+        expense = Expense.objects.create(
+            expense_date="2026-01-05",
+            category=expense_category,
+            amount=100,
+            created_by=admin_user,
+        )
+        response = admin_client.get(f"/api/v1/expenses/{expense.id}/file/invalid/")
+        assert response.status_code == 404
+
+    def test_download_receipt_404(self, admin_client, admin_user, expense_category):
         expense = Expense.objects.create(
             expense_date="2026-01-05",
             category=expense_category,
@@ -293,6 +331,16 @@ class TestExpenseFileView:
             created_by=admin_user,
         )
         response = admin_client.get(f"/api/v1/expenses/{expense.id}/file/receipt/")
+        assert response.status_code == 404
+
+    def test_download_nfe_404(self, admin_client, admin_user, expense_category):
+        expense = Expense.objects.create(
+            expense_date="2026-01-05",
+            category=expense_category,
+            amount=100,
+            created_by=admin_user,
+        )
+        response = admin_client.get(f"/api/v1/expenses/{expense.id}/file/nfe/")
         assert response.status_code == 404
 
 
@@ -515,5 +563,5 @@ class TestNfeSampleViewSet:
 
     def test_list_with_filters(self, admin_client):
         admin_client.post("/api/v1/nfe-samples/", {"description": "Test", "body": "<xml/>"})
-        response = admin_client.get("/api/v1/nfe-samples/?year=2026")
+        response = admin_client.get("/api/v1/nfe-samples/?year=2026&month=1")
         assert response.status_code == 200
