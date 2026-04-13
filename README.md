@@ -33,6 +33,7 @@
 
 ## Table of Contents
 
+- [Screenshots](#screenshots)
 - [Stack](#stack)
 - [Timezone Handling](#timezone-handling)
 - [API Endpoints](#api-endpoints)
@@ -45,6 +46,12 @@
 - [Support](#support)
 
 ---
+
+## Screenshots
+
+![Dashboard](.github/images/dashboard1.png)
+
+![Dashboard](.github/images/dashboard2.png)
 
 ## Stack
 
