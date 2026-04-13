@@ -65,9 +65,17 @@ export default function Transfers() {
   useEffect(() => { load(); }, [load]);
   useEffect(() => { listDeposits().then(setDeposits); }, []);
 
+  const companyName = (code: string, fallback: string) => {
+    const key = "deposits.companies." + code;
+    const translated = t(key);
+    return translated === key ? fallback : translated;
+  };
+
   const depositLabel = (id: string) => {
     const d = deposits.find((dep) => dep.id === id);
-    return d ? d.company_label + " - " + d.currency_code + " " + formatNumber(Number(d.amount_foreign)) + " - BRL " + formatNumber(Number(d.amount_brl)) + " - " + d.deposit_date : id;
+    if (!d) return id;
+    const company = companyName(d.company_code, d.company_label);
+    return company + " - " + d.currency_code + " " + formatNumber(Number(d.amount_foreign)) + " - BRL " + formatNumber(Number(d.amount_brl)) + " - " + d.deposit_date;
   };
 
   const handleOpen = (transfer?: Transfer) => {
@@ -115,9 +123,15 @@ export default function Transfers() {
     }
   };
 
+  const bankName = (code: string, fallback: string) => {
+    const key = "transfers.banks." + code;
+    const translated = t(key);
+    return translated === key ? fallback : translated;
+  };
+
   const columns: GridColDef[] = [
     { field: "transfer_date", headerName: t("transfers.transferDate"), flex: 1 },
-    { field: "bank_label", headerName: t("transfers.bank"), flex: 1 },
+    { field: "bank_label", headerName: t("transfers.bank"), flex: 1, valueGetter: (_value, row: Transfer) => bankName(row.bank_code, row.bank_label) },
     { field: "amount_brl", headerName: t("transfers.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     {
       field: "deposit",
@@ -140,8 +154,8 @@ export default function Transfers() {
           )}
           {isAdmin && (
             <>
-              <IconButton size="small" onClick={() => handleOpen(params.row)}><Edit fontSize="small" /></IconButton>
-              <IconButton size="small" color="error" onClick={() => setDeleteId(params.row.id)}><Delete fontSize="small" /></IconButton>
+              <IconButton size="small" title={t("common.edit")} onClick={() => handleOpen(params.row)}><Edit fontSize="small" /></IconButton>
+              <IconButton size="small" title={t("common.delete")} color="error" onClick={() => setDeleteId(params.row.id)}><Delete fontSize="small" /></IconButton>
             </>
           )}
         </>
@@ -151,7 +165,7 @@ export default function Transfers() {
 
   // Pie chart data: breakdown by bank
   const bankTotals = banks.map((bank, i) => ({
-    name: bank.label,
+    name: bankName(bank.code, bank.label),
     value: rows.filter((r) => r.bank_code === bank.code).reduce((sum, r) => sum + Number(r.amount_brl), 0),
     fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
   })).filter((d) => d.value > 0);
@@ -164,7 +178,7 @@ export default function Transfers() {
           <Select value={bankFilter} label={t("filters.bank")} onChange={(e) => setBankFilter(e.target.value)}>
             <MenuItem value="">{t("filters.all")}</MenuItem>
             {banks.map((b) => (
-              <MenuItem key={b.id} value={b.id}>{b.label}</MenuItem>
+              <MenuItem key={b.id} value={b.id}>{bankName(b.code, b.label)}</MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -192,7 +206,7 @@ export default function Transfers() {
           return (
             <Card key={bank.code} sx={{ minWidth: 200 }}>
               <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-                <Typography color="text.secondary" variant="body2">{"Total " + bank.label}</Typography>
+                <Typography color="text.secondary" variant="body2">{"Total " + bankName(bank.code, bank.label)}</Typography>
                 <Typography variant="h6" sx={{ color: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }}>
                   R$ {bankTotal.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
                 </Typography>
@@ -260,7 +274,7 @@ export default function Transfers() {
             <InputLabel>{t("transfers.bank")}</InputLabel>
             <Select value={form.bank} label={t("transfers.bank")} onChange={(e) => setForm({ ...form, bank: e.target.value })}>
               {banks.map((b) => (
-                <MenuItem key={b.id} value={b.id}>{b.label}</MenuItem>
+                <MenuItem key={b.id} value={b.id}>{bankName(b.code, b.label)}</MenuItem>
               ))}
             </Select>
           </FormControl>

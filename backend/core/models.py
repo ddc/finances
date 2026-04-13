@@ -72,6 +72,8 @@ class Expense(BaseModel):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     receipt_file = models.BinaryField(null=True, blank=True)
     receipt_filename = models.CharField(max_length=255, blank=True, default="")
+    nfe_file = models.BinaryField(null=True, blank=True)
+    nfe_filename = models.CharField(max_length=255, blank=True, default="")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="expenses")
 
     def __str__(self):

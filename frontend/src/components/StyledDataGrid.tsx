@@ -1,9 +1,17 @@
 import { DataGrid, type DataGridProps } from "@mui/x-data-grid";
+import { ptBR, enUS } from "@mui/x-data-grid/locales";
+import { useTranslation } from "react-i18next";
 
 export default function StyledDataGrid(props: DataGridProps) {
+  const { i18n } = useTranslation();
+  const localeText = i18n.language === "pt-BR"
+    ? ptBR.components.MuiDataGrid.defaultProps.localeText
+    : enUS.components.MuiDataGrid.defaultProps.localeText;
+
   return (
     <DataGrid
       pageSizeOptions={[10, 25, 50, 75, 100]}
+      localeText={localeText}
       {...props}
       sx={{
         "& .MuiDataGrid-columnHeader": {

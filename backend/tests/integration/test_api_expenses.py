@@ -102,7 +102,7 @@ class TestExpenseFileUpload:
         receipt_file.name = "receipt.pdf"
         admin_client.put(f"{BASE_URL}/{expense_id}/", {**data, "receipt_file": receipt_file}, format="multipart")
 
-        response = admin_client.get(f"{FILE_URL}/{expense_id}/file/")
+        response = admin_client.get(f"{FILE_URL}/{expense_id}/file/receipt/")
         assert response.status_code == 200
         assert response["Content-Type"] == "application/pdf"
         assert pdf_content == response.content
@@ -112,5 +112,5 @@ class TestExpenseFileUpload:
         create = admin_client.post(f"{BASE_URL}/", data)
         expense_id = create.data["id"]
 
-        response = admin_client.get(f"{FILE_URL}/{expense_id}/file/")
+        response = admin_client.get(f"{FILE_URL}/{expense_id}/file/receipt/")
         assert response.status_code == 404

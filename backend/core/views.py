@@ -178,20 +178,25 @@ class ExpenseViewSet(LoggingModelViewSet):
     serializer_class = ExpenseSerializer
     permission_classes = [IsAdminOrReadOnly]
 
-    def _save_file(self, instance, request):
-        f = request.FILES.get("receipt_file")
-        if f:
-            instance.receipt_file = f.read()
-            instance.receipt_filename = f.name
+    def _save_files(self, instance, request):
+        receipt = request.FILES.get("receipt_file")
+        nfe = request.FILES.get("nfe_file")
+        if receipt:
+            instance.receipt_file = receipt.read()
+            instance.receipt_filename = receipt.name
+        if nfe:
+            instance.nfe_file = nfe.read()
+            instance.nfe_filename = nfe.name
+        if receipt or nfe:
             instance.save()
 
     def perform_create(self, serializer):
         instance = serializer.save(created_by=self.request.user)
-        self._save_file(instance, self.request)
+        self._save_files(instance, self.request)
 
     def perform_update(self, serializer):
         instance = serializer.save()
-        self._save_file(instance, self.request)
+        self._save_files(instance, self.request)
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -329,11 +334,19 @@ def _pdf_response(file_data, filename):
 class ExpenseFileView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk):
+    def get(self, request, pk, file_type):
         expense = Expense.objects.get(pk=pk)
-        if not expense.receipt_file:
+        if file_type == "receipt":
+            file_data = expense.receipt_file
+            filename = expense.receipt_filename
+        elif file_type == "nfe":
+            file_data = expense.nfe_file
+            filename = expense.nfe_filename
+        else:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        return _pdf_response(expense.receipt_file, expense.receipt_filename or str(pk) + "_receipt.pdf")
+        if not file_data:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return _pdf_response(file_data, filename or str(pk) + "_" + file_type + ".pdf")
 
 
 class DepositFileView(APIView):

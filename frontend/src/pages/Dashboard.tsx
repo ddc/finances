@@ -85,9 +85,24 @@ export default function Dashboard() {
   }));
 
   // Pie chart data: expenses by category
+  const categoryName = (code: string, fallback: string) => {
+    const key = "expenses.categories." + code;
+    const translated = t(key);
+    return translated === key ? fallback : translated;
+  };
+  const companyName = (code: string, fallback: string) => {
+    const key = "deposits.companies." + code;
+    const translated = t(key);
+    return translated === key ? fallback : translated;
+  };
+  const bankName = (code: string, fallback: string) => {
+    const key = "transfers.banks." + code;
+    const translated = t(key);
+    return translated === key ? fallback : translated;
+  };
   const expenseByCategoryMap = new Map<string, number>();
   for (const e of expenses) {
-    const key = e.category_label;
+    const key = categoryName(e.category_code, e.category_label);
     expenseByCategoryMap.set(key, (expenseByCategoryMap.get(key) || 0) + Number(e.amount));
   }
   const expenseByCategoryPie = Array.from(expenseByCategoryMap.entries())
@@ -111,7 +126,7 @@ export default function Dashboard() {
   // Pie chart data: deposits by company
   const depositByCompanyMap = new Map<string, number>();
   for (const d of deposits) {
-    const key = d.company_label;
+    const key = companyName(d.company_code, d.company_label);
     depositByCompanyMap.set(key, (depositByCompanyMap.get(key) || 0) + Number(d.amount_brl));
   }
   const depositByCompanyPie = Array.from(depositByCompanyMap.entries())
@@ -129,7 +144,7 @@ export default function Dashboard() {
   // Pie chart data: company by currency
   const companyCurrencyMap = new Map<string, { value: number; symbol: string }>();
   for (const d of deposits) {
-    const key = d.company_label + " (" + d.currency_code + ")";
+    const key = companyName(d.company_code, d.company_label) + " (" + d.currency_code + ")";
     const existing = companyCurrencyMap.get(key);
     companyCurrencyMap.set(key, { value: (existing?.value || 0) + Number(d.amount_foreign), symbol: d.currency_symbol });
   }
@@ -149,7 +164,8 @@ export default function Dashboard() {
   // Pie chart data: deposits count by company
   const depositsCountMap = new Map<string, number>();
   for (const d of deposits) {
-    depositsCountMap.set(d.company_label, (depositsCountMap.get(d.company_label) || 0) + 1);
+    const compName = companyName(d.company_code, d.company_label);
+    depositsCountMap.set(compName, (depositsCountMap.get(compName) || 0) + 1);
   }
   const depositsCountPie = Array.from(depositsCountMap.entries())
     .map(([name, value], i) => ({ name, value, fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }))
@@ -158,7 +174,7 @@ export default function Dashboard() {
   // Pie chart data: transfers by bank
   const transferByBankMap = new Map<string, number>();
   for (const tr of transfers) {
-    const key = tr.bank_label;
+    const key = bankName(tr.bank_code, tr.bank_label);
     transferByBankMap.set(key, (transferByBankMap.get(key) || 0) + Number(tr.amount_brl));
   }
   const transferByBankPie = Array.from(transferByBankMap.entries())

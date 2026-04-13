@@ -136,12 +136,18 @@ export default function Deposits() {
     }
   };
 
+  const companyName = (code: string, fallback: string) => {
+    const key = "deposits.companies." + code;
+    const translated = t(key);
+    return translated === key ? fallback : translated;
+  };
+
   const columns: GridColDef[] = [
     { field: "deposit_date", headerName: t("deposits.depositDate"), flex: 1 },
     { field: "invoice_issue_date", headerName: t("deposits.issueDate"), flex: 1 },
     { field: "period_start", headerName: t("deposits.periodStart"), flex: 1 },
     { field: "period_end", headerName: t("deposits.periodEnd"), flex: 1 },
-    { field: "company_label", headerName: t("deposits.company"), flex: 1 },
+    { field: "company_label", headerName: t("deposits.company"), flex: 1, valueGetter: (_value, row: Deposit) => companyName(row.company_code, row.company_label) },
     { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 1 },
     { field: "currency_code", headerName: t("deposits.currency"), flex: 0.7 },
     { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) },
@@ -167,8 +173,8 @@ export default function Deposits() {
           )}
           {isAdmin && (
             <>
-              <IconButton size="small" onClick={() => handleOpen(params.row)}><Edit fontSize="small" /></IconButton>
-              <IconButton size="small" color="error" onClick={() => setDeleteId(params.row.id)}><Delete fontSize="small" /></IconButton>
+              <IconButton size="small" title={t("common.edit")} onClick={() => handleOpen(params.row)}><Edit fontSize="small" /></IconButton>
+              <IconButton size="small" title={t("common.delete")} color="error" onClick={() => setDeleteId(params.row.id)}><Delete fontSize="small" /></IconButton>
             </>
           )}
         </>
@@ -193,7 +199,7 @@ export default function Deposits() {
   ].filter((d) => d.value > 0);
 
   const companyTotalsBrl = companies.map((comp, i) => ({
-    name: comp.label,
+    name: companyName(comp.code, comp.label),
     value: rows.filter((r) => r.company_code === comp.code).reduce((sum, r) => sum + Number(r.amount_brl), 0),
     fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
   })).filter((d) => d.value > 0);
@@ -201,7 +207,7 @@ export default function Deposits() {
   const companyCurrencyPie = (() => {
     const map = new Map<string, { value: number; symbol: string }>();
     for (const r of rows) {
-      const key = r.company_label + " (" + r.currency_code + ")";
+      const key = companyName(r.company_code, r.company_label) + " (" + r.currency_code + ")";
       const existing = map.get(key);
       map.set(key, { value: (existing?.value || 0) + Number(r.amount_foreign), symbol: r.currency_symbol });
     }
@@ -217,7 +223,7 @@ export default function Deposits() {
   })).filter((d) => d.value > 0);
 
   const depositsCountPie = companies.map((comp, i) => ({
-    name: comp.label,
+    name: companyName(comp.code, comp.label),
     value: rows.filter((r) => r.company_code === comp.code).length,
     fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length],
   })).filter((d) => d.value > 0);
@@ -428,7 +434,7 @@ export default function Deposits() {
             <InputLabel>{t("deposits.company")}</InputLabel>
             <Select value={form.company} label={t("deposits.company")} onChange={(e) => setForm({ ...form, company: e.target.value })}>
               {companies.map((c) => (
-                <MenuItem key={c.id} value={c.id}>{c.label}</MenuItem>
+                <MenuItem key={c.id} value={c.id}>{companyName(c.code, c.label)}</MenuItem>
               ))}
             </Select>
           </FormControl>
