@@ -64,13 +64,22 @@ describe("Expenses API", () => {
     expect(result.id).toBe("1");
   });
 
-  it("createExpense with file", async () => {
+  it("createExpense with receipt file", async () => {
     const expense = { expense_date: "2026-01-05", category: "cat-uuid-1", amount: 100 };
     const file = new File(["pdf"], "receipt.pdf", { type: "application/pdf" });
     mockClient.post.mockResolvedValueOnce({ data: { id: "1", ...expense } });
     await createExpense(expense, file);
     const formData = mockClient.post.mock.calls[0][1] as FormData;
     expect(formData.get("receipt_file")).toBeTruthy();
+  });
+
+  it("createExpense with nfe file", async () => {
+    const expense = { expense_date: "2026-01-05", category: "cat-uuid-1", amount: 100 };
+    const nfe = new File(["pdf"], "nfe.pdf", { type: "application/pdf" });
+    mockClient.post.mockResolvedValueOnce({ data: { id: "1", ...expense } });
+    await createExpense(expense, undefined, nfe);
+    const formData = mockClient.post.mock.calls[0][1] as FormData;
+    expect(formData.get("nfe_file")).toBeTruthy();
   });
 
   it("updateExpense sends FormData", async () => {
@@ -81,6 +90,17 @@ describe("Expenses API", () => {
     expect(call[0]).toBe("/expenses/1/");
     expect(call[1]).toBeInstanceOf(FormData);
     expect(result.id).toBe("1");
+  });
+
+  it("updateExpense with files", async () => {
+    const expense = { expense_date: "2026-01-05", category: "cat-uuid-1", amount: 200 };
+    const receipt = new File(["pdf"], "receipt.pdf", { type: "application/pdf" });
+    const nfe = new File(["pdf"], "nfe.pdf", { type: "application/pdf" });
+    mockClient.put.mockResolvedValueOnce({ data: { id: "1", ...expense } });
+    await updateExpense("1", expense, receipt, nfe);
+    const formData = mockClient.put.mock.calls[0][1] as FormData;
+    expect(formData.get("receipt_file")).toBeTruthy();
+    expect(formData.get("nfe_file")).toBeTruthy();
   });
 
   it("deleteExpense sends delete", async () => {
