@@ -20,7 +20,7 @@ import { MonthFilter, YearFilter } from "../components/PageFilters";
 import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
 import type { Expense, ExpenseCategory } from "../types";
-import { currencyFlag } from "../utils/currencyFlags";
+import CurrencyFlag from "../components/CurrencyFlag";
 
 const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
@@ -176,7 +176,7 @@ export default function Expenses() {
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
         <Card sx={{ minWidth: 200 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-            <Typography color="text.secondary" variant="body2">{t("expenses.total")} {currencyFlag("BRL")}</Typography>
+            <Typography color="text.secondary" variant="body2">{t("expenses.total")} <CurrencyFlag code="BRL" /></Typography>
             <Typography variant="h6" sx={{ color: "#ef4444" }}>
               R$ {rows.reduce((sum, r) => sum + Number(r.amount), 0).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
             </Typography>

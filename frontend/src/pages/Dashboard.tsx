@@ -15,7 +15,7 @@ import { listDeposits } from "../api/deposits";
 import { listTransfers } from "../api/transfers";
 import { listCurrencies } from "../api/lookups";
 import type { DashboardData, CurrencyOption, Expense, Deposit, Transfer } from "../types";
-import { currencyFlag } from "../utils/currencyFlags";
+import CurrencyFlag from "../components/CurrencyFlag";
 import { CURRENCY_ORDER, currencyColor, DYNAMIC_COLORS } from "../utils/chartColors";
 
 const PIE_COLORS = ["#6366f1", "#ef4444", "#3b82f6", "#22c55e"];
@@ -196,10 +196,10 @@ export default function Dashboard() {
             <Chip label={"PTAX " + data.ptax_data_hora.split(".")[0]} variant="outlined" />
           )}
           {data.ptax_compra && (
-            <Chip label={currency + " " + t("dashboard.buy") + ": R$ " + data.ptax_compra} color="success" variant="outlined" />
+            <Chip label={currency + " " + t("dashboard.buy") + ": R$ " + Number(data.ptax_compra).toLocaleString(numberLocale, { minimumFractionDigits: 2, maximumFractionDigits: 4 })} color="success" variant="outlined" />
           )}
           {data.ptax_venda && (
-            <Chip label={currency + " " + t("dashboard.sell") + ": R$ " + data.ptax_venda} color="info" variant="outlined" />
+            <Chip label={currency + " " + t("dashboard.sell") + ": R$ " + Number(data.ptax_venda).toLocaleString(numberLocale, { minimumFractionDigits: 2, maximumFractionDigits: 4 })} color="info" variant="outlined" />
           )}
           <Tooltip title="Refresh">
             <IconButton
@@ -261,7 +261,7 @@ export default function Dashboard() {
           <Card key={curr.id} sx={{ flex: "1 1 0", minWidth: 0 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
               <Typography color="text.secondary" gutterBottom>
-                {t("dashboard.totalIncomeForeign", { currency: curr.code })} {currencyFlag(curr.code)}
+                {t("dashboard.totalIncomeForeign", { currency: curr.code })} <CurrencyFlag code={curr.code} />
               </Typography>
               <Typography variant="h5" sx={{ color: currencyColor(curr.code) }}>
                 {curr.symbol} {Number(data.summary.income_by_currency[curr.code] || 0).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
@@ -274,12 +274,12 @@ export default function Dashboard() {
       {/* Row 2: BRL totals — fixed 4 columns */}
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
         {[
-          { label: t("dashboard.totalIncomeBrl") + " " + currencyFlag("BRL"), value: data.summary.total_income_brl, color: "#22c55e", prefix: "R$" },
-          { label: t("dashboard.totalExpenses"), value: data.summary.total_expenses_brl, color: "#ef4444", prefix: "R$" },
-          { label: t("dashboard.totalTransferred"), value: data.summary.total_transferred_brl, color: "#3b82f6", prefix: "R$" },
-          { label: t("dashboard.netBalance"), value: data.summary.net_balance_brl, color: Number(data.summary.net_balance_brl) >= 0 ? "#22c55e" : "#ef4444", prefix: "R$" },
+          { key: "income", label: <>{t("dashboard.totalIncomeBrl")} <CurrencyFlag code="BRL" /></>, value: data.summary.total_income_brl, color: "#22c55e", prefix: "R$" },
+          { key: "expenses", label: t("dashboard.totalExpenses"), value: data.summary.total_expenses_brl, color: "#ef4444", prefix: "R$" },
+          { key: "transferred", label: t("dashboard.totalTransferred"), value: data.summary.total_transferred_brl, color: "#3b82f6", prefix: "R$" },
+          { key: "net", label: t("dashboard.netBalance"), value: data.summary.net_balance_brl, color: Number(data.summary.net_balance_brl) >= 0 ? "#22c55e" : "#ef4444", prefix: "R$" },
         ].map((card) => (
-          <Card key={card.label} sx={{ flex: "1 1 0", minWidth: 0 }}>
+          <Card key={card.key} sx={{ flex: "1 1 0", minWidth: 0 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
               <Typography color="text.secondary" gutterBottom>{card.label}</Typography>
               <Typography variant="h5" sx={{ color: card.color }}>
