@@ -21,7 +21,7 @@ import { MonthFilter, YearFilter } from "../components/PageFilters";
 import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
 import type { Transfer, Deposit, BankOption } from "../types";
-import { currencyFlag } from "../utils/currencyFlags";
+import CurrencyFlag from "../components/CurrencyFlag";
 
 const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
@@ -194,7 +194,7 @@ export default function Transfers() {
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
         <Card sx={{ minWidth: 200 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-            <Typography color="text.secondary" variant="body2">{t("transfers.total")} {currencyFlag("BRL")}</Typography>
+            <Typography color="text.secondary" variant="body2">{t("transfers.total")} <CurrencyFlag code="BRL" /></Typography>
             <Typography variant="h6" sx={{ color: "#22c55e" }}>
               R$ {rows.reduce((sum, r) => sum + Number(r.amount_brl), 0).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
             </Typography>

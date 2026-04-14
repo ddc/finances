@@ -20,7 +20,7 @@ import { MonthFilter, YearFilter } from "../components/PageFilters";
 import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
 import type { Deposit, CurrencyOption, CompanyOption } from "../types";
-import { currencyFlag } from "../utils/currencyFlags";
+import CurrencyFlag from "../components/CurrencyFlag";
 import { CURRENCY_ORDER, currencyColor, DYNAMIC_COLORS } from "../utils/chartColors";
 
 const today = () => new Date().toISOString().split("T")[0];
@@ -244,7 +244,7 @@ export default function Deposits() {
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
         <Card sx={{ minWidth: 160 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-            <Typography color="text.secondary" variant="body2">{t("deposits.totalBrl")} {currencyFlag("BRL")}</Typography>
+            <Typography color="text.secondary" variant="body2">{t("deposits.totalBrl")} <CurrencyFlag code="BRL" /></Typography>
             <Typography variant="h6" sx={{ color: "#22c55e" }}>
               R$ {totalBrl.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
             </Typography>
@@ -253,7 +253,7 @@ export default function Deposits() {
         {currencyTotals.map((ct) => (
           <Card key={ct.name} sx={{ minWidth: 160 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-              <Typography color="text.secondary" variant="body2">{"Total " + ct.name + " " + currencyFlag(ct.name)}</Typography>
+              <Typography color="text.secondary" variant="body2">{"Total " + ct.name} <CurrencyFlag code={ct.name} /></Typography>
               <Typography variant="h6" sx={{ color: ct.fill }}>
                 {ct.symbol} {ct.value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
               </Typography>

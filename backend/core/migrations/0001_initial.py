@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -127,9 +126,7 @@ class Migration(migrations.Migration):
                 ("period_end", models.DateField(blank=True, null=True)),
                 (
                     "exchange_rate",
-                    models.DecimalField(
-                        blank=True, decimal_places=4, max_digits=10, null=True
-                    ),
+                    models.DecimalField(blank=True, decimal_places=4, max_digits=10, null=True),
                 ),
                 (
                     "amount_foreign",
