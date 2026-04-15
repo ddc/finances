@@ -32,7 +32,7 @@ describe("API client interceptor", () => {
         }),
       },
     }));
-    await import("../../api/client");
+    await import("../../src/api/client");
     errorHandler = mockUse.mock.calls[0][1];
   });
 

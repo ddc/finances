@@ -113,7 +113,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run integration tests
-        run: bunx vitest run src/test/integration
+        run: bunx vitest run tests/integration
 
   frontend-docker-test:
     name: Frontend Docker Test
@@ -190,7 +190,7 @@ jobs:
         run: cd frontend && bun install --frozen-lockfile
 
       - name: Run frontend tests with coverage
-        run: cd frontend && bunx vitest run src/test/unit src/test/integration --coverage
+        run: cd frontend && bunx vitest run tests/unit tests/integration --coverage
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@299e4b793aaa83bf2aba7c9c14bedbb485688ec4 # v7

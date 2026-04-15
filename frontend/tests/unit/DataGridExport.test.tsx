@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import DataGridExport from "../../components/DataGridExport";
+import DataGridExport from "../../src/components/DataGridExport";
 import type { GridColDef } from "@mui/x-data-grid";
 
 const mockSave = vi.fn();

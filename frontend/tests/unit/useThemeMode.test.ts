@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { renderHook } from "@testing-library/react";
-import { useThemeMode, ThemeModeContext } from "../../hooks/useThemeMode";
+import { useThemeMode, ThemeModeContext } from "../../src/hooks/useThemeMode";
 import { createElement } from "react";
 
 describe("useThemeMode", () => {

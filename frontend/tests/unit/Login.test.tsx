@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { AuthContext, type AuthContextType } from "../../hooks/useAuth";
-import Login from "../../pages/Login";
+import { AuthContext, type AuthContextType } from "../../src/hooks/useAuth";
+import Login from "../../src/pages/Login";
 
 const mockLogin = vi.fn();
 
