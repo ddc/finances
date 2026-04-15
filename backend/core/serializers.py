@@ -64,6 +64,7 @@ class DepositSerializer(serializers.ModelSerializer):
     period_end = serializers.DateField(required=False, allow_null=True)
     invoice_number = serializers.CharField(required=False, allow_blank=True)
     exchange_rate = serializers.DecimalField(max_digits=10, decimal_places=4, required=False, allow_null=True)
+    vet = serializers.DecimalField(max_digits=10, decimal_places=4, required=False, allow_null=True)
     has_nfe_file = serializers.SerializerMethodField()
     has_invoice_file = serializers.SerializerMethodField()
     company_code = serializers.CharField(source="company.code", read_only=True)
@@ -87,6 +88,7 @@ class DepositSerializer(serializers.ModelSerializer):
             "currency_code",
             "currency_symbol",
             "exchange_rate",
+            "vet",
             "amount_foreign",
             "amount_brl",
             "has_nfe_file",

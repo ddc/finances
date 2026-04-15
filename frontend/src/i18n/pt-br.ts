@@ -96,6 +96,7 @@ export default {
     periodEnd: "Fim Período",
     currency: "Moeda",
     exchangeRate: "Taxa de Câmbio",
+    vet: "Valor Efetivo Total",
     amountForeign: "Valor Estrangeiro",
     amountBrl: "Valor BRL",
     totalForeign: "Total Estrangeiro",
