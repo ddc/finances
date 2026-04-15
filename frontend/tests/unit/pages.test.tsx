@@ -116,6 +116,7 @@ const DEPOSIT_ROW = {
   company_label: "Deel", invoice_number: "INV-001", invoice_issue_date: "2025-12-26",
   period_start: "2025-12-21", period_end: "2025-12-27", currency: "cu1",
   currency_code: "USD", currency_symbol: "$", exchange_rate: 5.28,
+  exchange_rate_effective: 5.2834, operation_cost: 12.50,
   amount_foreign: 1115, amount_brl: 5894, has_nfe_file: true, has_invoice_file: true,
   created_by: "admin", created_at: "2026-01-02", updated_at: "2026-01-02",
 };
@@ -226,6 +227,19 @@ describe("Deposits page", () => {
     mockListDeposits.mockResolvedValue([]);
     render(<Wrapper><Deposits /></Wrapper>);
     await waitFor(() => expect(screen.getByText("Add Deposit")).toBeInTheDocument());
+  });
+
+  it("renders datagrid with all columns including VET and Operation Cost", async () => {
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => expect(screen.getByText(/Total BRL/)).toBeInTheDocument());
+    expect(screen.getByText(/Effective Ex/)).toBeInTheDocument();
+    expect(screen.getByText(/Operation Cost/)).toBeInTheDocument();
+  });
+
+  it("renders with deposit missing new optional fields", async () => {
+    mockListDeposits.mockResolvedValue([{ ...DEPOSIT_ROW, exchange_rate_effective: null, operation_cost: null, exchange_rate: null }]);
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => expect(screen.getByText(/Total BRL/)).toBeInTheDocument());
   });
 });
 
