@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { AuthContext, type AuthContextType } from "../../src/hooks/useAuth";
 import { ThemeModeContext } from "../../src/hooks/useThemeMode";
@@ -240,6 +240,46 @@ describe("Deposits page", () => {
     mockListDeposits.mockResolvedValue([{ ...DEPOSIT_ROW, exchange_rate_effective: null, operation_cost: null, exchange_rate: null }]);
     render(<Wrapper><Deposits /></Wrapper>);
     await waitFor(() => expect(screen.getByText(/Total BRL/)).toBeInTheDocument());
+  });
+
+  it("fills add form and saves with exchange_rate_effective and operation_cost", async () => {
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Deposit"));
+    fireEvent.click(screen.getByText("Add Deposit"));
+    const dialog = await screen.findByRole("dialog");
+    const getInput = (label: string) => within(dialog).getByRole("textbox", { name: new RegExp("^" + label) }) as HTMLInputElement;
+    fireEvent.change(getInput("Amount Foreign"), { target: { value: "1000.00" } });
+    fireEvent.blur(getInput("Amount Foreign"));
+    fireEvent.change(getInput("Amount BRL"), { target: { value: "5000.00" } });
+    fireEvent.blur(getInput("Amount BRL"));
+    fireEvent.change(getInput("Exchange Rate"), { target: { value: "5.0000" } });
+    fireEvent.blur(getInput("Exchange Rate"));
+    fireEvent.change(getInput("Effective Exchange Rate"), { target: { value: "5.1234" } });
+    fireEvent.blur(getInput("Effective Exchange Rate"));
+    fireEvent.change(getInput("Operation Cost"), { target: { value: "10.50" } });
+    fireEvent.blur(getInput("Operation Cost"));
+    fireEvent.click(within(dialog).getByText("Save"));
+    await waitFor(() => expect(mockCreateDeposit).toHaveBeenCalled());
+    const payload = mockCreateDeposit.mock.calls[0][0];
+    expect(payload.exchange_rate_effective).toBe(5.1234);
+    expect(payload.operation_cost).toBe(10.5);
+  });
+
+  it("saves with null optional fields when empty", async () => {
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Deposit"));
+    fireEvent.click(screen.getByText("Add Deposit"));
+    const dialog = await screen.findByRole("dialog");
+    const getInput = (label: string) => within(dialog).getByRole("textbox", { name: new RegExp("^" + label) }) as HTMLInputElement;
+    fireEvent.change(getInput("Amount Foreign"), { target: { value: "1000.00" } });
+    fireEvent.blur(getInput("Amount Foreign"));
+    fireEvent.change(getInput("Amount BRL"), { target: { value: "5000.00" } });
+    fireEvent.blur(getInput("Amount BRL"));
+    fireEvent.click(within(dialog).getByText("Save"));
+    await waitFor(() => expect(mockCreateDeposit).toHaveBeenCalled());
+    const payload = mockCreateDeposit.mock.calls[0][0];
+    expect(payload.exchange_rate_effective).toBeNull();
+    expect(payload.operation_cost).toBeNull();
   });
 });
 
