@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { AuthContext, type AuthContextType } from "../../hooks/useAuth";
-import { ThemeModeContext } from "../../hooks/useThemeMode";
-import Layout from "../../components/Layout";
+import { AuthContext, type AuthContextType } from "../../src/hooks/useAuth";
+import { ThemeModeContext } from "../../src/hooks/useThemeMode";
+import Layout from "../../src/components/Layout";
 
 const mockLogout = vi.fn();
 

@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import client from "../../api/client";
-import { login, logout, getMe } from "../../api/auth";
-import { listExpenses, createExpense, updateExpense, deleteExpense } from "../../api/expenses";
-import { listDeposits, createDeposit, updateDeposit, deleteDeposit } from "../../api/deposits";
-import { listTransfers, createTransfer, updateTransfer, deleteTransfer } from "../../api/transfers";
-import { listNfeSamples, createNfeSample } from "../../api/nfeSamples";
-import { getDashboard } from "../../api/dashboard";
-import { listExpenseCategories, listCurrencies, listBanks, listCompanies } from "../../api/lookups";
+import client from "../../src/api/client";
+import { login, logout, getMe } from "../../src/api/auth";
+import { listExpenses, createExpense, updateExpense, deleteExpense } from "../../src/api/expenses";
+import { listDeposits, createDeposit, updateDeposit, deleteDeposit } from "../../src/api/deposits";
+import { listTransfers, createTransfer, updateTransfer, deleteTransfer } from "../../src/api/transfers";
+import { listNfeSamples, createNfeSample } from "../../src/api/nfeSamples";
+import { getDashboard } from "../../src/api/dashboard";
+import { listExpenseCategories, listCurrencies, listBanks, listCompanies } from "../../src/api/lookups";
 
-vi.mock("../../api/client", () => ({
+vi.mock("../../src/api/client", () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),

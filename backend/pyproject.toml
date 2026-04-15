@@ -41,8 +41,8 @@ update-backend.shell = "uv run ruff check --fix . && uv run ruff format . && uv 
 migration-backend = "uv run --frozen python manage.py migrate"
 # --- Frontend ---
 linter-frontend.shell = "cd ../frontend && bun run lint"
-test-frontend.shell = "cd ../frontend && bunx vitest run src/test/unit --coverage"
-test-frontend-integration.shell = "cd ../frontend && bunx vitest run src/test/integration"
+test-frontend.shell = "cd ../frontend && bunx vitest run tests/unit --coverage"
+test-frontend-integration.shell = "cd ../frontend && bunx vitest run tests/integration"
 sync-version.shell = "python3 -c \"import tomllib,json,pathlib; v=tomllib.load(open('pyproject.toml','rb'))['project']['version']; p=pathlib.Path('../frontend/package.json'); d=json.loads(p.read_text()); d['version']=v; p.write_text(json.dumps(d,indent=2)+'\\n'); print('Synced version: '+v)\""
 update-frontend.shell = "cd ../frontend && bun update && bun run build"
 # --- All ---
@@ -51,7 +51,7 @@ updatedev.sequence = ["update-backend", "sync-version", "update-frontend"]
 tests.sequence = ["linter-backend", "linter-frontend", "hadolint-backend", "test-backend-docker", "test-backend", "test-backend-integration", "test-frontend", "test-frontend-integration"]
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "tests.test_settings"
+DJANGO_SETTINGS_MODULE = "tests.unit.test_settings"
 addopts = "-v --import-mode=importlib --junitxml=junit.xml"
 junit_family = "legacy"
 markers = [

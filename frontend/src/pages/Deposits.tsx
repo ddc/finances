@@ -33,7 +33,8 @@ const EMPTY_FORM = () => ({
   period_end: "",
   currency: "" as string,
   exchange_rate: "",
-  vet: "",
+  exchange_rate_effective: "",
+  operation_cost: "",
   amount_foreign: "",
   amount_brl: "",
 });
@@ -90,7 +91,8 @@ export default function Deposits() {
         period_end: deposit.period_end || "",
         currency: deposit.currency,
         exchange_rate: deposit.exchange_rate ? String(deposit.exchange_rate) : "",
-        vet: deposit.vet ? String(deposit.vet) : "",
+        exchange_rate_effective: deposit.exchange_rate_effective ? String(deposit.exchange_rate_effective) : "",
+        operation_cost: deposit.operation_cost ? String(deposit.operation_cost) : "",
         amount_foreign: String(deposit.amount_foreign),
         amount_brl: String(deposit.amount_brl),
       });
@@ -118,7 +120,8 @@ export default function Deposits() {
       period_end: form.period_end || null,
       currency: form.currency,
       exchange_rate: form.exchange_rate ? Number(form.exchange_rate) : null,
-      vet: form.vet ? Number(form.vet) : null,
+      exchange_rate_effective: form.exchange_rate_effective ? Number(form.exchange_rate_effective) : null,
+      operation_cost: form.operation_cost ? Number(form.operation_cost) : null,
       amount_foreign: Number(form.amount_foreign),
       amount_brl: Number(form.amount_brl),
     };
@@ -146,21 +149,22 @@ export default function Deposits() {
   };
 
   const columns: GridColDef[] = [
-    { field: "deposit_date", headerName: t("deposits.depositDate"), flex: 1 },
-    { field: "invoice_issue_date", headerName: t("deposits.issueDate"), flex: 1 },
-    { field: "period_start", headerName: t("deposits.periodStart"), flex: 1 },
-    { field: "period_end", headerName: t("deposits.periodEnd"), flex: 1 },
+    { field: "deposit_date", headerName: t("deposits.depositDate"), flex: 0.9 },
+    { field: "invoice_issue_date", headerName: t("deposits.issueDate"), flex: 0.9 },
+    { field: "period_start", headerName: t("deposits.periodStart"), flex: 0.9 },
+    { field: "period_end", headerName: t("deposits.periodEnd"), flex: 0.9 },
     { field: "company_label", headerName: t("deposits.company"), flex: 1, valueGetter: (_value, row: Deposit) => companyName(row.company_code, row.company_label) },
-    { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 1 },
-    { field: "currency_code", headerName: t("deposits.currency"), flex: 0.7 },
+    { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 0.8 },
+    { field: "currency_code", headerName: t("deposits.currency"), flex: 0.6 },
     { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) },
-    { field: "vet", headerName: t("deposits.vet"), flex: 1, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) },
-    { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
+    { field: "exchange_rate_effective", headerName: t("deposits.exchangeRateEffectiveShort"), flex: 1.1, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) },
+    { field: "operation_cost", headerName: t("deposits.operationCost"), flex: 1.2, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : formatNumber(Number(value)) },
+    { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1.2, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     {
       field: "actions",
       headerName: t("common.actions"),
-      width: isAdmin ? 180 : 100,
+      width: isAdmin ? 130 : 80,
       sortable: false,
       filterable: false,
       renderCell: (params: { row: Deposit }) => (
@@ -481,9 +485,13 @@ export default function Deposits() {
             decimalPlaces={4}
           />
           <CurrencyField
-            label={t("deposits.vet")} value={form.vet}
-            onChange={(v) => setForm({ ...form, vet: v })}
+            label={t("deposits.exchangeRateEffective")} value={form.exchange_rate_effective}
+            onChange={(v) => setForm({ ...form, exchange_rate_effective: v })}
             decimalPlaces={4}
+          />
+          <CurrencyField
+            label={t("deposits.operationCost")} value={form.operation_cost}
+            onChange={(v) => setForm({ ...form, operation_cost: v })}
           />
           <CurrencyField
             label={t("deposits.amountForeign")} value={form.amount_foreign}

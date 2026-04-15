@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { AuthContext, type AuthContextType } from "../../hooks/useAuth";
-import { ThemeModeContext } from "../../hooks/useThemeMode";
+import { AuthContext, type AuthContextType } from "../../src/hooks/useAuth";
+import { ThemeModeContext } from "../../src/hooks/useThemeMode";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import Expenses from "../../pages/Expenses";
-import Deposits from "../../pages/Deposits";
-import Transfers from "../../pages/Transfers";
-import NfeSamples from "../../pages/NfeSamples";
-import Dashboard from "../../pages/Dashboard";
-import Login from "../../pages/Login";
+import Expenses from "../../src/pages/Expenses";
+import Deposits from "../../src/pages/Deposits";
+import Transfers from "../../src/pages/Transfers";
+import NfeSamples from "../../src/pages/NfeSamples";
+import Dashboard from "../../src/pages/Dashboard";
+import Login from "../../src/pages/Login";
 
 const mockLogin = vi.fn();
 const mockAuth: AuthContextType = {
@@ -40,7 +40,7 @@ const mockCreateExpense = vi.fn().mockResolvedValue({ id: "e2" });
 const mockUpdateExpense = vi.fn().mockResolvedValue({ id: "e1" });
 const mockDeleteExpense = vi.fn().mockResolvedValue(undefined);
 
-vi.mock("../../api/expenses", () => ({
+vi.mock("../../src/api/expenses", () => ({
   listExpenses: (...args: unknown[]) => mockListExpenses(...args),
   createExpense: (...args: unknown[]) => mockCreateExpense(...args),
   updateExpense: (...args: unknown[]) => mockUpdateExpense(...args),
@@ -51,7 +51,7 @@ const mockListDeposits = vi.fn();
 const mockCreateDeposit = vi.fn().mockResolvedValue({ id: "d2" });
 const mockDeleteDeposit = vi.fn().mockResolvedValue(undefined);
 
-vi.mock("../../api/deposits", () => ({
+vi.mock("../../src/api/deposits", () => ({
   listDeposits: (...args: unknown[]) => mockListDeposits(...args),
   createDeposit: (...args: unknown[]) => mockCreateDeposit(...args),
   updateDeposit: vi.fn().mockResolvedValue({ id: "d1" }),
@@ -62,7 +62,7 @@ const mockListTransfers = vi.fn();
 const mockCreateTransfer = vi.fn().mockResolvedValue({ id: "t2" });
 const mockDeleteTransfer = vi.fn().mockResolvedValue(undefined);
 
-vi.mock("../../api/transfers", () => ({
+vi.mock("../../src/api/transfers", () => ({
   listTransfers: (...args: unknown[]) => mockListTransfers(...args),
   createTransfer: (...args: unknown[]) => mockCreateTransfer(...args),
   updateTransfer: vi.fn().mockResolvedValue({ id: "t1" }),
@@ -73,14 +73,14 @@ const mockListNfeSamples = vi.fn();
 const mockCreateNfeSample = vi.fn().mockResolvedValue({ id: "n2" });
 const mockDeleteNfeSample = vi.fn().mockResolvedValue(undefined);
 
-vi.mock("../../api/nfeSamples", () => ({
+vi.mock("../../src/api/nfeSamples", () => ({
   listNfeSamples: (...args: unknown[]) => mockListNfeSamples(...args),
   createNfeSample: (...args: unknown[]) => mockCreateNfeSample(...args),
   updateNfeSample: vi.fn().mockResolvedValue({ id: "n1" }),
   deleteNfeSample: (...args: unknown[]) => mockDeleteNfeSample(...args),
 }));
 
-vi.mock("../../api/lookups", () => ({
+vi.mock("../../src/api/lookups", () => ({
   listExpenseCategories: vi.fn().mockResolvedValue([
     { id: "c1", code: "TAXES", label: "Taxes" },
     { id: "c2", code: "OTHER", label: "Other" },
@@ -99,7 +99,7 @@ vi.mock("../../api/lookups", () => ({
 
 const mockGetDashboard = vi.fn();
 
-vi.mock("../../api/dashboard", () => ({
+vi.mock("../../src/api/dashboard", () => ({
   getDashboard: (...args: unknown[]) => mockGetDashboard(...args),
 }));
 

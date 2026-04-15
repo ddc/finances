@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import DeleteDialog from "../../components/DeleteDialog";
-import { MonthFilter, YearFilter } from "../../components/PageFilters";
-import PageHeader from "../../components/PageHeader";
+import DeleteDialog from "../../src/components/DeleteDialog";
+import { MonthFilter, YearFilter } from "../../src/components/PageFilters";
+import PageHeader from "../../src/components/PageHeader";
 
 describe("DeleteDialog", () => {
   it("renders message and buttons when open", () => {

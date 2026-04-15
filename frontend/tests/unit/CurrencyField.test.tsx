@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import CurrencyField from "../../components/CurrencyField";
+import CurrencyField from "../../src/components/CurrencyField";
 
 // Default language is "en" from test setup (i18n import)
 
