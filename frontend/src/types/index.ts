@@ -59,6 +59,7 @@ export interface Deposit {
   currency_code: string;
   currency_symbol: string;
   exchange_rate: number | null;
+  vet: number | null;
   amount_foreign: number;
   amount_brl: number;
   has_nfe_file: boolean;

@@ -96,6 +96,7 @@ export default {
     periodEnd: "Period End",
     currency: "Currency",
     exchangeRate: "Exchange Rate",
+    vet: "Effective Exchange Rate",
     amountForeign: "Amount Foreign",
     amountBrl: "Amount BRL",
     totalForeign: "Total Foreign",
