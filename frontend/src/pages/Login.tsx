@@ -14,7 +14,7 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(!!savedUsername);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setError("");
     try {

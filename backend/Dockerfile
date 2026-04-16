@@ -1,4 +1,4 @@
-ARG PYTHON_IMAGE=python:3.14.3-alpine3.23
+ARG PYTHON_IMAGE=python:3.14.4-alpine3.23
 FROM ${PYTHON_IMAGE} AS python-base
 
 LABEL Description="Finances Backend"
@@ -41,13 +41,13 @@ COPY --chmod=555 pyproject.toml ${WORKDIR}/
 COPY --chmod=555 uv.lock ${WORKDIR}/
 
 RUN set -ex && \
-    mkdir -p ${LOG_DIRECTORY} && \
+    mkdir -p "${LOG_DIRECTORY}" && \
     apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
     uv sync --frozen --no-dev && \
     apk del .build-deps && \
     uv cache clean && \
-    mkdir -p ${WORKDIR}/staticfiles && \
-    chown -R appuser:appuser ${WORKDIR} ${LOG_DIRECTORY}
+    mkdir -p "${WORKDIR}/staticfiles" && \
+    chown -R appuser:appuser "${WORKDIR}" "${LOG_DIRECTORY}"
 
 USER appuser
 
