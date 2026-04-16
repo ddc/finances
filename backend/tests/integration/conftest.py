@@ -9,7 +9,7 @@ from tests.conftest import TEST_USER_PASSWORD
 
 @pytest.fixture(scope="session")
 def postgres_container():
-    with PostgresContainer("postgres:16-alpine") as pg:
+    with PostgresContainer("postgres:18.3-alpine3.23") as pg:
         yield pg
 
 
