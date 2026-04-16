@@ -176,13 +176,17 @@ export default function Expenses() {
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
         <Card sx={{ minWidth: 200 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-            <Typography color="text.secondary" variant="body2">{t("expenses.total")} <CurrencyFlag code="BRL" /></Typography>
+            <Typography color="text.secondary" variant="body2">{t("expenses.total")}{" "}<CurrencyFlag code="BRL" /></Typography>
             <Typography variant="h6" sx={{ color: "#ef4444" }}>
               R$ {rows.reduce((sum, r) => sum + Number(r.amount), 0).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
             </Typography>
           </CardContent>
         </Card>
-        {[...categories].sort((a, b) => a.code === "OTHER" ? 1 : b.code === "OTHER" ? -1 : 0).map((cat, i) => {
+        {[...categories].sort((a, b) => {
+          if (a.code === "OTHER") return 1;
+          if (b.code === "OTHER") return -1;
+          return 0;
+        }).map((cat, i) => {
           const catTotal = rows.filter((r) => r.category_code === cat.code).reduce((sum, r) => sum + Number(r.amount), 0);
           if (catTotal <= 0) return null;
           return (

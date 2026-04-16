@@ -16,9 +16,31 @@ import { listTransfers } from "../api/transfers";
 import { listCurrencies } from "../api/lookups";
 import type { DashboardData, CurrencyOption, Expense, Deposit, Transfer } from "../types";
 import CurrencyFlag from "../components/CurrencyFlag";
-import { CURRENCY_ORDER, currencyColor, DYNAMIC_COLORS } from "../utils/chartColors";
+import { currencyColor, sortByCurrencyOrder } from "../utils/chartColors";
+import { useDashboardCharts } from "../hooks/useDashboardCharts";
 
 const PIE_COLORS = ["#6366f1", "#ef4444", "#3b82f6", "#22c55e"];
+
+function getFilterLabel(month: number | "", year: number | "", monthNames: string[], allLabel: string): string {
+  if (month) return monthNames[month - 1] + (year ? " " + year : "");
+  if (year) return String(year);
+  return allLabel;
+}
+
+function buildFilterParams(year: number | "", month: number | ""): Record<string, string> {
+  const params: Record<string, string> = {};
+  if (year) params.year = String(year);
+  if (month) params.month = String(month);
+  return params;
+}
+
+function legendWithPct(pieItems: Array<{ name: string; value: number }>) {
+  const total = pieItems.reduce((s, d) => s + d.value, 0);
+  return (value: string, entry: { payload?: unknown }) => {
+    const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
+    return value + " (" + pct + "%)";
+  };
+}
 
 export default function Dashboard() {
   const { t, i18n } = useTranslation();
@@ -40,21 +62,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     listCurrencies().then((list) => {
-      const sorted = [...list].sort((a, b) => {
-        const ai = CURRENCY_ORDER.indexOf(a.code);
-        const bi = CURRENCY_ORDER.indexOf(b.code);
-        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-      });
+      const sorted = sortByCurrencyOrder(list);
       setCurrencies(sorted);
-      setCurrency((prev) => sorted.some((c) => c.code === prev) ? prev : (sorted[0]?.code || "USD"));
     });
   }, []);
 
   const fetchData = useCallback(() => {
-    const params: Record<string, string> = {};
-    if (year) params.year = String(year);
-    if (month) params.month = String(month);
-
+    const params = buildFilterParams(year, month);
     getDashboard(year || undefined, month || undefined, currency).then(setData);
     listExpenses(params).then(setExpenses);
     listDeposits(params).then(setDeposits);
@@ -63,13 +77,15 @@ export default function Dashboard() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  const {
+    expenseByCategoryPie, depositByCurrencyPie, depositByCompanyPie,
+    foreignVsBrlPie, companyCurrencyPie, brlByCurrencyPie,
+    depositsCountPie, transferByBankPie,
+  } = useDashboardCharts(t, expenses, deposits, transfers);
+
   if (!data) return null;
 
-  const filterLabel = (() => {
-    if (month) return MONTH_NAMES[month - 1] + (year ? " " + year : "");
-    if (year) return String(year);
-    return t("filters.all");
-  })();
+  const filterLabel = getFilterLabel(month, year, MONTH_NAMES, t("filters.all"));
 
   const pieData = [
     { name: t("dashboard.income"), value: Number(data.summary.total_income_brl), fill: PIE_COLORS[0] },
@@ -83,109 +99,6 @@ export default function Dashboard() {
     [t("dashboard.expenses")]: Number(m.expenses_brl),
     [t("dashboard.transferred")]: Number(m.transferred_brl),
   }));
-
-  // Pie chart data: expenses by category
-  const categoryName = (code: string, fallback: string) => {
-    const key = "expenses.categories." + code;
-    const translated = t(key);
-    return translated === key ? fallback : translated;
-  };
-  const companyName = (code: string, fallback: string) => {
-    const key = "deposits.companies." + code;
-    const translated = t(key);
-    return translated === key ? fallback : translated;
-  };
-  const bankName = (code: string, fallback: string) => {
-    const key = "transfers.banks." + code;
-    const translated = t(key);
-    return translated === key ? fallback : translated;
-  };
-  const expenseByCategoryMap = new Map<string, number>();
-  for (const e of expenses) {
-    const key = categoryName(e.category_code, e.category_label);
-    expenseByCategoryMap.set(key, (expenseByCategoryMap.get(key) || 0) + Number(e.amount));
-  }
-  const expenseByCategoryPie = Array.from(expenseByCategoryMap.entries())
-    .map(([name, value], i) => ({ name, value, fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }))
-    .filter((d) => d.value > 0);
-
-  // Pie chart data: deposits by currency
-  const depositByCurrencyMap = new Map<string, { value: number; symbol: string }>();
-  for (const d of deposits) {
-    const key = d.currency_code;
-    const existing = depositByCurrencyMap.get(key);
-    depositByCurrencyMap.set(key, {
-      value: (existing?.value || 0) + Number(d.amount_foreign),
-      symbol: d.currency_symbol,
-    });
-  }
-  const depositByCurrencyPie = Array.from(depositByCurrencyMap.entries())
-    .map(([name, { value, symbol }]) => ({ name, value, symbol, fill: currencyColor(name) }))
-    .filter((d) => d.value > 0);
-
-  // Pie chart data: deposits by company
-  const depositByCompanyMap = new Map<string, number>();
-  for (const d of deposits) {
-    const key = companyName(d.company_code, d.company_label);
-    depositByCompanyMap.set(key, (depositByCompanyMap.get(key) || 0) + Number(d.amount_brl));
-  }
-  const depositByCompanyPie = Array.from(depositByCompanyMap.entries())
-    .map(([name, value], i) => ({ name, value, fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }))
-    .filter((d) => d.value > 0);
-
-  // Pie chart data: deposits foreign vs BRL
-  const totalDepositsForeign = deposits.reduce((sum, d) => sum + Number(d.amount_foreign), 0);
-  const totalDepositsBrl = deposits.reduce((sum, d) => sum + Number(d.amount_brl), 0);
-  const foreignVsBrlPie = [
-    { name: t("deposits.foreign"), value: totalDepositsForeign, fill: "#8b5cf6" },
-    { name: "BRL", value: totalDepositsBrl, fill: "#22c55e" },
-  ].filter((d) => d.value > 0);
-
-  // Pie chart data: company by currency
-  const companyCurrencyMap = new Map<string, { value: number; symbol: string }>();
-  for (const d of deposits) {
-    const key = companyName(d.company_code, d.company_label) + " (" + d.currency_code + ")";
-    const existing = companyCurrencyMap.get(key);
-    companyCurrencyMap.set(key, { value: (existing?.value || 0) + Number(d.amount_foreign), symbol: d.currency_symbol });
-  }
-  const companyCurrencyPie = Array.from(companyCurrencyMap.entries())
-    .map(([name, { value, symbol }], i) => ({ name, value, symbol, fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }))
-    .filter((d) => d.value > 0);
-
-  // Pie chart data: BRL by currency
-  const brlByCurrencyMap = new Map<string, number>();
-  for (const d of deposits) {
-    brlByCurrencyMap.set(d.currency_code, (brlByCurrencyMap.get(d.currency_code) || 0) + Number(d.amount_brl));
-  }
-  const brlByCurrencyPie = Array.from(brlByCurrencyMap.entries())
-    .map(([name, value]) => ({ name, value, fill: currencyColor(name) }))
-    .filter((d) => d.value > 0);
-
-  // Pie chart data: deposits count by company
-  const depositsCountMap = new Map<string, number>();
-  for (const d of deposits) {
-    const compName = companyName(d.company_code, d.company_label);
-    depositsCountMap.set(compName, (depositsCountMap.get(compName) || 0) + 1);
-  }
-  const depositsCountPie = Array.from(depositsCountMap.entries())
-    .map(([name, value], i) => ({ name, value, fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }))
-    .filter((d) => d.value > 0);
-
-  // Pie chart data: transfers by bank
-  const transferByBankMap = new Map<string, number>();
-  for (const tr of transfers) {
-    const key = bankName(tr.bank_code, tr.bank_label);
-    transferByBankMap.set(key, (transferByBankMap.get(key) || 0) + Number(tr.amount_brl));
-  }
-  const transferByBankPie = Array.from(transferByBankMap.entries())
-    .map(([name, value], i) => ({ name, value, fill: DYNAMIC_COLORS[i % DYNAMIC_COLORS.length] }))
-    .filter((d) => d.value > 0);
-
-  const legendWithPct = (pieItems: Array<{ name: string; value: number }>) => (value: string, entry: { payload?: unknown }) => {
-    const total = pieItems.reduce((s, d) => s + d.value, 0);
-    const pct = total > 0 ? ((Number((entry.payload as Record<string, unknown>)?.value) / total) * 100).toFixed(1) : "0";
-    return value + " (" + pct + "%)";
-  };
 
   return (
     <Box>
@@ -261,7 +174,7 @@ export default function Dashboard() {
           <Card key={curr.id} sx={{ flex: "1 1 0", minWidth: 0 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
               <Typography color="text.secondary" gutterBottom>
-                {t("dashboard.totalIncomeForeign", { currency: curr.code })} <CurrencyFlag code={curr.code} />
+                {t("dashboard.totalIncomeForeign", { currency: curr.code })}{" "}<CurrencyFlag code={curr.code} />
               </Typography>
               <Typography variant="h5" sx={{ color: currencyColor(curr.code) }}>
                 {curr.symbol} {Number(data.summary.income_by_currency[curr.code] || 0).toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
@@ -274,7 +187,7 @@ export default function Dashboard() {
       {/* Row 2: BRL totals — fixed 4 columns */}
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
         {[
-          { key: "income", label: <>{t("dashboard.totalIncomeBrl")} <CurrencyFlag code="BRL" /></>, value: data.summary.total_income_brl, color: "#22c55e", prefix: "R$" },
+          { key: "income", label: <>{t("dashboard.totalIncomeBrl")}{" "}<CurrencyFlag code="BRL" /></>, value: data.summary.total_income_brl, color: "#22c55e", prefix: "R$" },
           { key: "expenses", label: t("dashboard.totalExpenses"), value: data.summary.total_expenses_brl, color: "#ef4444", prefix: "R$" },
           { key: "transferred", label: t("dashboard.totalTransferred"), value: data.summary.total_transferred_brl, color: "#3b82f6", prefix: "R$" },
           { key: "net", label: t("dashboard.netBalance"), value: data.summary.net_balance_brl, color: Number(data.summary.net_balance_brl) >= 0 ? "#22c55e" : "#ef4444", prefix: "R$" },

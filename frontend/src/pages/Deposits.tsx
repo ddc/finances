@@ -21,9 +21,54 @@ import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
 import type { Deposit, CurrencyOption, CompanyOption } from "../types";
 import CurrencyFlag from "../components/CurrencyFlag";
-import { CURRENCY_ORDER, currencyColor, DYNAMIC_COLORS } from "../utils/chartColors";
+import { currencyColor, DYNAMIC_COLORS, sortByCurrencyOrder } from "../utils/chartColors";
+import { translateLabel, buildFilterParams } from "../utils/i18nHelpers";
 
 const today = () => new Date().toISOString().split("T")[0];
+const optStr = (val: string | number | null | undefined) => val ? String(val) : "";
+const optNum = (val: string) => val ? Number(val) : null;
+
+function formatOptional(value: number, locale: string, decimals: number): string {
+  if (value === null || value === undefined) return "";
+  return Number(value).toLocaleString(locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+type DepositForm = ReturnType<typeof EMPTY_FORM>;
+function getLocale(lang: string) { return lang === "pt-BR" ? "pt-BR" : "en-US"; }
+
+function buildPayload(form: DepositForm) {
+  return {
+    deposit_date: form.deposit_date,
+    company: form.company,
+    invoice_number: form.invoice_number || "",
+    invoice_issue_date: form.invoice_issue_date || null,
+    period_start: form.period_start || null,
+    period_end: form.period_end || null,
+    currency: form.currency,
+    exchange_rate: optNum(form.exchange_rate),
+    exchange_rate_effective: optNum(form.exchange_rate_effective),
+    operation_cost: optNum(form.operation_cost),
+    amount_foreign: Number(form.amount_foreign),
+    amount_brl: Number(form.amount_brl),
+  };
+}
+
+function depositToForm(d: Deposit) {
+  return {
+    deposit_date: d.deposit_date,
+    company: d.company,
+    invoice_number: d.invoice_number,
+    invoice_issue_date: d.invoice_issue_date || "",
+    period_start: d.period_start || "",
+    period_end: d.period_end || "",
+    currency: d.currency,
+    exchange_rate: optStr(d.exchange_rate),
+    exchange_rate_effective: optStr(d.exchange_rate_effective),
+    operation_cost: optStr(d.operation_cost),
+    amount_foreign: String(d.amount_foreign),
+    amount_brl: String(d.amount_brl),
+  };
+}
 const EMPTY_FORM = () => ({
   deposit_date: today(),
   company: "" as string,
@@ -41,7 +86,7 @@ const EMPTY_FORM = () => ({
 
 export default function Deposits() {
   const { t, i18n } = useTranslation();
-  const numberLocale = i18n.language === "pt-BR" ? "pt-BR" : "en-US";
+  const numberLocale = getLocale(i18n.language);
   const formatNumber = (value: number) => Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 });
 
   const { isAdmin } = useAuth();
@@ -60,93 +105,74 @@ export default function Deposits() {
 
   useEffect(() => { listCompanies().then(setCompanies); }, []);
   useEffect(() => {
-    listCurrencies().then((list) => {
-      const sorted = [...list].sort((a, b) => {
-        const ai = CURRENCY_ORDER.indexOf(a.code);
-        const bi = CURRENCY_ORDER.indexOf(b.code);
-        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-      });
-      setCurrencies(sorted);
-    });
+    listCurrencies().then((list) => setCurrencies(sortByCurrencyOrder(list)));
   }, []);
 
   const load = useCallback(() => {
-    const params: Record<string, string> = {};
-    if (yearFilter) params.year = yearFilter;
-    if (monthFilter) params.month = monthFilter;
-    listDeposits(params).then(setRows);
+    listDeposits(buildFilterParams({ year: yearFilter, month: monthFilter })).then(setRows);
   }, [yearFilter, monthFilter]);
 
   useEffect(() => { load(); }, [load]);
 
+  const getDefaultForm = () => {
+    const currId = currencies.find((c) => c.code === "USD")?.id || currencies[0]?.id || "";
+    return { ...EMPTY_FORM(), company: companies[0]?.id || "", currency: currId };
+  };
+
   const handleOpen = (deposit?: Deposit) => {
-    if (deposit) {
-      setEditingId(deposit.id);
-      setForm({
-        deposit_date: deposit.deposit_date,
-        company: deposit.company,
-        invoice_number: deposit.invoice_number,
-        invoice_issue_date: deposit.invoice_issue_date || "",
-        period_start: deposit.period_start || "",
-        period_end: deposit.period_end || "",
-        currency: deposit.currency,
-        exchange_rate: deposit.exchange_rate ? String(deposit.exchange_rate) : "",
-        exchange_rate_effective: deposit.exchange_rate_effective ? String(deposit.exchange_rate_effective) : "",
-        operation_cost: deposit.operation_cost ? String(deposit.operation_cost) : "",
-        amount_foreign: String(deposit.amount_foreign),
-        amount_brl: String(deposit.amount_brl),
-      });
-    } else {
-      setEditingId(null);
-      const defaultCurr = currencies.find((c) => c.code === "USD");
-      setForm({ ...EMPTY_FORM(), company: companies[0]?.id || "", currency: defaultCurr ? defaultCurr.id : (currencies[0]?.id || "") });
-    }
+    setEditingId(deposit?.id || null);
+    setForm(deposit ? depositToForm(deposit) : getDefaultForm());
     setSubmitted(false);
     setNfeFile(null);
     setInvoiceFile(null);
     setDialogOpen(true);
   };
 
+  const isFormValid = () =>
+    !!(form.deposit_date && form.company && form.currency && form.amount_foreign && form.amount_brl)
+    && !(form.period_start && form.period_end && form.period_end < form.period_start);
+
   const handleSave = async () => {
     setSubmitted(true);
-    if (!form.deposit_date || !form.company || !form.currency || !form.amount_foreign || !form.amount_brl) return;
-    if (form.period_start && form.period_end && form.period_end < form.period_start) return;
-    const payload = {
-      deposit_date: form.deposit_date,
-      company: form.company,
-      invoice_number: form.invoice_number || "",
-      invoice_issue_date: form.invoice_issue_date || null,
-      period_start: form.period_start || null,
-      period_end: form.period_end || null,
-      currency: form.currency,
-      exchange_rate: form.exchange_rate ? Number(form.exchange_rate) : null,
-      exchange_rate_effective: form.exchange_rate_effective ? Number(form.exchange_rate_effective) : null,
-      operation_cost: form.operation_cost ? Number(form.operation_cost) : null,
-      amount_foreign: Number(form.amount_foreign),
-      amount_brl: Number(form.amount_brl),
-    };
-    if (editingId) {
-      await updateDeposit(editingId, payload, nfeFile || undefined, invoiceFile || undefined);
-    } else {
-      await createDeposit(payload, nfeFile || undefined, invoiceFile || undefined);
-    }
+    if (!isFormValid()) return;
+    const payload = buildPayload(form);
+    const nfe = nfeFile || undefined;
+    const invoice = invoiceFile || undefined;
+    if (editingId) await updateDeposit(editingId, payload, nfe, invoice);
+    else await createDeposit(payload, nfe, invoice);
     setDialogOpen(false);
     load();
   };
 
   const handleDelete = async () => {
-    if (deleteId) {
-      await deleteDeposit(deleteId);
-      setDeleteId(null);
-      load();
-    }
+    if (!deleteId) return;
+    await deleteDeposit(deleteId);
+    setDeleteId(null);
+    load();
   };
 
-  const companyName = (code: string, fallback: string) => {
-    const key = "deposits.companies." + code;
-    const translated = t(key);
-    return translated === key ? fallback : translated;
-  };
+  const companyName = (code: string, fallback: string) => translateLabel(t, "deposits.companies.", code, fallback);
+
+  const renderActions = (params: { row: Deposit }) => (
+    <>
+      {params.row.has_nfe_file && (
+        <IconButton size="small" title={t("deposits.nfeFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/nfe/`, "_blank")}>
+          <Description fontSize="small" color="info" />
+        </IconButton>
+      )}
+      {params.row.has_invoice_file && (
+        <IconButton size="small" title={t("deposits.invoiceFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/invoice/`, "_blank")}>
+          <Receipt fontSize="small" color="success" />
+        </IconButton>
+      )}
+      {isAdmin && (
+        <>
+          <IconButton size="small" title={t("common.edit")} onClick={() => handleOpen(params.row)}><Edit fontSize="small" /></IconButton>
+          <IconButton size="small" title={t("common.delete")} color="error" onClick={() => setDeleteId(params.row.id)}><Delete fontSize="small" /></IconButton>
+        </>
+      )}
+    </>
+  );
 
   const columns: GridColDef[] = [
     { field: "deposit_date", headerName: t("deposits.depositDate"), flex: 0.9 },
@@ -156,9 +182,9 @@ export default function Deposits() {
     { field: "company_label", headerName: t("deposits.company"), flex: 1, valueGetter: (_value, row: Deposit) => companyName(row.company_code, row.company_label) },
     { field: "invoice_number", headerName: t("deposits.invoiceNumber"), flex: 0.8 },
     { field: "currency_code", headerName: t("deposits.currency"), flex: 0.6 },
-    { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) },
-    { field: "exchange_rate_effective", headerName: t("deposits.exchangeRateEffectiveShort"), flex: 1.1, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) },
-    { field: "operation_cost", headerName: t("deposits.operationCost"), flex: 1.2, type: "number", valueFormatter: (value: number) => value === null || value === undefined ? "" : formatNumber(Number(value)) },
+    { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 4) },
+    { field: "exchange_rate_effective", headerName: t("deposits.exchangeRateEffectiveShort"), flex: 1.1, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 4) },
+    { field: "operation_cost", headerName: t("deposits.operationCost"), flex: 1.2, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 2) },
     { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1.2, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     {
@@ -167,26 +193,7 @@ export default function Deposits() {
       width: isAdmin ? 130 : 80,
       sortable: false,
       filterable: false,
-      renderCell: (params: { row: Deposit }) => (
-        <>
-          {params.row.has_nfe_file && (
-            <IconButton size="small" title={t("deposits.nfeFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/nfe/`, "_blank")}>
-              <Description fontSize="small" color="info" />
-            </IconButton>
-          )}
-          {params.row.has_invoice_file && (
-            <IconButton size="small" title={t("deposits.invoiceFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/invoice/`, "_blank")}>
-              <Receipt fontSize="small" color="success" />
-            </IconButton>
-          )}
-          {isAdmin && (
-            <>
-              <IconButton size="small" title={t("common.edit")} onClick={() => handleOpen(params.row)}><Edit fontSize="small" /></IconButton>
-              <IconButton size="small" title={t("common.delete")} color="error" onClick={() => setDeleteId(params.row.id)}><Delete fontSize="small" /></IconButton>
-            </>
-          )}
-        </>
-      ),
+      renderCell: renderActions,
     } as GridColDef,
   ];
 
@@ -252,7 +259,7 @@ export default function Deposits() {
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
         <Card sx={{ minWidth: 160 }}>
           <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-            <Typography color="text.secondary" variant="body2">{t("deposits.totalBrl")} <CurrencyFlag code="BRL" /></Typography>
+            <Typography color="text.secondary" variant="body2">{t("deposits.totalBrl")}{" "}<CurrencyFlag code="BRL" /></Typography>
             <Typography variant="h6" sx={{ color: "#22c55e" }}>
               R$ {totalBrl.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
             </Typography>
@@ -261,7 +268,7 @@ export default function Deposits() {
         {currencyTotals.map((ct) => (
           <Card key={ct.name} sx={{ minWidth: 160 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
-              <Typography color="text.secondary" variant="body2">{"Total " + ct.name} <CurrencyFlag code={ct.name} /></Typography>
+              <Typography color="text.secondary" variant="body2">{"Total " + ct.name}{" "}<CurrencyFlag code={ct.name} /></Typography>
               <Typography variant="h6" sx={{ color: ct.fill }}>
                 {ct.symbol} {ct.value.toLocaleString(numberLocale, { minimumFractionDigits: 2 })}
               </Typography>

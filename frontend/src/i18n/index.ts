@@ -7,7 +7,7 @@ const getSavedLang = (): string => {
   try { return localStorage.getItem("language") || "en"; } catch { return "en"; }
 };
 
-i18n.use(initReactI18next).init({
+await i18n.use(initReactI18next).init({
   resources: {
     en: { translation: en },
     "pt-BR": { translation: ptBr },
@@ -20,6 +20,6 @@ i18n.use(initReactI18next).init({
     bindI18n: "languageChanged loaded",
     bindI18nStore: "added removed",
   },
-}).catch(() => {});
+});
 
 export default i18n;

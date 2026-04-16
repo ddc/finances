@@ -18,4 +18,12 @@ export function dynamicColor(index: number): string {
   return DYNAMIC_COLORS[index % DYNAMIC_COLORS.length];
 }
 
+export function sortByCurrencyOrder<T extends { code: string }>(list: T[]): T[] {
+  return [...list].sort((a, b) => {
+    const ai = CURRENCY_ORDER.indexOf(a.code);
+    const bi = CURRENCY_ORDER.indexOf(b.code);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+  });
+}
+
 export { DYNAMIC_COLORS };

@@ -84,7 +84,7 @@ class TestLoginView:
 
     def test_login_invalid_credentials(self):
         client = APIClient()
-        response = client.post("/api/v1/auth/login/", {"username": "bad", "password": "wrong"})
+        response = client.post("/api/v1/auth/login/", {"username": "bad", "password": "wrong"})  # NOSONAR - test data
         assert response.status_code == 401
 
 
