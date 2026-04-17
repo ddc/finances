@@ -61,6 +61,7 @@ export interface Deposit {
   exchange_rate: number | null;
   exchange_rate_effective: number | null;
   operation_cost: number | null;
+  financial_operation_tax: number | null;
   amount_foreign: number;
   amount_brl: number;
   has_nfe_file: boolean;

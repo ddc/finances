@@ -40,6 +40,7 @@ const mockCreateExpense = vi.fn().mockResolvedValue({ id: "e2" });
 const mockUpdateExpense = vi.fn().mockResolvedValue({ id: "e1" });
 const mockDeleteExpense = vi.fn().mockResolvedValue(undefined);
 
+// noinspection JSUnusedGlobalSymbols
 vi.mock("../../src/api/expenses", () => ({
   listExpenses: (...args: unknown[]) => mockListExpenses(...args),
   createExpense: (...args: unknown[]) => mockCreateExpense(...args),
@@ -51,6 +52,7 @@ const mockListDeposits = vi.fn();
 const mockCreateDeposit = vi.fn().mockResolvedValue({ id: "d2" });
 const mockDeleteDeposit = vi.fn().mockResolvedValue(undefined);
 
+// noinspection JSUnusedGlobalSymbols
 vi.mock("../../src/api/deposits", () => ({
   listDeposits: (...args: unknown[]) => mockListDeposits(...args),
   createDeposit: (...args: unknown[]) => mockCreateDeposit(...args),
@@ -62,6 +64,7 @@ const mockListTransfers = vi.fn();
 const mockCreateTransfer = vi.fn().mockResolvedValue({ id: "t2" });
 const mockDeleteTransfer = vi.fn().mockResolvedValue(undefined);
 
+// noinspection JSUnusedGlobalSymbols
 vi.mock("../../src/api/transfers", () => ({
   listTransfers: (...args: unknown[]) => mockListTransfers(...args),
   createTransfer: (...args: unknown[]) => mockCreateTransfer(...args),
@@ -73,6 +76,7 @@ const mockListNfeSamples = vi.fn();
 const mockCreateNfeSample = vi.fn().mockResolvedValue({ id: "n2" });
 const mockDeleteNfeSample = vi.fn().mockResolvedValue(undefined);
 
+// noinspection JSUnusedGlobalSymbols
 vi.mock("../../src/api/nfeSamples", () => ({
   listNfeSamples: (...args: unknown[]) => mockListNfeSamples(...args),
   createNfeSample: (...args: unknown[]) => mockCreateNfeSample(...args),
@@ -99,6 +103,7 @@ vi.mock("../../src/api/lookups", () => ({
 
 const mockGetDashboard = vi.fn();
 
+// noinspection JSUnusedGlobalSymbols
 vi.mock("../../src/api/dashboard", () => ({
   getDashboard: (...args: unknown[]) => mockGetDashboard(...args),
 }));
@@ -116,7 +121,7 @@ const DEPOSIT_ROW = {
   company_label: "Deel", invoice_number: "INV-001", invoice_issue_date: "2025-12-26",
   period_start: "2025-12-21", period_end: "2025-12-27", currency: "cu1",
   currency_code: "USD", currency_symbol: "$", exchange_rate: 5.28,
-  exchange_rate_effective: 5.2834, operation_cost: 12.50,
+  exchange_rate_effective: 5.2834, operation_cost: 12.50, financial_operation_tax: 3.25,
   amount_foreign: 1115, amount_brl: 5894, has_nfe_file: true, has_invoice_file: true,
   created_by: "admin", created_at: "2026-01-02", updated_at: "2026-01-02",
 };
@@ -237,7 +242,7 @@ describe("Deposits page", () => {
   });
 
   it("renders with deposit missing new optional fields", async () => {
-    mockListDeposits.mockResolvedValue([{ ...DEPOSIT_ROW, exchange_rate_effective: null, operation_cost: null, exchange_rate: null }]);
+    mockListDeposits.mockResolvedValue([{ ...DEPOSIT_ROW, exchange_rate_effective: null, operation_cost: null, financial_operation_tax: null, exchange_rate: null }]);
     render(<Wrapper><Deposits /></Wrapper>);
     await waitFor(() => expect(screen.getByText(/Total BRL/)).toBeInTheDocument());
   });
@@ -258,11 +263,14 @@ describe("Deposits page", () => {
     fireEvent.blur(getInput("Effective Exchange Rate"));
     fireEvent.change(getInput("Operation Cost"), { target: { value: "10.50" } });
     fireEvent.blur(getInput("Operation Cost"));
+    fireEvent.change(getInput("Tax on Financial Operations"), { target: { value: "3.25" } });
+    fireEvent.blur(getInput("Tax on Financial Operations"));
     fireEvent.click(within(dialog).getByText("Save"));
     await waitFor(() => expect(mockCreateDeposit).toHaveBeenCalled());
     const payload = mockCreateDeposit.mock.calls[0][0];
     expect(payload.exchange_rate_effective).toBe(5.1234);
     expect(payload.operation_cost).toBe(10.5);
+    expect(payload.financial_operation_tax).toBe(3.25);
   });
 
   it("saves with null optional fields when empty", async () => {
@@ -280,6 +288,12 @@ describe("Deposits page", () => {
     const payload = mockCreateDeposit.mock.calls[0][0];
     expect(payload.exchange_rate_effective).toBeNull();
     expect(payload.operation_cost).toBeNull();
+    expect(payload.financial_operation_tax).toBeNull();
+  });
+
+  it("renders datagrid with TFO column", async () => {
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => expect(screen.getByText("TFO")).toBeInTheDocument());
   });
 });
 

@@ -1,45 +1,10 @@
 import pytest
-from core.models import Bank, Company, Currency, Deposit, Expense, ExpenseCategory, Transfer
+from core.models import Expense, ExpenseCategory, Transfer
 from core.serializers import DepositSerializer, ExpenseSerializer, TransferSerializer
 from datetime import date
 from decimal import Decimal
-from django.contrib.auth.models import User
-from tests.conftest import TEST_USER_PASSWORD
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def user():
-    return User.objects.create_user(username="testuser", password=TEST_USER_PASSWORD)
-
-
-@pytest.fixture
-def currency():
-    return Currency.objects.create(code="USD", label="US Dollar", symbol="$")
-
-
-@pytest.fixture
-def company():
-    return Company.objects.create(code="DEEL", label="Deel")
-
-
-@pytest.fixture
-def bank():
-    return Bank.objects.create(code="SANTANDER", label="Santander")
-
-
-@pytest.fixture
-def deposit(user, currency, company):
-    return Deposit.objects.create(
-        deposit_date=date(2026, 1, 2),
-        company=company,
-        invoice_number="INV-001",
-        currency=currency,
-        amount_foreign=Decimal("1115.00"),
-        amount_brl=Decimal("5894.49"),
-        created_by=user,
-    )
 
 
 class TestExpenseSerializer:
@@ -55,13 +20,13 @@ class TestExpenseSerializer:
         assert not serializer.is_valid()
         assert "category" in serializer.errors
 
-    def test_has_receipt_file_flag(self, user):
+    def test_has_receipt_file_flag(self, viewer_user):
         cat = ExpenseCategory.objects.create(code="TAXES", label="Taxes")
         expense = Expense.objects.create(
             expense_date=date(2026, 1, 5),
             category=cat,
             amount=Decimal("100.00"),
-            created_by=user,
+            created_by=viewer_user,
         )
         data = ExpenseSerializer(expense).data
         assert data["has_receipt_file"] is False
@@ -97,13 +62,13 @@ class TestTransferSerializer:
         serializer = TransferSerializer(data=data)
         assert serializer.is_valid(), serializer.errors
 
-    def test_has_transfer_file_flag(self, deposit, bank, user):
+    def test_has_transfer_file_flag(self, deposit, bank, viewer_user):
         transfer = Transfer.objects.create(
             transfer_date=date(2026, 1, 2),
             deposit=deposit,
             bank=bank,
             amount_brl=Decimal("5890.00"),
-            created_by=user,
+            created_by=viewer_user,
         )
         data = TransferSerializer(transfer).data
         assert data["has_transfer_file"] is False

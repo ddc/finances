@@ -8,7 +8,8 @@ TRANSFER_URL = "/api/v1/transfers"
 
 
 class TestTransferCRUD:
-    def _create_deposit(self, client, currency, company):
+    @staticmethod
+    def _create_deposit(client, currency, company):
         response = client.post(
             f"{DEPOSIT_URL}/",
             {
@@ -68,7 +69,8 @@ class TestTransferCRUD:
 
 
 class TestTransferFileUpload:
-    def _create_deposit(self, client, currency, company):
+    @staticmethod
+    def _create_deposit(client, currency, company):
         response = client.post(
             f"{DEPOSIT_URL}/",
             {

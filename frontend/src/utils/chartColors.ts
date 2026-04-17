@@ -14,10 +14,6 @@ export function currencyColor(code: string): string {
   return CURRENCY_COLORS[code] || "#94a3b8";
 }
 
-export function dynamicColor(index: number): string {
-  return DYNAMIC_COLORS[index % DYNAMIC_COLORS.length];
-}
-
 export function sortByCurrencyOrder<T extends { code: string }>(list: T[]): T[] {
   return [...list].sort((a, b) => {
     const ai = CURRENCY_ORDER.indexOf(a.code);

@@ -99,6 +99,8 @@ export default {
     exchangeRateEffective: "Valor Efetivo Total",
     exchangeRateEffectiveShort: "Valor Efetivo Total",
     operationCost: "Custo Operacional",
+    financialOperationTax: "Imposto Operações Financeiras",
+    financialOperationTaxShort: "IOF",
     amountForeign: "Valor Estrangeiro",
     amountBrl: "Valor BRL",
     totalForeign: "Total Estrangeiro",
@@ -166,6 +168,6 @@ export default {
     expense: "Tem certeza que deseja excluir esta despesa?",
     deposit: "Tem certeza que deseja excluir este depósito?",
     transfer: "Tem certeza que deseja excluir esta transferência?",
-    nfe: "Tem certeza que deseja excluir este NFE?",
+    nfe: "Tem certeza que deseja excluir este modelo de NFE?",
   },
 };

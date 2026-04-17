@@ -99,6 +99,8 @@ export default {
     exchangeRateEffective: "Effective Exchange Rate",
     exchangeRateEffectiveShort: "Effective Ex. Rate",
     operationCost: "Operation Cost",
+    financialOperationTax: "Tax on Financial Operations",
+    financialOperationTaxShort: "TFO",
     amountForeign: "Amount Foreign",
     amountBrl: "Amount BRL",
     totalForeign: "Total Foreign",
