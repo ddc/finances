@@ -21,12 +21,25 @@ from django.http import HttpResponse
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
 class LoggingModelViewSet(viewsets.ModelViewSet):
     """Base ViewSet that logs all CRUD operations including validation errors."""
+
+    def _get_param(self, key: str):
+        return self.request.GET.get(key)
+
+    def _filter_by_year_month(self, qs, date_field: str):
+        year = self._get_param("year")
+        month = self._get_param("month")
+        if year:
+            qs = qs.filter(**{date_field + "__year": year})
+        if month:
+            qs = qs.filter(**{date_field + "__month": month})
+        return qs
 
     def create(self, request, *args, **kwargs):
         settings.LOG.info(self.__class__.__name__ + " CREATE by " + str(request.user) + ": " + str(request.data))
@@ -95,7 +108,8 @@ class LoginView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
 
-    def post(self, request):
+    @staticmethod
+    def post(request: Request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = authenticate(
@@ -108,7 +122,7 @@ class LoginView(APIView):
         # Delete old token if exists, create fresh one (resets expiry)
         Token.objects.filter(user=user).delete()
         token = Token.objects.create(user=user)
-        settings.LOG.info("User logged in: " + user.username)
+        settings.LOG.info("User logged in: " + user.get_username())
         response = Response({"user": UserSerializer(user).data})
         response.set_cookie(
             key="auth_token",
@@ -125,9 +139,10 @@ class LoginView(APIView):
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    @staticmethod
+    def post(request: Request):
         request.user.auth_token.delete()
-        settings.LOG.info("User logged out: " + request.user.username)
+        settings.LOG.info("User logged out: " + request.user.get_username())
         response = Response(status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie("auth_token", path="/")
         return response
@@ -136,14 +151,16 @@ class LogoutView(APIView):
 class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    @staticmethod
+    def get(request: Request):
         return Response(UserSerializer(request.user).data)
 
 
 class DashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    @staticmethod
+    def get(request: Request):
         year_param = request.query_params.get("year")
         year = int(year_param) if year_param else None
         month_param = request.query_params.get("month")
@@ -151,7 +168,7 @@ class DashboardView(APIView):
         currency = request.query_params.get("currency", "USD").upper()
         settings.LOG.info(
             "Dashboard requested by "
-            + request.user.username
+            + request.user.get_username()
             + ": year="
             + str(year)
             + ", month="
@@ -178,7 +195,8 @@ class ExpenseViewSet(LoggingModelViewSet):
     serializer_class = ExpenseSerializer
     permission_classes = [IsAdminOrReadOnly]
 
-    def _save_files(self, instance, request):
+    @staticmethod
+    def _save_files(instance, request):
         receipt = request.FILES.get("receipt_file")
         nfe = request.FILES.get("nfe_file")
         if receipt:
@@ -199,16 +217,10 @@ class ExpenseViewSet(LoggingModelViewSet):
         self._save_files(instance, self.request)
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        category = self.request.query_params.get("category")
-        year = self.request.query_params.get("year")
-        month = self.request.query_params.get("month")
+        qs = self._filter_by_year_month(super().get_queryset(), "expense_date")
+        category = self._get_param("category")
         if category:
             qs = qs.filter(category__code=category)
-        if year:
-            qs = qs.filter(expense_date__year=year)
-        if month:
-            qs = qs.filter(expense_date__month=month)
         return qs
 
 
@@ -217,7 +229,8 @@ class DepositViewSet(LoggingModelViewSet):
     serializer_class = DepositSerializer
     permission_classes = [IsAdminOrReadOnly]
 
-    def _save_files(self, instance, request):
+    @staticmethod
+    def _save_files(instance, request):
         nfe = request.FILES.get("nfe_file")
         invoice = request.FILES.get("invoice_file")
         if nfe:
@@ -238,14 +251,7 @@ class DepositViewSet(LoggingModelViewSet):
         self._save_files(instance, self.request)
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        year = self.request.query_params.get("year")
-        month = self.request.query_params.get("month")
-        if year:
-            qs = qs.filter(deposit_date__year=year)
-        if month:
-            qs = qs.filter(deposit_date__month=month)
-        return qs
+        return self._filter_by_year_month(super().get_queryset(), "deposit_date")
 
 
 class TransferViewSet(LoggingModelViewSet):
@@ -253,7 +259,8 @@ class TransferViewSet(LoggingModelViewSet):
     serializer_class = TransferSerializer
     permission_classes = [IsAdminOrReadOnly]
 
-    def _save_file(self, instance, request):
+    @staticmethod
+    def _save_file(instance, request):
         f = request.FILES.get("transfer_file")
         if f:
             instance.transfer_file = f.read()
@@ -269,14 +276,8 @@ class TransferViewSet(LoggingModelViewSet):
         self._save_file(instance, self.request)
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        year = self.request.query_params.get("year")
-        month = self.request.query_params.get("month")
-        bank = self.request.query_params.get("bank")
-        if year:
-            qs = qs.filter(transfer_date__year=year)
-        if month:
-            qs = qs.filter(transfer_date__month=month)
+        qs = self._filter_by_year_month(super().get_queryset(), "transfer_date")
+        bank = self._get_param("bank")
         if bank:
             qs = qs.filter(bank__code=bank)
         return qs
@@ -315,14 +316,7 @@ class NfeSampleViewSet(LoggingModelViewSet):
         serializer.save(created_by=self.request.user)
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        year = self.request.query_params.get("year")
-        month = self.request.query_params.get("month")
-        if year:
-            qs = qs.filter(created_at__year=year)
-        if month:
-            qs = qs.filter(created_at__month=month)
-        return qs
+        return self._filter_by_year_month(super().get_queryset(), "created_at")
 
 
 def _pdf_response(file_data, filename):
@@ -334,7 +328,8 @@ def _pdf_response(file_data, filename):
 class ExpenseFileView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk, file_type):
+    @staticmethod
+    def get(request, pk, file_type):
         expense = Expense.objects.get(pk=pk)
         if file_type == "receipt":
             file_data = expense.receipt_file
@@ -352,7 +347,8 @@ class ExpenseFileView(APIView):
 class DepositFileView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk, file_type):
+    @staticmethod
+    def get(request, pk, file_type):
         deposit = Deposit.objects.get(pk=pk)
         if file_type == "nfe":
             file_data = deposit.nfe_file
@@ -370,7 +366,8 @@ class DepositFileView(APIView):
 class TransferFileView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk):
+    @staticmethod
+    def get(request, pk):
         transfer = Transfer.objects.get(pk=pk)
         if not transfer.transfer_file:
             return Response(status=status.HTTP_404_NOT_FOUND)

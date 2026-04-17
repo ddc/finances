@@ -51,10 +51,12 @@ class ExpenseSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_by", "created_at", "updated_at", "category_code", "category_label"]
 
-    def get_has_receipt_file(self, obj):
+    @staticmethod
+    def get_has_receipt_file(obj):
         return bool(obj.receipt_file)
 
-    def get_has_nfe_file(self, obj):
+    @staticmethod
+    def get_has_nfe_file(obj):
         return bool(obj.nfe_file)
 
 
@@ -66,6 +68,7 @@ class DepositSerializer(serializers.ModelSerializer):
     exchange_rate = serializers.DecimalField(max_digits=10, decimal_places=4, required=False, allow_null=True)
     exchange_rate_effective = serializers.DecimalField(max_digits=10, decimal_places=4, required=False, allow_null=True)
     operation_cost = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    financial_operation_tax = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     has_nfe_file = serializers.SerializerMethodField()
     has_invoice_file = serializers.SerializerMethodField()
     company_code = serializers.CharField(source="company.code", read_only=True)
@@ -91,6 +94,7 @@ class DepositSerializer(serializers.ModelSerializer):
             "exchange_rate",
             "exchange_rate_effective",
             "operation_cost",
+            "financial_operation_tax",
             "amount_foreign",
             "amount_brl",
             "has_nfe_file",
@@ -110,10 +114,12 @@ class DepositSerializer(serializers.ModelSerializer):
             "currency_symbol",
         ]
 
-    def get_has_nfe_file(self, obj):
+    @staticmethod
+    def get_has_nfe_file(obj):
         return bool(obj.nfe_file)
 
-    def get_has_invoice_file(self, obj):
+    @staticmethod
+    def get_has_invoice_file(obj):
         return bool(obj.invoice_file)
 
 
@@ -139,7 +145,8 @@ class TransferSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_by", "created_at", "updated_at", "bank_code", "bank_label"]
 
-    def get_has_transfer_file(self, obj):
+    @staticmethod
+    def get_has_transfer_file(obj):
         return bool(obj.transfer_file)
 
 
@@ -157,7 +164,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ["id", "username", "role"]
 
-    def get_role(self, obj):
+    @staticmethod
+    def get_role(obj):
         return "admin" if obj.is_staff else "viewer"
 
 

@@ -11,7 +11,8 @@ pytestmark = pytest.mark.django_db
 
 
 class TestPtaxService:
-    def setup_method(self):
+    @staticmethod
+    def setup_method():
         from core.services import ptax
 
         ptax._cache.clear()
@@ -57,7 +58,7 @@ class TestDashboardService:
         user = User.objects.create_user(username="testuser", password=TEST_USER_PASSWORD)
         cat = ExpenseCategory.objects.create(code="TAXES", label="Taxes")
         curr = Currency.objects.create(code="USD", label="US Dollar", symbol="$")
-        comp = Company.objects.create(code="DEEL", label="Deel")
+        comp = Company.objects.create(code="TESTCOMPANY", label="TestCompany")
         Expense.objects.create(expense_date=date(2026, 1, 5), category=cat, amount=Decimal("4380.59"), created_by=user)
         Deposit.objects.create(
             deposit_date=date(2026, 1, 2),

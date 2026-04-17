@@ -1,10 +1,5 @@
 import pytest
-from core.models import Bank, Company, Currency, ExpenseCategory
-from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
-from rest_framework.test import APIClient
 from testcontainers.postgres import PostgresContainer
-from tests.conftest import TEST_USER_PASSWORD
 
 
 @pytest.fixture(scope="session")
@@ -36,51 +31,3 @@ def _setup_db(postgres_container, settings):
             "NAME": None,
         },
     }
-
-
-@pytest.fixture
-def admin_user(db):
-    user = User.objects.create_user(username="admin", password=TEST_USER_PASSWORD, is_staff=True)
-    return user
-
-
-@pytest.fixture
-def viewer_user(db):
-    user = User.objects.create_user(username="viewer", password=TEST_USER_PASSWORD, is_staff=False)
-    return user
-
-
-@pytest.fixture
-def admin_client(admin_user):
-    client = APIClient()
-    token, _ = Token.objects.get_or_create(user=admin_user)
-    client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
-    return client
-
-
-@pytest.fixture
-def viewer_client(viewer_user):
-    client = APIClient()
-    token, _ = Token.objects.get_or_create(user=viewer_user)
-    client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
-    return client
-
-
-@pytest.fixture
-def expense_category(db):
-    return ExpenseCategory.objects.create(code="TAXES", label="Taxes")
-
-
-@pytest.fixture
-def currency(db):
-    return Currency.objects.create(code="USD", label="US Dollar", symbol="$")
-
-
-@pytest.fixture
-def company(db):
-    return Company.objects.create(code="DEEL", label="Deel")
-
-
-@pytest.fixture
-def bank(db):
-    return Bank.objects.create(code="SANTANDER", label="Santander")

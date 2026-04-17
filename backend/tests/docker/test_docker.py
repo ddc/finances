@@ -3,14 +3,13 @@ import shutil
 import subprocess
 
 pytestmark = pytest.mark.docker
-_DOCKER = shutil.which("docker") or "docker"
 
 
 class TestDockerLint:
-    def test_hadolint_backend_dockerfile(self, project_root):
+    def test_hadolint_backend_dockerfile(self, project_root, docker_bin):
         dockerfile = project_root / "backend" / "Dockerfile"
         hadolint_config = project_root / ".hadolint.yml"
-        cmd = [_DOCKER, "run", "--rm", "-i"]
+        cmd = [docker_bin, "run", "--rm", "-i"]
         if hadolint_config.exists():
             cmd += ["-v", f"{hadolint_config}:/.config/hadolint.yaml:ro"]
         cmd.append("hadolint/hadolint")
@@ -25,7 +24,7 @@ class TestDockerLint:
 
 
 class TestComposeConfig:
-    def test_compose_config(self, project_root, compose_file):
+    def test_compose_config(self, project_root, compose_file, docker_bin):
         env_example = project_root / ".env.example"
         env_file = project_root / ".env"
         cleanup = False
@@ -34,7 +33,7 @@ class TestComposeConfig:
             cleanup = True
         try:
             result = subprocess.run(
-                [_DOCKER, "compose", "-f", compose_file, "config", "--quiet"],
+                [docker_bin, "compose", "-f", compose_file, "config", "--quiet"],
                 cwd=project_root,
                 capture_output=True,
                 text=True,
@@ -59,9 +58,9 @@ class TestDockerBuild:
 
 
 class TestDockerSmoke:
-    def test_python_available(self, docker_build):
+    def test_python_available(self, docker_build, docker_bin):
         result = subprocess.run(
-            [_DOCKER, "run", "--rm", docker_build, "python", "--version"],
+            [docker_bin, "run", "--rm", docker_build, "python", "--version"],
             capture_output=True,
             text=True,
             timeout=30,
@@ -69,9 +68,9 @@ class TestDockerSmoke:
         assert result.returncode == 0
         assert "3.14" in result.stdout
 
-    def test_uv_available(self, docker_build):
+    def test_uv_available(self, docker_build, docker_bin):
         result = subprocess.run(
-            [_DOCKER, "run", "--rm", docker_build, "uv", "--version"],
+            [docker_bin, "run", "--rm", docker_build, "uv", "--version"],
             capture_output=True,
             text=True,
             timeout=30,

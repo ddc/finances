@@ -3,7 +3,10 @@ import pytest
 import shutil
 import subprocess
 
-_DOCKER = shutil.which("docker") or "docker"
+
+@pytest.fixture(scope="session")
+def docker_bin() -> str:
+    return shutil.which("docker") or "docker"  # noqa: inspection
 
 
 @pytest.fixture(scope="session")
@@ -17,11 +20,11 @@ def compose_file(project_root):
 
 
 @pytest.fixture(scope="session")
-def docker_build(project_root):
+def docker_build(project_root, docker_bin):
     tag = "finances-backend:test"
     result = subprocess.run(
         [
-            _DOCKER,
+            docker_bin,
             "build",
             "-f",
             str(project_root / "backend" / "Dockerfile"),

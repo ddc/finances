@@ -3,9 +3,10 @@ import time
 from datetime import datetime, timedelta
 from decimal import Decimal
 from django.conf import settings
+from typing import Any
 
 # Per-currency cache: { "USD": {"compra": ..., "venda": ..., "fetched_at": ...}, ... }
-_cache: dict[str, dict] = {}
+_cache: dict[str, dict[str, Any]] = {}
 
 CURRENCY_CODES = {
     "USD": "USD",
@@ -23,7 +24,11 @@ def get_ptax_rate(currency: str = "USD"):
 
     now = time.time()
     cached = _cache.get(currency)
-    if cached and cached.get("compra") is not None and (now - cached["fetched_at"]) < settings.PTAX_CACHE_TTL_SECONDS:
+    if (
+        cached
+        and cached.get("compra") is not None
+        and (now - float(cached["fetched_at"])) < settings.PTAX_CACHE_TTL_SECONDS
+    ):
         return cached
 
     try:

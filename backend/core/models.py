@@ -91,6 +91,7 @@ class Deposit(BaseModel):
     exchange_rate = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
     exchange_rate_effective = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
     operation_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    financial_operation_tax = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     amount_foreign = models.DecimalField(max_digits=10, decimal_places=2)
     amount_brl = models.DecimalField(max_digits=10, decimal_places=2)
     nfe_file = models.BinaryField(null=True, blank=True)

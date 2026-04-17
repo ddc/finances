@@ -1,74 +1,13 @@
 import io
 import pytest
-from core.models import Bank, Company, Currency, Deposit, Expense, ExpenseCategory, Transfer
+from core.models import Deposit, Expense, Transfer
 from datetime import date
 from decimal import Decimal
-from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from tests.conftest import TEST_USER_PASSWORD
 from unittest.mock import patch
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def admin_user():
-    return User.objects.create_user(username="admin", password=TEST_USER_PASSWORD, is_staff=True)
-
-
-@pytest.fixture
-def viewer_user():
-    return User.objects.create_user(username="viewer", password=TEST_USER_PASSWORD, is_staff=False)
-
-
-@pytest.fixture
-def admin_client(admin_user):
-    client = APIClient()
-    token, _ = Token.objects.get_or_create(user=admin_user)
-    client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
-    return client
-
-
-@pytest.fixture
-def viewer_client(viewer_user):
-    client = APIClient()
-    token, _ = Token.objects.get_or_create(user=viewer_user)
-    client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
-    return client
-
-
-@pytest.fixture
-def expense_category():
-    return ExpenseCategory.objects.create(code="TAXES", label="Taxes")
-
-
-@pytest.fixture
-def currency():
-    return Currency.objects.create(code="USD", label="US Dollar", symbol="$")
-
-
-@pytest.fixture
-def company():
-    return Company.objects.create(code="DEEL", label="Deel")
-
-
-@pytest.fixture
-def bank():
-    return Bank.objects.create(code="SANTANDER", label="Santander")
-
-
-@pytest.fixture
-def deposit(admin_user, currency, company):
-    return Deposit.objects.create(
-        deposit_date=date(2026, 1, 2),
-        company=company,
-        invoice_number="INV-001",
-        currency=currency,
-        amount_foreign=Decimal("1115.00"),
-        amount_brl=Decimal("5894.49"),
-        created_by=admin_user,
-    )
 
 
 # --- Auth Views ---
@@ -348,7 +287,8 @@ class TestExpenseFileView:
 
 
 class TestDepositViewSet:
-    def _data(self, currency, company):
+    @staticmethod
+    def _data(currency, company):
         return {
             "deposit_date": "2026-01-02",
             "company": str(company.id),
@@ -462,7 +402,7 @@ class TestTransferViewSet:
                 "amount_brl": "5890.00",
             },
         )
-        response = admin_client.get("/api/v1/transfers/?year=2026&month=1&bank=SANTANDER")
+        response = admin_client.get("/api/v1/transfers/?year=2026&month=1&bank=TESTBANK")
         assert response.status_code == 200
         assert len(response.data) == 1
 

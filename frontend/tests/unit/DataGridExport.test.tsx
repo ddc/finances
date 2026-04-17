@@ -53,8 +53,7 @@ describe("DataGridExport", () => {
   it("exports Excel on click", async () => {
     render(<DataGridExport rows={rows} columns={columns} filename="test" />);
 
-    const createObjectURL = vi.fn(() => "blob:test");
-    globalThis.URL.createObjectURL = createObjectURL;
+    globalThis.URL.createObjectURL = vi.fn(() => "blob:test");
     const clickSpy = vi.fn();
     const origCreate = document.createElement.bind(document);
     vi.spyOn(document, "createElement").mockImplementation((tag: string) => {

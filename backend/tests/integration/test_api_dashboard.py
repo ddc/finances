@@ -6,7 +6,7 @@ pytestmark = [pytest.mark.django_db, pytest.mark.integration]
 
 class TestDashboard:
     @patch("core.views.get_ptax_rate", return_value=None)
-    def test_dashboard_empty(self, mock_ptax, admin_client):
+    def test_dashboard_empty(self, _mock_ptax, admin_client):
         response = admin_client.get("/api/v1/dashboard/?year=2026")
         assert response.status_code == 200
         assert response.data["year"] == 2026
@@ -17,14 +17,14 @@ class TestDashboard:
         assert "recent_activity" in response.data
 
     @patch("core.views.get_ptax_rate", return_value={"compra": "5.2353", "venda": "5.2359"})
-    def test_dashboard_with_ptax(self, mock_ptax, admin_client):
+    def test_dashboard_with_ptax(self, _mock_ptax, admin_client):
         response = admin_client.get("/api/v1/dashboard/?year=2026")
         assert response.status_code == 200
         assert response.data["ptax_compra"] == "5.2353"
         assert response.data["ptax_venda"] == "5.2359"
 
     @patch("core.views.get_ptax_rate", return_value=None)
-    def test_dashboard_with_data(self, mock_ptax, admin_client, expense_category, currency, company):
+    def test_dashboard_with_data(self, _mock_ptax, admin_client, expense_category, currency, company):
         admin_client.post(
             "/api/v1/expenses/",
             {"expense_date": "2026-01-05", "category": str(expense_category.id), "amount": "100.00"},
