@@ -60,7 +60,7 @@ export function useDashboardCharts(
   const totalDepositsForeign = deposits.reduce((sum, d) => sum + Number(d.amount_foreign), 0);
   const totalDepositsBrl = deposits.reduce((sum, d) => sum + Number(d.amount_brl), 0);
   const foreignVsBrlPie = [
-    { name: t("deposits.foreign"), value: totalDepositsForeign, fill: "#8b5cf6" },
+    { name: t("deposits.foreignCurrency"), value: totalDepositsForeign, fill: "#8b5cf6" },
     { name: "BRL", value: totalDepositsBrl, fill: "#22c55e" },
   ].filter((d) => d.value > 0);
 

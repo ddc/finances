@@ -1,3 +1,4 @@
+from core.constants.messages import END_PERIOD_BEFORE_START
 from core.models import Bank, Company, Currency, Deposit, Expense, ExpenseCategory, NfeSample, Transfer
 from django.contrib.auth.models import User
 from rest_framework import serializers
@@ -121,6 +122,13 @@ class DepositSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_has_invoice_file(obj):
         return bool(obj.invoice_file)
+
+    def validate(self, attrs):
+        start = attrs.get("period_start")
+        end = attrs.get("period_end")
+        if start and end and end < start:
+            raise serializers.ValidationError({"period_end": END_PERIOD_BEFORE_START})
+        return attrs
 
 
 class TransferSerializer(serializers.ModelSerializer):
