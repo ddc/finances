@@ -4,7 +4,7 @@ import {
   TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
   Card, CardContent,
 } from "@mui/material";
-import { Add, Edit, Delete, Description, Receipt } from "@mui/icons-material";
+import { Add, Edit, Delete, Description, Receipt, Remove } from "@mui/icons-material";
 import { PieChart, Pie, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -103,6 +103,15 @@ function periodInvalid(start: string, end: string) {
   return !!start && !!end && end < start;
 }
 
+const TOGGLEABLE_COLUMNS = [
+  "invoice_issue_date",
+  "period_start",
+  "period_end",
+  "exchange_rate_effective",
+  "operation_cost",
+  "financial_operation_tax",
+];
+
 type PieDatum = { name: string; value: number; fill: string; symbol?: string };
 
 type PieCardProps = Readonly<{
@@ -200,6 +209,7 @@ export default function Deposits() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [nfeFile, setNfeFile] = useState<File | null>(null);
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
+  const [extraColsVisible, setExtraColsVisible] = useState(false);
 
   useEffect(() => { listCompanies().then(setCompanies); }, []);
   useEffect(() => {
@@ -287,6 +297,26 @@ export default function Deposits() {
     { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1.2, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     {
+      field: "toggle",
+      headerName: "",
+      width: 40,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
+      disableExport: true,
+      renderHeader: () => (
+        <IconButton
+          size="small"
+          title={extraColsVisible ? t("deposits.hideExtraColumns") : t("deposits.showExtraColumns")}
+          onClick={() => setExtraColsVisible((v) => !v)}
+          sx={{ color: "#fff" }}
+        >
+          {extraColsVisible ? <Remove fontSize="small" /> : <Add fontSize="small" />}
+        </IconButton>
+      ),
+      renderCell: () => null,
+    } as GridColDef,
+    {
       field: "actions",
       headerName: t("common.actions"),
       width: isAdmin ? 130 : 80,
@@ -296,8 +326,13 @@ export default function Deposits() {
     } as GridColDef,
   ];
 
+  const columnVisibilityModel = TOGGLEABLE_COLUMNS.reduce<Record<string, boolean>>(
+    (acc, field) => { acc[field] = extraColsVisible; return acc; },
+    {},
+  );
+
   const { totalBrl, currencyTotals, overviewPieData, companyTotalsBrl, companyCurrencyPie, brlByCurrencyPie, depositsCountPie } =
-    buildAggregates(rows, currencies, companies, companyName, t("deposits.foreign"));
+    buildAggregates(rows, currencies, companies, companyName, t("deposits.foreignCurrency"));
 
   return (
     <Box>
@@ -332,7 +367,7 @@ export default function Deposits() {
           </Card>
         ))}
         <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
-          <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions")} filename="deposits" />
+          <DataGridExport rows={rows} columns={columns.filter((c) => c.field !== "actions" && c.field !== "toggle")} filename="deposits" />
         </Box>
       </Box>
 
@@ -381,6 +416,7 @@ export default function Deposits() {
         getRowId={(row) => row.id}
         autoHeight
         initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+        columnVisibilityModel={columnVisibilityModel}
       />
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
@@ -418,10 +454,11 @@ export default function Deposits() {
             label={t("deposits.periodEnd")}
             value={form.period_end ? dayjs(form.period_end) : null}
             onChange={(v) => setForm({ ...form, period_end: v ? v.format("YYYY-MM-DD") : "" })}
+            minDate={form.period_start ? dayjs(form.period_start) : undefined}
             slotProps={{
               textField: {
                 error: submitted && periodInvalid(form.period_start, form.period_end),
-                helperText: submitted && periodInvalid(form.period_start, form.period_end) ? "Period end cannot be before period start" : "",
+                helperText: submitted && periodInvalid(form.period_start, form.period_end) ? t("deposits.periodEndBeforeStart") : "",
               },
             }}
           />

@@ -50,6 +50,33 @@ class TestDepositSerializer:
         assert data["has_nfe_file"] is False
         assert data["has_invoice_file"] is False
 
+    def test_period_end_before_start_rejected(self, currency, company):
+        data = {
+            "deposit_date": "2026-01-02",
+            "company": str(company.id),
+            "currency": str(currency.id),
+            "amount_foreign": "1115.00",
+            "amount_brl": "5894.49",
+            "period_start": "2026-01-10",
+            "period_end": "2026-01-05",
+        }
+        serializer = DepositSerializer(data=data)
+        assert not serializer.is_valid()
+        assert "period_end" in serializer.errors
+
+    def test_period_end_equal_start_accepted(self, currency, company):
+        data = {
+            "deposit_date": "2026-01-02",
+            "company": str(company.id),
+            "currency": str(currency.id),
+            "amount_foreign": "1115.00",
+            "amount_brl": "5894.49",
+            "period_start": "2026-01-10",
+            "period_end": "2026-01-10",
+        }
+        serializer = DepositSerializer(data=data)
+        assert serializer.is_valid(), serializer.errors
+
 
 class TestTransferSerializer:
     def test_valid_transfer(self, deposit, bank):

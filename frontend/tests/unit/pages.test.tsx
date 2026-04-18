@@ -237,6 +237,7 @@ describe("Deposits page", () => {
   it("renders datagrid with all columns including VET and Operation Cost", async () => {
     render(<Wrapper><Deposits /></Wrapper>);
     await waitFor(() => expect(screen.getByText(/Total BRL/)).toBeInTheDocument());
+    fireEvent.click(screen.getByTitle("Show extra columns"));
     expect(screen.getByText(/Effective Ex/)).toBeInTheDocument();
     expect(screen.getByText(/Operation Cost/)).toBeInTheDocument();
   });
@@ -293,7 +294,30 @@ describe("Deposits page", () => {
 
   it("renders datagrid with TFO column", async () => {
     render(<Wrapper><Deposits /></Wrapper>);
-    await waitFor(() => expect(screen.getByText("TFO")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByTitle("Show extra columns")).toBeInTheDocument());
+    fireEvent.click(screen.getByTitle("Show extra columns"));
+    expect(screen.getByText("TFO")).toBeInTheDocument();
+  });
+
+  it("toggles extra columns on button click", async () => {
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => expect(screen.getByTitle("Show extra columns")).toBeInTheDocument());
+    expect(screen.queryByText("TFO")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTitle("Show extra columns"));
+    expect(screen.getByText("TFO")).toBeInTheDocument();
+    fireEvent.click(screen.getByTitle("Hide extra columns"));
+    expect(screen.queryByText("TFO")).not.toBeInTheDocument();
+  });
+
+  it("edits a deposit with period_end before period_start, shows helper text and blocks save", async () => {
+    mockListDeposits.mockResolvedValue([{ ...DEPOSIT_ROW, period_start: "2025-12-27", period_end: "2025-12-21" }]);
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => expect(mockListDeposits).toHaveBeenCalled());
+    fireEvent.click(screen.getByTitle("Edit"));
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(within(dialog).getByText("Save"));
+    expect(mockCreateDeposit).not.toHaveBeenCalled();
+    expect(within(dialog).getByText("Period end cannot be before period start")).toBeInTheDocument();
   });
 });
 
