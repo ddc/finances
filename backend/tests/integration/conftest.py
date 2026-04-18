@@ -4,7 +4,7 @@ from testcontainers.postgres import PostgresContainer
 
 @pytest.fixture(scope="session")
 def postgres_container():
-    with PostgresContainer("postgres:18.3-alpine3.23") as pg:
+    with PostgresContainer("postgres:18.3") as pg:
         yield pg
 
 
