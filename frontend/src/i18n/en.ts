@@ -81,7 +81,6 @@ export default {
       TAXES: "Taxes",
       HEALTH_INSURANCE: "Health Insurance",
       ACCOUNTING: "Accounting",
-      TFE: "TFE",
       OTHER: "Other",
     },
   },
