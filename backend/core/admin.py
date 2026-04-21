@@ -1,10 +1,27 @@
-from core.models import Bank, Company, Currency, Deposit, Expense, ExpenseCategory, NfeSample, Transfer
+from core.models import (
+    Bank,
+    Company,
+    Currency,
+    Deposit,
+    Expense,
+    ExpenseCategory,
+    ExpenseSubCategory,
+    NfeSample,
+    Transfer,
+)
 from django.contrib import admin
 
 
 @admin.register(ExpenseCategory)
 class ExpenseCategoryAdmin(admin.ModelAdmin):
     list_display = ("code", "label")
+    search_fields = ("code", "label")
+
+
+@admin.register(ExpenseSubCategory)
+class ExpenseSubCategoryAdmin(admin.ModelAdmin):
+    list_display = ("parent", "code", "label")
+    list_filter = ("parent",)
     search_fields = ("code", "label")
 
 
@@ -28,8 +45,8 @@ class CompanyAdmin(admin.ModelAdmin):
 
 @admin.register(Expense)
 class ExpenseAdmin(admin.ModelAdmin):
-    list_display = ("expense_date", "category", "amount", "created_by", "created_at")
-    list_filter = ("category",)
+    list_display = ("expense_date", "category", "sub_category", "amount", "created_by", "created_at")
+    list_filter = ("category", "sub_category")
 
 
 @admin.register(Deposit)
