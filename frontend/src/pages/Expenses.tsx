@@ -14,18 +14,18 @@ import CurrencyField from "../components/CurrencyField";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
 import { listExpenses, createExpense, updateExpense, deleteExpense } from "../api/expenses";
-import { listExpenseCategories } from "../api/lookups";
+import { listExpenseCategories, listExpenseSubCategories } from "../api/lookups";
 import DataGridExport from "../components/DataGridExport";
 import { MonthFilter, YearFilter } from "../components/PageFilters";
 import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
-import type { Expense, ExpenseCategory } from "../types";
+import type { Expense, ExpenseCategory, ExpenseSubCategory } from "../types";
 import CurrencyFlag from "../components/CurrencyFlag";
 
 const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
 const today = () => new Date().toISOString().split("T")[0];
-const EMPTY_FORM = () => ({ expense_date: today(), category: "" as string, description: "", amount: "" });
+const EMPTY_FORM = () => ({ expense_date: today(), category: "" as string, sub_category: "" as string, description: "", amount: "" });
 
 export default function Expenses() {
   const { t, i18n } = useTranslation();
@@ -35,6 +35,7 @@ export default function Expenses() {
   const { isAdmin } = useAuth();
   const [rows, setRows] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
+  const [subCategories, setSubCategories] = useState<ExpenseSubCategory[]>([]);
   const [yearFilter, setYearFilter] = useState(String(new Date().getFullYear()));
   const [monthFilter, setMonthFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -48,6 +49,7 @@ export default function Expenses() {
   const [paymentReceiptFile, setPaymentReceiptFile] = useState<File | null>(null);
 
   useEffect(() => { listExpenseCategories().then(setCategories); }, []);
+  useEffect(() => { listExpenseSubCategories().then(setSubCategories); }, []);
 
   const load = useCallback(() => {
     const params: Record<string, string> = {};
@@ -62,7 +64,13 @@ export default function Expenses() {
   const handleOpen = (expense?: Expense) => {
     if (expense) {
       setEditingId(expense.id);
-      setForm({ expense_date: expense.expense_date, category: expense.category, description: expense.description, amount: String(expense.amount) });
+      setForm({
+        expense_date: expense.expense_date,
+        category: expense.category,
+        sub_category: expense.sub_category || "",
+        description: expense.description,
+        amount: String(expense.amount),
+      });
     } else {
       setEditingId(null);
       const defaultCat = categories.find((c) => c.code === "OTHER");
@@ -80,9 +88,10 @@ export default function Expenses() {
     if (!form.expense_date || !form.category || !form.amount) return;
     const selectedCat = categories.find((c) => c.id === form.category);
     if (selectedCat?.code === "OTHER" && !form.description) return;
-    const payload = {
+    const payload: Partial<Expense> = {
       expense_date: form.expense_date,
       category: form.category,
+      sub_category: form.sub_category || null,
       description: form.description,
       amount: Number(form.amount),
     };
@@ -104,6 +113,7 @@ export default function Expenses() {
   };
 
   const selectedCatCode = categories.find((c) => c.id === form.category)?.code;
+  const availableSubCategories = subCategories.filter((s) => s.parent === form.category);
 
   const categoryName = (code: string, fallback: string) => {
     const key = "expenses.categories." + code;
@@ -112,10 +122,12 @@ export default function Expenses() {
   };
 
   const translateCategory = (row: Expense) => categoryName(row.category_code, row.category_label);
+  const translateSubCategory = (row: Expense) => row.sub_category_label ?? "";
 
   const columns: GridColDef[] = [
     { field: "expense_date", headerName: t("expenses.date"), flex: 1 },
     { field: "category_label", headerName: t("expenses.category"), flex: 1, valueGetter: (_value, row: Expense) => translateCategory(row) },
+    { field: "sub_category_label", headerName: t("expenses.subCategory"), flex: 1, valueGetter: (_value, row: Expense) => translateSubCategory(row) },
     { field: "description", headerName: t("expenses.description"), flex: 2 },
     { field: "amount", headerName: t("expenses.amount"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     {
@@ -256,12 +268,27 @@ export default function Expenses() {
           />
           <FormControl fullWidth required error={submitted && !form.category}>
             <InputLabel>{t("expenses.category")}</InputLabel>
-            <Select value={form.category} label={t("expenses.category")} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+            <Select value={form.category} label={t("expenses.category")} onChange={(e) => setForm({ ...form, category: e.target.value, sub_category: "" })}>
               {categories.map((c) => (
                 <MenuItem key={c.id} value={c.id}>{categoryName(c.code, c.label)}</MenuItem>
               ))}
             </Select>
           </FormControl>
+          {availableSubCategories.length > 0 && (
+            <FormControl fullWidth>
+              <InputLabel>{t("expenses.subCategory")}</InputLabel>
+              <Select
+                value={form.sub_category}
+                label={t("expenses.subCategory")}
+                onChange={(e) => setForm({ ...form, sub_category: e.target.value })}
+              >
+                <MenuItem value="">{t("filters.all")}</MenuItem>
+                {availableSubCategories.map((s) => (
+                  <MenuItem key={s.id} value={s.id}>{s.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
           <TextField
             label={t("expenses.description")} value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -271,18 +298,6 @@ export default function Expenses() {
           <CurrencyField label={t("expenses.amount")} value={form.amount} onChange={(v) => setForm({ ...form, amount: v })} required error={submitted && !form.amount} />
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
-              {t("expenses.uploadReceipt")}
-              <input type="file" accept=".pdf" hidden onChange={(e) => setReceiptFile(e.target.files?.[0] || null)} />
-            </Button>
-            {receiptFile && <Typography variant="body2">{receiptFile.name}</Typography>}
-            {!receiptFile && editingId && rows.find((r) => r.id === editingId)?.has_receipt_file && (
-              <Typography variant="body2" color="text.secondary">
-                Current: Receipt uploaded
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Button variant="outlined" component="label">
               {t("expenses.uploadNfe")}
               <input type="file" accept=".pdf" hidden onChange={(e) => setNfeFile(e.target.files?.[0] || null)} />
             </Button>
@@ -290,6 +305,18 @@ export default function Expenses() {
             {!nfeFile && editingId && rows.find((r) => r.id === editingId)?.has_nfe_file && (
               <Typography variant="body2" color="text.secondary">
                 Current: NFE uploaded
+              </Typography>
+            )}
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button variant="outlined" component="label">
+              {t("expenses.uploadReceipt")}
+              <input type="file" accept=".pdf" hidden onChange={(e) => setReceiptFile(e.target.files?.[0] || null)} />
+            </Button>
+            {receiptFile && <Typography variant="body2">{receiptFile.name}</Typography>}
+            {!receiptFile && editingId && rows.find((r) => r.id === editingId)?.has_receipt_file && (
+              <Typography variant="body2" color="text.secondary">
+                Current: Receipt uploaded
               </Typography>
             )}
           </Box>

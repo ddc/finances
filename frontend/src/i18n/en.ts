@@ -79,6 +79,7 @@ export default {
     uploadNfe: "Upload NFE",
     paymentReceiptFile: "Payment Receipt",
     uploadPaymentReceipt: "Upload Payment Receipt",
+    subCategory: "Sub-Category",
     categories: {
       TAXES: "Taxes",
       HEALTH_INSURANCE: "Health Insurance",

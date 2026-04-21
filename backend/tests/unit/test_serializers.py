@@ -31,6 +31,40 @@ class TestExpenseSerializer:
         data = ExpenseSerializer(expense).data
         assert data["has_receipt_file"] is False
 
+    def test_valid_expense_with_matching_sub_category(self, expense_category, expense_sub_category):
+        data = {
+            "expense_date": "2026-01-05",
+            "category": str(expense_category.id),
+            "sub_category": str(expense_sub_category.id),
+            "amount": "100.00",
+        }
+        serializer = ExpenseSerializer(data=data)
+        assert serializer.is_valid(), serializer.errors
+
+    def test_sub_category_parent_mismatch_rejected(self, expense_category, expense_sub_category):
+        other_parent = ExpenseCategory.objects.create(code="OTHER", label="Other")
+        data = {
+            "expense_date": "2026-01-05",
+            "category": str(other_parent.id),
+            "sub_category": str(expense_sub_category.id),
+            "amount": "100.00",
+        }
+        serializer = ExpenseSerializer(data=data)
+        assert not serializer.is_valid()
+        assert "sub_category" in serializer.errors
+
+    def test_sub_category_code_and_label_read_only(self, admin_user, expense_category, expense_sub_category):
+        expense = Expense.objects.create(
+            expense_date=date(2026, 1, 5),
+            category=expense_category,
+            sub_category=expense_sub_category,
+            amount=Decimal("100.00"),
+            created_by=admin_user,
+        )
+        data = ExpenseSerializer(expense).data
+        assert data["sub_category_code"] == "TFE"
+        assert data["sub_category_label"] == "TFE"
+
 
 class TestDepositSerializer:
     def test_valid_deposit(self, currency, company):

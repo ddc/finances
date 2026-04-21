@@ -1,6 +1,6 @@
 import io
 import pytest
-from core.models import Deposit, Expense, Transfer
+from core.models import Deposit, Expense, ExpenseCategory, ExpenseSubCategory, Transfer
 from datetime import date
 from decimal import Decimal
 from rest_framework.test import APIClient
@@ -175,6 +175,58 @@ class TestExpenseViewSet:
             },
         )
         assert response.status_code == 403
+
+    def test_create_with_sub_category(self, admin_client, expense_category, expense_sub_category):
+        response = admin_client.post(
+            "/api/v1/expenses/",
+            {
+                "expense_date": "2026-01-05",
+                "category": str(expense_category.id),
+                "sub_category": str(expense_sub_category.id),
+                "amount": "100.00",
+            },
+        )
+        assert response.status_code == 201
+        assert response.data["sub_category_code"] == "TFE"
+
+    def test_list_filter_by_sub_category(self, admin_client, expense_category, expense_sub_category):
+        admin_client.post(
+            "/api/v1/expenses/",
+            {
+                "expense_date": "2026-01-05",
+                "category": str(expense_category.id),
+                "sub_category": str(expense_sub_category.id),
+                "amount": "100.00",
+            },
+        )
+        admin_client.post(
+            "/api/v1/expenses/",
+            {
+                "expense_date": "2026-01-05",
+                "category": str(expense_category.id),
+                "amount": "50.00",
+            },
+        )
+        response = admin_client.get("/api/v1/expenses/?sub_category=TFE")
+        assert response.status_code == 200
+        assert len(response.data) == 1
+
+
+class TestExpenseSubCategoryViewSet:
+    def test_list(self, admin_client, expense_sub_category):
+        response = admin_client.get("/api/v1/expense-sub-categories/")
+        assert response.status_code == 200
+        assert len(response.data) == 1
+        assert response.data[0]["code"] == "TFE"
+        assert response.data[0]["parent_code"] == "TAXES"
+
+    def test_list_filter_by_parent(self, admin_client, expense_category, expense_sub_category):
+        other_parent = ExpenseCategory.objects.create(code="OTHER", label="Other")
+        ExpenseSubCategory.objects.create(parent=other_parent, code="X", label="X")
+        response = admin_client.get("/api/v1/expense-sub-categories/?category=TAXES")
+        assert response.status_code == 200
+        assert len(response.data) == 1
+        assert response.data[0]["code"] == "TFE"
 
 
 # --- Expense File Upload/Download ---

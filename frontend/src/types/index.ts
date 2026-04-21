@@ -11,6 +11,14 @@ export interface ExpenseCategory {
   label: string;
 }
 
+export interface ExpenseSubCategory {
+  id: string;
+  parent: string;
+  parent_code: string;
+  code: string;
+  label: string;
+}
+
 export interface CurrencyOption {
   id: string;
   code: string;
@@ -36,6 +44,9 @@ export interface Expense {
   category: string;
   category_code: string;
   category_label: string;
+  sub_category: string | null;
+  sub_category_code: string | null;
+  sub_category_label: string | null;
   description: string;
   amount: number;
   has_receipt_file: boolean;

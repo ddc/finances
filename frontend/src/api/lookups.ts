@@ -1,8 +1,13 @@
 import client from "./client";
-import type { ExpenseCategory, CurrencyOption, BankOption, CompanyOption } from "../types";
+import type { ExpenseCategory, ExpenseSubCategory, CurrencyOption, BankOption, CompanyOption } from "../types";
 
 export const listExpenseCategories = async (): Promise<ExpenseCategory[]> => {
   const { data } = await client.get<ExpenseCategory[]>("/expense-categories/");
+  return data;
+};
+
+export const listExpenseSubCategories = async (): Promise<ExpenseSubCategory[]> => {
+  const { data } = await client.get<ExpenseSubCategory[]>("/expense-sub-categories/");
   return data;
 };
 

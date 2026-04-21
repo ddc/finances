@@ -7,6 +7,7 @@ from core.views import (
     DepositViewSet,
     ExpenseCategoryViewSet,
     ExpenseFileView,
+    ExpenseSubCategoryViewSet,
     ExpenseViewSet,
     LoginView,
     LogoutView,
@@ -20,6 +21,7 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r"expense-categories", ExpenseCategoryViewSet)
+router.register(r"expense-sub-categories", ExpenseSubCategoryViewSet)
 router.register(r"currencies", CurrencyViewSet)
 router.register(r"companies", CompanyViewSet)
 router.register(r"banks", BankViewSet)
