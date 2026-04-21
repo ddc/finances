@@ -116,10 +116,10 @@ export default {
     company: "Empresa",
     nfeFile: "NFE",
     invoiceFile: "Fatura",
-    transactionStatementFile: "Extrato da Transação",
+    transactionStatementFile: "Comprovante da Transação",
     uploadNfe: "Anexar NFE",
     uploadInvoice: "Anexar Fatura",
-    uploadTransactionStatement: "Anexar Extrato da Transação",
+    uploadTransactionStatement: "Anexar Comprovante da Transação",
     viewFile: "Ver",
     downloadFile: "Baixar",
     companies: {
