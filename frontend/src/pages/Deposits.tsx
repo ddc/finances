@@ -300,8 +300,8 @@ export default function Deposits() {
     { field: "currency_code", headerName: t("deposits.currency"), flex: 0.6 },
     { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 4) },
     { field: "exchange_rate_effective", headerName: t("deposits.exchangeRateEffectiveShort"), flex: 1.1, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 4) },
-    { field: "operation_cost", headerName: t("deposits.operationCost"), flex: 1.2, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 2) },
     { field: "financial_operation_tax", headerName: t("deposits.financialOperationTaxShort"), flex: 1, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 2) },
+    { field: "operation_cost", headerName: t("deposits.operationCost"), flex: 1.2, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 2) },
     { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1.2, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     { field: "amount_brl", headerName: t("deposits.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     {
@@ -489,12 +489,12 @@ export default function Deposits() {
             decimalPlaces={4}
           />
           <CurrencyField
-            label={t("deposits.operationCost")} value={form.operation_cost}
-            onChange={(v) => setForm({ ...form, operation_cost: v })}
-          />
-          <CurrencyField
             label={t("deposits.financialOperationTax")} value={form.financial_operation_tax}
             onChange={(v) => setForm({ ...form, financial_operation_tax: v })}
+          />
+          <CurrencyField
+            label={t("deposits.operationCost")} value={form.operation_cost}
+            onChange={(v) => setForm({ ...form, operation_cost: v })}
           />
           <CurrencyField
             label={t("deposits.amountForeign")} value={form.amount_foreign}

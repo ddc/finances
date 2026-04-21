@@ -226,6 +226,22 @@ class TestExpenseFileUpload:
         assert response.status_code == 201
         assert response.data["has_nfe_file"] is True
 
+    def test_create_with_payment_receipt(self, admin_client, expense_category):
+        payment = io.BytesIO(b"%PDF-1.4 fake payment")
+        payment.name = "payment.pdf"
+        response = admin_client.post(
+            "/api/v1/expenses/",
+            {
+                "expense_date": "2026-01-05",
+                "category": str(expense_category.id),
+                "amount": "100.00",
+                "payment_receipt_file": payment,
+            },
+            format="multipart",
+        )
+        assert response.status_code == 201
+        assert response.data["has_payment_receipt_file"] is True
+
 
 class TestExpenseFileView:
     def test_download_receipt(self, admin_client, admin_user, expense_category):
@@ -249,6 +265,18 @@ class TestExpenseFileView:
             created_by=admin_user,
         )
         response = admin_client.get(f"/api/v1/expenses/{expense.id}/file/nfe/")
+        assert response.status_code == 200
+        assert response["Content-Type"] == "application/pdf"
+
+    def test_download_payment_receipt(self, admin_client, admin_user, expense_category):
+        expense = Expense.objects.create(
+            expense_date="2026-01-05",
+            category=expense_category,
+            amount=100,
+            payment_receipt_file=b"%PDF-1.4 payment",
+            created_by=admin_user,
+        )
+        response = admin_client.get(f"/api/v1/expenses/{expense.id}/file/payment_receipt/")
         assert response.status_code == 200
         assert response["Content-Type"] == "application/pdf"
 

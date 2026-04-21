@@ -40,6 +40,7 @@ export interface Expense {
   amount: number;
   has_receipt_file: boolean;
   has_nfe_file: boolean;
+  has_payment_receipt_file: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;
