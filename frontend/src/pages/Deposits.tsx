@@ -4,7 +4,7 @@ import {
   TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
   Card, CardContent,
 } from "@mui/material";
-import { Add, Edit, Delete, Description, Receipt, Remove } from "@mui/icons-material";
+import { Add, Edit, Delete, Description, Receipt, Remove, AccountBalance } from "@mui/icons-material";
 import { PieChart, Pie, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -209,6 +209,7 @@ export default function Deposits() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [nfeFile, setNfeFile] = useState<File | null>(null);
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
+  const [transferReceiptFile, setTransferReceiptFile] = useState<File | null>(null);
   const [extraColsVisible, setExtraColsVisible] = useState(false);
 
   useEffect(() => { listCompanies().then(setCompanies); }, []);
@@ -233,6 +234,7 @@ export default function Deposits() {
     setSubmitted(false);
     setNfeFile(null);
     setInvoiceFile(null);
+    setTransferReceiptFile(null);
     setDialogOpen(true);
   };
 
@@ -246,8 +248,9 @@ export default function Deposits() {
     const payload = buildPayload(form);
     const nfe = nfeFile || undefined;
     const invoice = invoiceFile || undefined;
-    if (editingId) await updateDeposit(editingId, payload, nfe, invoice);
-    else await createDeposit(payload, nfe, invoice);
+    const transferReceipt = transferReceiptFile || undefined;
+    if (editingId) await updateDeposit(editingId, payload, nfe, invoice, transferReceipt);
+    else await createDeposit(payload, nfe, invoice, transferReceipt);
     setDialogOpen(false);
     load();
   };
@@ -271,6 +274,11 @@ export default function Deposits() {
       {params.row.has_invoice_file && (
         <IconButton size="small" title={t("deposits.invoiceFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/invoice/`, "_blank")}>
           <Receipt fontSize="small" color="success" />
+        </IconButton>
+      )}
+      {params.row.has_transfer_receipt_file && (
+        <IconButton size="small" title={t("deposits.transferReceiptFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/transfer_receipt/`, "_blank")}>
+          <AccountBalance fontSize="small" color="warning" />
         </IconButton>
       )}
       {isAdmin && (
@@ -319,7 +327,7 @@ export default function Deposits() {
     {
       field: "actions",
       headerName: t("common.actions"),
-      width: isAdmin ? 130 : 80,
+      width: isAdmin ? 160 : 110,
       sortable: false,
       filterable: false,
       renderCell: renderActions,
@@ -519,6 +527,18 @@ export default function Deposits() {
             {!invoiceFile && editingId && rows.find((r) => r.id === editingId)?.has_invoice_file && (
               <Typography variant="body2" color="text.secondary">
                 Current: Invoice uploaded
+              </Typography>
+            )}
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button variant="outlined" component="label">
+              {t("deposits.uploadTransferReceipt")}
+              <input type="file" accept=".pdf" hidden onChange={(e) => setTransferReceiptFile(e.target.files?.[0] || null)} />
+            </Button>
+            {transferReceiptFile && <Typography variant="body2">{transferReceiptFile.name}</Typography>}
+            {!transferReceiptFile && editingId && rows.find((r) => r.id === editingId)?.has_transfer_receipt_file && (
+              <Typography variant="body2" color="text.secondary">
+                Current: Transfer Receipt uploaded
               </Typography>
             )}
           </Box>

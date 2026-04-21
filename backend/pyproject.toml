@@ -1,6 +1,6 @@
 [project]
 name = "finances"
-version = "1.0.13"
+version = "1.0.14"
 description = "Personal finance management app"
 license = { text = "MIT" }
 readme = "README.md"
@@ -12,7 +12,7 @@ dependencies = [
   "django>=6.0.4",
   "djangorestframework>=3.17.1",
   "gunicorn>=25.3.0",
-  "psycopg2-binary>=2.9.11",
+  "psycopg2-binary>=2.9.12",
   "pydantic_settings>=2.14.0",
   "pythonLogs>=7.0.1",
   "requests>=2.33.1",
