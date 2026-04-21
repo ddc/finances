@@ -89,6 +89,10 @@ vi.mock("../../src/api/lookups", () => ({
     { id: "c1", code: "TAXES", label: "Taxes" },
     { id: "c2", code: "OTHER", label: "Other" },
   ]),
+  listExpenseSubCategories: vi.fn().mockResolvedValue([
+    { id: "s1", parent: "c1", parent_code: "TAXES", code: "TFE", label: "TFE" },
+    { id: "s2", parent: "c1", parent_code: "TAXES", code: "IRPF", label: "IRPF" },
+  ]),
   listCurrencies: vi.fn().mockResolvedValue([
     { id: "cu1", code: "USD", label: "US Dollar", symbol: "$" },
     { id: "cu2", code: "EUR", label: "Euro", symbol: "€" },
@@ -112,7 +116,8 @@ vi.mock("../../src/api/dashboard", () => ({
 
 const EXPENSE_ROW = {
   id: "e1", expense_date: "2026-01-05", category: "c1", category_code: "TAXES",
-  category_label: "Taxes", description: "Tax", amount: 100, has_receipt_file: true,
+  category_label: "Taxes", sub_category: "s1", sub_category_code: "TFE", sub_category_label: "TFE",
+  description: "Tax", amount: 100, has_receipt_file: true,
   has_nfe_file: false, has_payment_receipt_file: true,
   created_by: "admin", created_at: "2026-01-05", updated_at: "2026-01-05",
 };
@@ -251,6 +256,44 @@ describe("Expenses page", () => {
     fireEvent.click(await screen.findByTitle("Edit"));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText(/Current: Payment Receipt uploaded/)).toBeInTheDocument();
+  });
+
+  it("shows Sub-Category field label when editing an expense in TAXES category", async () => {
+    render(<Wrapper><Expenses /></Wrapper>);
+    await waitFor(() => expect(mockListExpenses).toHaveBeenCalled());
+    fireEvent.click(await screen.findByTitle("Edit"));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getAllByText("Sub-Category").length).toBeGreaterThan(0);
+  });
+
+  it("renders Sub-Category column and shows the row's sub_category label", async () => {
+    render(<Wrapper><Expenses /></Wrapper>);
+    await waitFor(() => expect(mockListExpenses).toHaveBeenCalled());
+    expect(await screen.findByText("Sub-Category")).toBeInTheDocument();
+    expect(await screen.findAllByText(EXPENSE_ROW.sub_category_label)).not.toHaveLength(0);
+  });
+
+  it("submits sub_category in payload when saving an edited expense", async () => {
+    render(<Wrapper><Expenses /></Wrapper>);
+    await waitFor(() => expect(mockListExpenses).toHaveBeenCalled());
+    fireEvent.click(await screen.findByTitle("Edit"));
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(within(dialog).getByText("Save"));
+    await waitFor(() => expect(mockUpdateExpense).toHaveBeenCalled());
+    const payload = mockUpdateExpense.mock.calls[0][1];
+    expect(payload.sub_category).toBe(EXPENSE_ROW.sub_category);
+  });
+
+  it("omits sub_category (sends null) when editing an expense without one", async () => {
+    mockListExpenses.mockResolvedValue([{ ...EXPENSE_ROW, sub_category: null, sub_category_code: null, sub_category_label: null }]);
+    render(<Wrapper><Expenses /></Wrapper>);
+    await waitFor(() => expect(mockListExpenses).toHaveBeenCalled());
+    fireEvent.click(await screen.findByTitle("Edit"));
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(within(dialog).getByText("Save"));
+    await waitFor(() => expect(mockUpdateExpense).toHaveBeenCalled());
+    const payload = mockUpdateExpense.mock.calls[0][1];
+    expect(payload.sub_category).toBeNull();
   });
 });
 

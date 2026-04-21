@@ -30,6 +30,24 @@ class TestExpense:
         )
         assert "Taxes" in str(expense)
 
+    def test_expense_with_sub_category(self, admin_user, expense_category, expense_sub_category):
+        expense = Expense.objects.create(
+            expense_date=date(2026, 1, 5),
+            category=expense_category,
+            sub_category=expense_sub_category,
+            amount=Decimal("500.00"),
+            created_by=admin_user,
+        )
+        assert expense.sub_category == expense_sub_category
+        assert expense.sub_category.parent == expense_category
+
+
+class TestExpenseSubCategory:
+    def test_str_and_parent(self, expense_category, expense_sub_category):
+        assert expense_sub_category.parent == expense_category
+        assert "Taxes" in str(expense_sub_category)
+        assert "TFE" in str(expense_sub_category)
+
 
 class TestDeposit:
     def test_create_deposit(self, admin_user, currency, company):

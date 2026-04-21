@@ -1,5 +1,15 @@
 from core.constants.messages import INVALID_CREDENTIALS
-from core.models import Bank, Company, Currency, Deposit, Expense, ExpenseCategory, NfeSample, Transfer
+from core.models import (
+    Bank,
+    Company,
+    Currency,
+    Deposit,
+    Expense,
+    ExpenseCategory,
+    ExpenseSubCategory,
+    NfeSample,
+    Transfer,
+)
 from core.permissions import IsAdminOrReadOnly
 from core.serializers import (
     BankSerializer,
@@ -8,6 +18,7 @@ from core.serializers import (
     DepositSerializer,
     ExpenseCategorySerializer,
     ExpenseSerializer,
+    ExpenseSubCategorySerializer,
     LoginSerializer,
     NfeSerializer,
     TransferSerializer,
@@ -225,6 +236,9 @@ class ExpenseViewSet(LoggingModelViewSet):
         category = self._get_param("category")
         if category:
             qs = qs.filter(category__code=category)
+        sub_category = self._get_param("sub_category")
+        if sub_category:
+            qs = qs.filter(sub_category__code=sub_category)
         return qs
 
 
@@ -295,6 +309,19 @@ class ExpenseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ExpenseCategory.objects.all()
     serializer_class = ExpenseCategorySerializer
     permission_classes = [IsAuthenticated]
+
+
+class ExpenseSubCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ExpenseSubCategory.objects.select_related("parent").all()
+    serializer_class = ExpenseSubCategorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        category = self.request.GET.get("category")
+        if category:
+            qs = qs.filter(parent__code=category)
+        return qs
 
 
 class CurrencyViewSet(viewsets.ReadOnlyModelViewSet):

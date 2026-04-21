@@ -1,5 +1,15 @@
-from core.constants.messages import END_PERIOD_BEFORE_START
-from core.models import Bank, Company, Currency, Deposit, Expense, ExpenseCategory, NfeSample, Transfer
+from core.constants.messages import END_PERIOD_BEFORE_START, SUB_CATEGORY_PARENT_MISMATCH
+from core.models import (
+    Bank,
+    Company,
+    Currency,
+    Deposit,
+    Expense,
+    ExpenseCategory,
+    ExpenseSubCategory,
+    NfeSample,
+    Transfer,
+)
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -8,6 +18,15 @@ class ExpenseCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ExpenseCategory
         fields = ["id", "code", "label"]
+
+
+class ExpenseSubCategorySerializer(serializers.ModelSerializer):
+    parent_code = serializers.CharField(source="parent.code", read_only=True)
+
+    class Meta:
+        model = ExpenseSubCategory
+        fields = ["id", "parent", "parent_code", "code", "label"]
+        read_only_fields = ["id", "parent_code"]
 
 
 class CurrencySerializer(serializers.ModelSerializer):
@@ -31,6 +50,11 @@ class BankSerializer(serializers.ModelSerializer):
 class ExpenseSerializer(serializers.ModelSerializer):
     category_code = serializers.CharField(source="category.code", read_only=True)
     category_label = serializers.CharField(source="category.label", read_only=True)
+    sub_category = serializers.PrimaryKeyRelatedField(
+        queryset=ExpenseSubCategory.objects.all(), required=False, allow_null=True
+    )
+    sub_category_code = serializers.CharField(source="sub_category.code", read_only=True, default=None)
+    sub_category_label = serializers.CharField(source="sub_category.label", read_only=True, default=None)
     has_receipt_file = serializers.SerializerMethodField()
     has_nfe_file = serializers.SerializerMethodField()
     has_payment_receipt_file = serializers.SerializerMethodField()
@@ -43,6 +67,9 @@ class ExpenseSerializer(serializers.ModelSerializer):
             "category",
             "category_code",
             "category_label",
+            "sub_category",
+            "sub_category_code",
+            "sub_category_label",
             "description",
             "amount",
             "has_receipt_file",
@@ -52,7 +79,16 @@ class ExpenseSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_by", "created_at", "updated_at", "category_code", "category_label"]
+        read_only_fields = [
+            "id",
+            "created_by",
+            "created_at",
+            "updated_at",
+            "category_code",
+            "category_label",
+            "sub_category_code",
+            "sub_category_label",
+        ]
 
     @staticmethod
     def get_has_receipt_file(obj):
@@ -65,6 +101,13 @@ class ExpenseSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_has_payment_receipt_file(obj):
         return bool(obj.payment_receipt_file)
+
+    def validate(self, attrs):
+        category = attrs.get("category")
+        sub_category = attrs.get("sub_category")
+        if sub_category and category and sub_category.parent_id != category.id:
+            raise serializers.ValidationError({"sub_category": SUB_CATEGORY_PARENT_MISMATCH})
+        return attrs
 
 
 class DepositSerializer(serializers.ModelSerializer):

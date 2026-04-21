@@ -1,6 +1,6 @@
 import os
 import pytest
-from core.models import Bank, Company, Currency, Deposit, ExpenseCategory
+from core.models import Bank, Company, Currency, Deposit, ExpenseCategory, ExpenseSubCategory
 from datetime import date
 from decimal import Decimal
 from django.contrib.auth.models import User
@@ -40,6 +40,11 @@ def viewer_client(viewer_user):
 @pytest.fixture
 def expense_category():
     return ExpenseCategory.objects.create(code="TAXES", label="Taxes")
+
+
+@pytest.fixture
+def expense_sub_category(expense_category):
+    return ExpenseSubCategory.objects.create(parent=expense_category, code="TFE", label="TFE")
 
 
 @pytest.fixture

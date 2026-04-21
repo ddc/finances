@@ -29,6 +29,20 @@ class ExpenseCategory(BaseModel):
         return self.label
 
 
+class ExpenseSubCategory(BaseModel):
+    parent = models.ForeignKey(ExpenseCategory, on_delete=models.PROTECT, related_name="sub_categories")
+    code = models.CharField(max_length=50)
+    label = models.CharField(max_length=50)
+
+    class Meta:
+        verbose_name_plural = "Expense Sub Categories"
+        unique_together = [("parent", "code")]
+        ordering = ["label"]
+
+    def __str__(self):
+        return self.parent.label + " / " + self.label
+
+
 class Currency(BaseModel):
     code = models.CharField(max_length=50, unique=True)
     label = models.CharField(max_length=50)
@@ -68,6 +82,9 @@ class Bank(BaseModel):
 class Expense(BaseModel):
     expense_date = models.DateField()
     category = models.ForeignKey(ExpenseCategory, on_delete=models.PROTECT, related_name="expenses")
+    sub_category = models.ForeignKey(
+        ExpenseSubCategory, on_delete=models.PROTECT, null=True, blank=True, related_name="expenses"
+    )
     description = models.TextField(blank=True, default="")
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     receipt_file = models.BinaryField(null=True, blank=True)

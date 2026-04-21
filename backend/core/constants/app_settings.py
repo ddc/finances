@@ -20,6 +20,10 @@ class AppSettings(BaseSettings):
     SEED_CATEGORIES: str = Field(
         default="TAXES:Taxes,HEALTH_INSURANCE:Health Insurance,ACCOUNTING:Accounting,OTHER:Other"
     )
+    SEED_SUB_CATEGORIES: str = Field(
+        default="TAXES:TFE:TFE,TAXES:IRRF:IRRF,TAXES:INSS:INSS,"
+        "HEALTH_INSURANCE:MEDICAL:Medical,HEALTH_INSURANCE:DENTAL:Dental"
+    )
     SEED_BANKS: str = Field(default="OTHER:Other")
     SEED_COMPANIES: str = Field(default="OTHER:Other")
 

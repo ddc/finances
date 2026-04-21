@@ -79,6 +79,7 @@ export default {
     uploadNfe: "Anexar NFE",
     paymentReceiptFile: "Comprovante de Pagamento",
     uploadPaymentReceipt: "Anexar Comprovante de Pagamento",
+    subCategory: "Sub-Categoria",
     categories: {
       TAXES: "Impostos",
       HEALTH_INSURANCE: "Plano de Saúde",

@@ -1,4 +1,4 @@
-from core.models import Bank, Company, Currency, ExpenseCategory
+from core.models import Bank, Company, Currency, ExpenseCategory, ExpenseSubCategory
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
@@ -35,6 +35,21 @@ class Command(BaseCommand):
                 if created:
                     self._log("  Created category: " + parts[0])
 
+    def _seed_sub_categories(self, env):
+        raw = getattr(env, "SEED_SUB_CATEGORIES", "") or ""
+        for entry in raw.split(","):
+            parts = entry.strip().split(":")
+            if len(parts) >= 3:
+                parent = ExpenseCategory.objects.filter(code=parts[0]).first()
+                if parent is None:
+                    self._log("  Skipped sub-category (unknown parent): " + parts[0], "warning")
+                    continue
+                _, created = ExpenseSubCategory.objects.get_or_create(
+                    parent=parent, code=parts[1], defaults={"label": parts[2]}
+                )
+                if created:
+                    self._log("  Created sub-category: " + parts[0] + "/" + parts[1])
+
     def _seed_currencies(self, env):
         for entry in env.SEED_CURRENCIES.split(","):
             parts = entry.strip().split(":")
@@ -65,6 +80,7 @@ class Command(BaseCommand):
         self._log("Running seed_data command")
         self._seed_admin(settings.ENV)
         self._seed_categories(settings.ENV)
+        self._seed_sub_categories(settings.ENV)
         self._seed_currencies(settings.ENV)
         self._seed_companies(settings.ENV)
         self._seed_banks(settings.ENV)
