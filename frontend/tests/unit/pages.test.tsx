@@ -113,6 +113,7 @@ vi.mock("../../src/api/dashboard", () => ({
 const EXPENSE_ROW = {
   id: "e1", expense_date: "2026-01-05", category: "c1", category_code: "TAXES",
   category_label: "Taxes", description: "Tax", amount: 100, has_receipt_file: true,
+  has_nfe_file: false, has_payment_receipt_file: true,
   created_by: "admin", created_at: "2026-01-05", updated_at: "2026-01-05",
 };
 
@@ -199,6 +200,20 @@ describe("Expenses page", () => {
     render(<Wrapper><Expenses /></Wrapper>);
     await waitFor(() => expect(mockListExpenses).toHaveBeenCalled());
   });
+
+  it("renders Payment Receipt icon for row with has_payment_receipt_file=true", async () => {
+    render(<Wrapper><Expenses /></Wrapper>);
+    await waitFor(() => expect(mockListExpenses).toHaveBeenCalled());
+    expect(await screen.findByTitle("Payment Receipt")).toBeInTheDocument();
+  });
+
+  it("shows Payment Receipt upload button in dialog", async () => {
+    render(<Wrapper><Expenses /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Expense"));
+    fireEvent.click(screen.getByText("Add Expense"));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Upload Payment Receipt")).toBeInTheDocument();
+  });
 });
 
 // ==================== Deposits ====================
@@ -264,8 +279,8 @@ describe("Deposits page", () => {
     fireEvent.blur(getInput("Effective Exchange Rate"));
     fireEvent.change(getInput("Operation Cost"), { target: { value: "10.50" } });
     fireEvent.blur(getInput("Operation Cost"));
-    fireEvent.change(getInput("Tax on Financial Operations"), { target: { value: "3.25" } });
-    fireEvent.blur(getInput("Tax on Financial Operations"));
+    fireEvent.change(getInput("Financial Operation Tax"), { target: { value: "3.25" } });
+    fireEvent.blur(getInput("Financial Operation Tax"));
     fireEvent.click(within(dialog).getByText("Save"));
     await waitFor(() => expect(mockCreateDeposit).toHaveBeenCalled());
     const payload = mockCreateDeposit.mock.calls[0][0];
@@ -292,21 +307,21 @@ describe("Deposits page", () => {
     expect(payload.financial_operation_tax).toBeNull();
   });
 
-  it("renders datagrid with TFO column", async () => {
+  it("renders datagrid with Financial Oper. Tax column", async () => {
     render(<Wrapper><Deposits /></Wrapper>);
     await waitFor(() => expect(screen.getByTitle("Show extra columns")).toBeInTheDocument());
     fireEvent.click(screen.getByTitle("Show extra columns"));
-    expect(screen.getByText("TFO")).toBeInTheDocument();
+    expect(screen.getByText("Financial Oper. Tax")).toBeInTheDocument();
   });
 
   it("toggles extra columns on button click", async () => {
     render(<Wrapper><Deposits /></Wrapper>);
     await waitFor(() => expect(screen.getByTitle("Show extra columns")).toBeInTheDocument());
-    expect(screen.queryByText("TFO")).not.toBeInTheDocument();
+    expect(screen.queryByText("Financial Oper. Tax")).not.toBeInTheDocument();
     fireEvent.click(screen.getByTitle("Show extra columns"));
-    expect(screen.getByText("TFO")).toBeInTheDocument();
+    expect(screen.getByText("Financial Oper. Tax")).toBeInTheDocument();
     fireEvent.click(screen.getByTitle("Hide extra columns"));
-    expect(screen.queryByText("TFO")).not.toBeInTheDocument();
+    expect(screen.queryByText("Financial Oper. Tax")).not.toBeInTheDocument();
   });
 
   it("renders Transaction Statement icon for row with has_transaction_statement_file=true", async () => {

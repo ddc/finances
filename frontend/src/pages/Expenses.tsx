@@ -4,7 +4,7 @@ import {
   TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
   Card, CardContent,
 } from "@mui/material";
-import { Add, Edit, Delete, Description, Receipt } from "@mui/icons-material";
+import { Add, Edit, Delete, Description, Receipt, AccountBalance } from "@mui/icons-material";
 import { PieChart, Pie, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -45,6 +45,7 @@ export default function Expenses() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [nfeFile, setNfeFile] = useState<File | null>(null);
+  const [paymentReceiptFile, setPaymentReceiptFile] = useState<File | null>(null);
 
   useEffect(() => { listExpenseCategories().then(setCategories); }, []);
 
@@ -70,6 +71,7 @@ export default function Expenses() {
     setSubmitted(false);
     setReceiptFile(null);
     setNfeFile(null);
+    setPaymentReceiptFile(null);
     setDialogOpen(true);
   };
 
@@ -85,9 +87,9 @@ export default function Expenses() {
       amount: Number(form.amount),
     };
     if (editingId) {
-      await updateExpense(editingId, payload, receiptFile || undefined, nfeFile || undefined);
+      await updateExpense(editingId, payload, receiptFile || undefined, nfeFile || undefined, paymentReceiptFile || undefined);
     } else {
-      await createExpense(payload, receiptFile || undefined, nfeFile || undefined);
+      await createExpense(payload, receiptFile || undefined, nfeFile || undefined, paymentReceiptFile || undefined);
     }
     setDialogOpen(false);
     load();
@@ -119,7 +121,7 @@ export default function Expenses() {
     {
       field: "actions",
       headerName: t("common.actions"),
-      width: isAdmin ? 180 : 100,
+      width: isAdmin ? 210 : 130,
       sortable: false,
       filterable: false,
       renderCell: (params: { row: Expense }) => (
@@ -132,6 +134,11 @@ export default function Expenses() {
           {params.row.has_nfe_file && (
             <IconButton size="small" title={t("expenses.nfeFile")} onClick={() => window.open(`/api/v1/expenses/${params.row.id}/file/nfe/`, "_blank")}>
               <Receipt fontSize="small" color="success" />
+            </IconButton>
+          )}
+          {params.row.has_payment_receipt_file && (
+            <IconButton size="small" title={t("expenses.paymentReceiptFile")} onClick={() => window.open(`/api/v1/expenses/${params.row.id}/file/payment_receipt/`, "_blank")}>
+              <AccountBalance fontSize="small" color="warning" />
             </IconButton>
           )}
           {isAdmin && (
@@ -283,6 +290,18 @@ export default function Expenses() {
             {!nfeFile && editingId && rows.find((r) => r.id === editingId)?.has_nfe_file && (
               <Typography variant="body2" color="text.secondary">
                 Current: NFE uploaded
+              </Typography>
+            )}
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button variant="outlined" component="label">
+              {t("expenses.uploadPaymentReceipt")}
+              <input type="file" accept=".pdf" hidden onChange={(e) => setPaymentReceiptFile(e.target.files?.[0] || null)} />
+            </Button>
+            {paymentReceiptFile && <Typography variant="body2">{paymentReceiptFile.name}</Typography>}
+            {!paymentReceiptFile && editingId && rows.find((r) => r.id === editingId)?.has_payment_receipt_file && (
+              <Typography variant="body2" color="text.secondary">
+                Current: Payment Receipt uploaded
               </Typography>
             )}
           </Box>

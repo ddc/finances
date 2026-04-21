@@ -199,13 +199,17 @@ class ExpenseViewSet(LoggingModelViewSet):
     def _save_files(instance, request):
         receipt = request.FILES.get("receipt_file")
         nfe = request.FILES.get("nfe_file")
+        payment_receipt = request.FILES.get("payment_receipt_file")
         if receipt:
             instance.receipt_file = receipt.read()
             instance.receipt_filename = receipt.name
         if nfe:
             instance.nfe_file = nfe.read()
             instance.nfe_filename = nfe.name
-        if receipt or nfe:
+        if payment_receipt:
+            instance.payment_receipt_file = payment_receipt.read()
+            instance.payment_receipt_filename = payment_receipt.name
+        if receipt or nfe or payment_receipt:
             instance.save()
 
     def perform_create(self, serializer):
@@ -341,6 +345,9 @@ class ExpenseFileView(APIView):
         elif file_type == "nfe":
             file_data = expense.nfe_file
             filename = expense.nfe_filename
+        elif file_type == "payment_receipt":
+            file_data = expense.payment_receipt_file
+            filename = expense.payment_receipt_filename
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
         if not file_data:
