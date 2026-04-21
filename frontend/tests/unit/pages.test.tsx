@@ -214,6 +214,44 @@ describe("Expenses page", () => {
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Upload Payment Receipt")).toBeInTheDocument();
   });
+
+  it("opens payment_receipt file URL when Payment Receipt icon is clicked", async () => {
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+    render(<Wrapper><Expenses /></Wrapper>);
+    const icon = await screen.findByTitle("Payment Receipt");
+    fireEvent.click(icon);
+    expect(openSpy).toHaveBeenCalledWith(`/api/v1/expenses/${EXPENSE_ROW.id}/file/payment_receipt/`, "_blank");
+    openSpy.mockRestore();
+  });
+
+  it("submits uploaded payment receipt file to createExpense", async () => {
+    mockListExpenses.mockResolvedValue([]);
+    render(<Wrapper><Expenses /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Expense"));
+    fireEvent.click(screen.getByText("Add Expense"));
+    const dialog = await screen.findByRole("dialog");
+    const getInput = (label: string) => within(dialog).getByRole("textbox", { name: new RegExp("^" + label) }) as HTMLInputElement;
+    fireEvent.change(getInput("Description"), { target: { value: "Office supplies" } });
+    fireEvent.change(getInput("Amount BRL"), { target: { value: "99.00" } });
+    fireEvent.blur(getInput("Amount BRL"));
+    const uploadBtn = within(dialog).getByText("Upload Payment Receipt");
+    const fileInput = uploadBtn.parentElement!.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File([new Uint8Array([0x25, 0x50, 0x44, 0x46])], "payment.pdf", { type: "application/pdf" });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    expect(within(dialog).getByText("payment.pdf")).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByText("Save"));
+    await waitFor(() => expect(mockCreateExpense).toHaveBeenCalled());
+    const callArgs = mockCreateExpense.mock.calls[0];
+    expect(callArgs[3]).toBe(file);
+  });
+
+  it("shows 'Current: Payment Receipt uploaded' when editing an expense that has one", async () => {
+    render(<Wrapper><Expenses /></Wrapper>);
+    await waitFor(() => expect(mockListExpenses).toHaveBeenCalled());
+    fireEvent.click(await screen.findByTitle("Edit"));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(/Current: Payment Receipt uploaded/)).toBeInTheDocument();
+  });
 });
 
 // ==================== Deposits ====================
