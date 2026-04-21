@@ -72,7 +72,7 @@ class DepositSerializer(serializers.ModelSerializer):
     financial_operation_tax = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     has_nfe_file = serializers.SerializerMethodField()
     has_invoice_file = serializers.SerializerMethodField()
-    has_transfer_receipt_file = serializers.SerializerMethodField()
+    has_transaction_statement_file = serializers.SerializerMethodField()
     company_code = serializers.CharField(source="company.code", read_only=True)
     company_label = serializers.CharField(source="company.label", read_only=True)
     currency_code = serializers.CharField(source="currency.code", read_only=True)
@@ -101,7 +101,7 @@ class DepositSerializer(serializers.ModelSerializer):
             "amount_brl",
             "has_nfe_file",
             "has_invoice_file",
-            "has_transfer_receipt_file",
+            "has_transaction_statement_file",
             "created_by",
             "created_at",
             "updated_at",
@@ -126,8 +126,8 @@ class DepositSerializer(serializers.ModelSerializer):
         return bool(obj.invoice_file)
 
     @staticmethod
-    def get_has_transfer_receipt_file(obj):
-        return bool(obj.transfer_receipt_file)
+    def get_has_transaction_statement_file(obj):
+        return bool(obj.transaction_statement_file)
 
     def validate(self, attrs):
         start = attrs.get("period_start")

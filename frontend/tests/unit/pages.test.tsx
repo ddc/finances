@@ -122,7 +122,7 @@ const DEPOSIT_ROW = {
   period_start: "2025-12-21", period_end: "2025-12-27", currency: "cu1",
   currency_code: "USD", currency_symbol: "$", exchange_rate: 5.28,
   exchange_rate_effective: 5.2834, operation_cost: 12.50, financial_operation_tax: 3.25,
-  amount_foreign: 1115, amount_brl: 5894, has_nfe_file: true, has_invoice_file: true, has_transfer_receipt_file: true,
+  amount_foreign: 1115, amount_brl: 5894, has_nfe_file: true, has_invoice_file: true, has_transaction_statement_file: true,
   created_by: "admin", created_at: "2026-01-02", updated_at: "2026-01-02",
 };
 
@@ -309,18 +309,18 @@ describe("Deposits page", () => {
     expect(screen.queryByText("TFO")).not.toBeInTheDocument();
   });
 
-  it("renders Transfer Receipt icon for row with has_transfer_receipt_file=true", async () => {
+  it("renders Transaction Statement icon for row with has_transaction_statement_file=true", async () => {
     render(<Wrapper><Deposits /></Wrapper>);
     await waitFor(() => expect(mockListDeposits).toHaveBeenCalled());
-    expect(await screen.findByTitle("Transfer Receipt")).toBeInTheDocument();
+    expect(await screen.findByTitle("Transaction Statement")).toBeInTheDocument();
   });
 
-  it("shows Transfer Receipt upload button in dialog", async () => {
+  it("shows Transaction Statement upload button in dialog", async () => {
     render(<Wrapper><Deposits /></Wrapper>);
     await waitFor(() => screen.getByText("Add Deposit"));
     fireEvent.click(screen.getByText("Add Deposit"));
     const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByText("Upload Transfer Receipt")).toBeInTheDocument();
+    expect(within(dialog).getByText("Upload Transaction Statement")).toBeInTheDocument();
   });
 
   it("edits a deposit with period_end before period_start, shows helper text and blocks save", async () => {
