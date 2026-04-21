@@ -98,8 +98,8 @@ class Deposit(BaseModel):
     nfe_filename = models.CharField(max_length=255, blank=True, default="")
     invoice_file = models.BinaryField(null=True, blank=True)
     invoice_filename = models.CharField(max_length=255, blank=True, default="")
-    transfer_receipt_file = models.BinaryField(null=True, blank=True)
-    transfer_receipt_filename = models.CharField(max_length=255, blank=True, default="")
+    transaction_statement_file = models.BinaryField(null=True, blank=True)
+    transaction_statement_filename = models.CharField(max_length=255, blank=True, default="")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="deposits")
 
     def __str__(self):

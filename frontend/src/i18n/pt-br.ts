@@ -116,10 +116,10 @@ export default {
     company: "Empresa",
     nfeFile: "NFE",
     invoiceFile: "Fatura",
-    transferReceiptFile: "Comprovante de Transferência",
+    transactionStatementFile: "Extrato da Transação",
     uploadNfe: "Anexar NFE",
     uploadInvoice: "Anexar Fatura",
-    uploadTransferReceipt: "Anexar Comprovante de Transferência",
+    uploadTransactionStatement: "Anexar Extrato da Transação",
     viewFile: "Ver",
     downloadFile: "Baixar",
     companies: {
@@ -135,8 +135,8 @@ export default {
     amountBrl: "Valor em BRL",
     deposit: "Depósito",
     total: "Total BRL",
-    transferFile: "Comprovante",
-    uploadTransfer: "Anexar Comprovante",
+    transferFile: "Comprovante de Transferência",
+    uploadTransfer: "Anexar Comprovante de Transferência",
     banks: {
       OTHER: "Outros",
     },

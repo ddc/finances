@@ -209,7 +209,7 @@ export default function Deposits() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [nfeFile, setNfeFile] = useState<File | null>(null);
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
-  const [transferReceiptFile, setTransferReceiptFile] = useState<File | null>(null);
+  const [statementFile, setStatementFile] = useState<File | null>(null);
   const [extraColsVisible, setExtraColsVisible] = useState(false);
 
   useEffect(() => { listCompanies().then(setCompanies); }, []);
@@ -234,7 +234,7 @@ export default function Deposits() {
     setSubmitted(false);
     setNfeFile(null);
     setInvoiceFile(null);
-    setTransferReceiptFile(null);
+    setStatementFile(null);
     setDialogOpen(true);
   };
 
@@ -248,9 +248,9 @@ export default function Deposits() {
     const payload = buildPayload(form);
     const nfe = nfeFile || undefined;
     const invoice = invoiceFile || undefined;
-    const transferReceipt = transferReceiptFile || undefined;
-    if (editingId) await updateDeposit(editingId, payload, nfe, invoice, transferReceipt);
-    else await createDeposit(payload, nfe, invoice, transferReceipt);
+    const statement = statementFile || undefined;
+    if (editingId) await updateDeposit(editingId, payload, nfe, invoice, statement);
+    else await createDeposit(payload, nfe, invoice, statement);
     setDialogOpen(false);
     load();
   };
@@ -276,8 +276,8 @@ export default function Deposits() {
           <Receipt fontSize="small" color="success" />
         </IconButton>
       )}
-      {params.row.has_transfer_receipt_file && (
-        <IconButton size="small" title={t("deposits.transferReceiptFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/transfer_receipt/`, "_blank")}>
+      {params.row.has_transaction_statement_file && (
+        <IconButton size="small" title={t("deposits.transactionStatementFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/transaction_statement/`, "_blank")}>
           <AccountBalance fontSize="small" color="warning" />
         </IconButton>
       )}
@@ -532,13 +532,13 @@ export default function Deposits() {
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
-              {t("deposits.uploadTransferReceipt")}
-              <input type="file" accept=".pdf" hidden onChange={(e) => setTransferReceiptFile(e.target.files?.[0] || null)} />
+              {t("deposits.uploadTransactionStatement")}
+              <input type="file" accept=".pdf" hidden onChange={(e) => setStatementFile(e.target.files?.[0] || null)} />
             </Button>
-            {transferReceiptFile && <Typography variant="body2">{transferReceiptFile.name}</Typography>}
-            {!transferReceiptFile && editingId && rows.find((r) => r.id === editingId)?.has_transfer_receipt_file && (
+            {statementFile && <Typography variant="body2">{statementFile.name}</Typography>}
+            {!statementFile && editingId && rows.find((r) => r.id === editingId)?.has_transaction_statement_file && (
               <Typography variant="body2" color="text.secondary">
-                Current: Transfer Receipt uploaded
+                Current: Transaction Statement uploaded
               </Typography>
             )}
           </Box>
