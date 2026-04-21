@@ -116,8 +116,10 @@ export default {
     company: "Company",
     nfeFile: "NFE",
     invoiceFile: "Invoice",
+    transferReceiptFile: "Transfer Receipt",
     uploadNfe: "Upload NFE",
     uploadInvoice: "Upload Invoice",
+    uploadTransferReceipt: "Upload Transfer Receipt",
     viewFile: "View",
     downloadFile: "Download",
     companies: {

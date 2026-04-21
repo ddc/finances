@@ -233,13 +233,17 @@ class DepositViewSet(LoggingModelViewSet):
     def _save_files(instance, request):
         nfe = request.FILES.get("nfe_file")
         invoice = request.FILES.get("invoice_file")
+        transfer_receipt = request.FILES.get("transfer_receipt_file")
         if nfe:
             instance.nfe_file = nfe.read()
             instance.nfe_filename = nfe.name
         if invoice:
             instance.invoice_file = invoice.read()
             instance.invoice_filename = invoice.name
-        if nfe or invoice:
+        if transfer_receipt:
+            instance.transfer_receipt_file = transfer_receipt.read()
+            instance.transfer_receipt_filename = transfer_receipt.name
+        if nfe or invoice or transfer_receipt:
             instance.save()
 
     def perform_create(self, serializer):
@@ -356,6 +360,9 @@ class DepositFileView(APIView):
         elif file_type == "invoice":
             file_data = deposit.invoice_file
             filename = deposit.invoice_filename
+        elif file_type == "transfer_receipt":
+            file_data = deposit.transfer_receipt_file
+            filename = deposit.transfer_receipt_filename
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
         if not file_data:

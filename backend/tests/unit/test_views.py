@@ -336,6 +336,14 @@ class TestDepositViewSet:
         assert response.status_code == 200
         assert response.data["has_invoice_file"] is True
 
+    def test_create_with_transfer_receipt_file(self, admin_client, currency, company):
+        receipt = io.BytesIO(b"%PDF receipt")
+        receipt.name = "my_receipt.pdf"
+        data = {**self._data(currency, company), "transfer_receipt_file": receipt}
+        response = admin_client.post("/api/v1/deposits/", data, format="multipart")
+        assert response.status_code == 201
+        assert response.data["has_transfer_receipt_file"] is True
+
 
 # --- Deposit File Views ---
 
@@ -365,6 +373,19 @@ class TestDepositFileView:
             created_by=admin_user,
         )
         response = admin_client.get(f"/api/v1/deposits/{dep.id}/file/invoice/")
+        assert response.status_code == 200
+
+    def test_download_transfer_receipt(self, admin_client, admin_user, currency, company):
+        dep = Deposit.objects.create(
+            deposit_date=date(2026, 1, 2),
+            company=company,
+            currency=currency,
+            amount_foreign=Decimal("1115"),
+            amount_brl=Decimal("5894"),
+            transfer_receipt_file=b"%PDF receipt",
+            created_by=admin_user,
+        )
+        response = admin_client.get(f"/api/v1/deposits/{dep.id}/file/transfer_receipt/")
         assert response.status_code == 200
 
     def test_download_invalid_type(self, admin_client, deposit):

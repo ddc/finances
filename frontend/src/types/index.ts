@@ -66,6 +66,7 @@ export interface Deposit {
   amount_brl: number;
   has_nfe_file: boolean;
   has_invoice_file: boolean;
+  has_transfer_receipt_file: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;
