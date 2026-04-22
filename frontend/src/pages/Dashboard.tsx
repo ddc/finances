@@ -189,8 +189,8 @@ export default function Dashboard() {
         {[
           { key: "income", label: <>{t("dashboard.totalIncomeBrl")}{" "}<CurrencyFlag code="BRL" /></>, value: data.summary.total_income_brl, color: "#22c55e", prefix: "R$" },
           { key: "expenses", label: t("dashboard.totalExpenses"), value: data.summary.total_expenses_brl, color: "#ef4444", prefix: "R$" },
-          { key: "transferred", label: t("dashboard.totalTransferred"), value: data.summary.total_transferred_brl, color: "#3b82f6", prefix: "R$" },
           { key: "net", label: t("dashboard.netBalance"), value: data.summary.net_balance_brl, color: Number(data.summary.net_balance_brl) >= 0 ? "#22c55e" : "#ef4444", prefix: "R$" },
+          { key: "transferred", label: t("dashboard.totalTransferred"), value: data.summary.total_transferred_brl, color: "#3b82f6", prefix: "R$" },
         ].map((card) => (
           <Card key={card.key} sx={{ flex: "1 1 0", minWidth: 0 }}>
             <CardContent sx={{ py: 1, "&:last-child": { pb: 1 } }}>
