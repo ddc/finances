@@ -13,3 +13,15 @@ export function buildFilterParams(filters: Record<string, string>): Record<strin
   }
   return params;
 }
+
+export function sortOptionsOtherLast<T>(
+  items: readonly T[],
+  getCode: (item: T) => string,
+  getLabel: (item: T) => string,
+): T[] {
+  return [...items].sort((a, b) => {
+    if (getCode(a) === "OTHER") return 1;
+    if (getCode(b) === "OTHER") return -1;
+    return getLabel(a).localeCompare(getLabel(b));
+  });
+}

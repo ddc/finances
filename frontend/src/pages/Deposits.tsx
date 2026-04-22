@@ -22,7 +22,7 @@ import PageHeader from "../components/PageHeader";
 import type { Deposit, CurrencyOption, CompanyOption } from "../types";
 import CurrencyFlag from "../components/CurrencyFlag";
 import { currencyColor, DYNAMIC_COLORS, sortByCurrencyOrder } from "../utils/chartColors";
-import { translateLabel, buildFilterParams } from "../utils/i18nHelpers";
+import { translateLabel, buildFilterParams, sortOptionsOtherLast } from "../utils/i18nHelpers";
 
 const today = () => new Date().toISOString().split("T")[0];
 const optStr = (val: string | number | null | undefined) => val ? String(val) : "";
@@ -439,7 +439,7 @@ export default function Deposits() {
           <FormControl fullWidth required error={submitted && !form.company}>
             <InputLabel>{t("deposits.company")}</InputLabel>
             <Select value={form.company} label={t("deposits.company")} onChange={(e) => setForm({ ...form, company: e.target.value })}>
-              {companies.map((c) => (
+              {sortOptionsOtherLast(companies, (c) => c.code, (c) => companyName(c.code, c.label)).map((c) => (
                 <MenuItem key={c.id} value={c.id}>{companyName(c.code, c.label)}</MenuItem>
               ))}
             </Select>
