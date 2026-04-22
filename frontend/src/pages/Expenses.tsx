@@ -128,8 +128,8 @@ export default function Expenses() {
   const columns: GridColDef[] = [
     { field: "expense_date", headerName: t("expenses.date"), flex: 1 },
     { field: "category_label", headerName: t("expenses.category"), flex: 1, valueGetter: (_value, row: Expense) => translateCategory(row) },
-    { field: "sub_category_label", headerName: t("expenses.subCategory"), flex: 1, valueGetter: (_value, row: Expense) => translateSubCategory(row) },
-    { field: "description", headerName: t("expenses.description"), flex: 2 },
+    { field: "sub_category_label", headerName: t("expenses.subCategory"), flex: 2, valueGetter: (_value, row: Expense) => translateSubCategory(row) },
+    { field: "description", headerName: t("expenses.description"), flex: 1 },
     { field: "amount", headerName: t("expenses.amount"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
     {
       field: "actions",
