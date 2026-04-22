@@ -68,7 +68,7 @@ export default {
     title: "Expenses",
     addExpense: "Add Expense",
     editExpense: "Edit Expense",
-    date: "Date",
+    date: "Payment Date",
     category: "Category",
     description: "Description",
     amount: "Amount BRL",

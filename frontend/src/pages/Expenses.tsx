@@ -21,6 +21,7 @@ import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
 import type { Expense, ExpenseCategory, ExpenseSubCategory } from "../types";
 import CurrencyFlag from "../components/CurrencyFlag";
+import { sortOptionsOtherLast } from "../utils/i18nHelpers";
 
 const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
@@ -269,7 +270,7 @@ export default function Expenses() {
           <FormControl fullWidth required error={submitted && !form.category}>
             <InputLabel>{t("expenses.category")}</InputLabel>
             <Select value={form.category} label={t("expenses.category")} onChange={(e) => setForm({ ...form, category: e.target.value, sub_category: "" })}>
-              {categories.map((c) => (
+              {sortOptionsOtherLast(categories, (c) => c.code, (c) => categoryName(c.code, c.label)).map((c) => (
                 <MenuItem key={c.id} value={c.id}>{categoryName(c.code, c.label)}</MenuItem>
               ))}
             </Select>
@@ -283,7 +284,7 @@ export default function Expenses() {
                 onChange={(e) => setForm({ ...form, sub_category: e.target.value })}
               >
                 <MenuItem value="">{t("filters.all")}</MenuItem>
-                {availableSubCategories.map((s) => (
+                {sortOptionsOtherLast(availableSubCategories, (s) => s.code, (s) => s.label).map((s) => (
                   <MenuItem key={s.id} value={s.id}>{s.label}</MenuItem>
                 ))}
               </Select>

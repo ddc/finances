@@ -22,6 +22,7 @@ import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
 import type { Transfer, Deposit, BankOption } from "../types";
 import CurrencyFlag from "../components/CurrencyFlag";
+import { sortOptionsOtherLast } from "../utils/i18nHelpers";
 
 const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "#ec4899", "#14b8a6"];
 
@@ -277,7 +278,7 @@ export default function Transfers() {
           <FormControl fullWidth required error={submitted && !form.bank}>
             <InputLabel>{t("transfers.bank")}</InputLabel>
             <Select value={form.bank} label={t("transfers.bank")} onChange={(e) => setForm({ ...form, bank: e.target.value })}>
-              {banks.map((b) => (
+              {sortOptionsOtherLast(banks, (b) => b.code, (b) => bankName(b.code, b.label)).map((b) => (
                 <MenuItem key={b.id} value={b.id}>{bankName(b.code, b.label)}</MenuItem>
               ))}
             </Select>
