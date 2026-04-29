@@ -57,7 +57,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
     sub_category_label = serializers.CharField(source="sub_category.label", read_only=True, default=None)
     has_receipt_file = serializers.SerializerMethodField()
     has_nfe_file = serializers.SerializerMethodField()
-    has_payment_receipt_file = serializers.SerializerMethodField()
+    has_payment_file = serializers.SerializerMethodField()
 
     class Meta:
         model = Expense
@@ -74,7 +74,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
             "amount",
             "has_receipt_file",
             "has_nfe_file",
-            "has_payment_receipt_file",
+            "has_payment_file",
             "created_by",
             "created_at",
             "updated_at",
@@ -99,8 +99,8 @@ class ExpenseSerializer(serializers.ModelSerializer):
         return bool(obj.nfe_file)
 
     @staticmethod
-    def get_has_payment_receipt_file(obj):
-        return bool(obj.payment_receipt_file)
+    def get_has_payment_file(obj):
+        return bool(obj.payment_file)
 
     def validate(self, attrs):
         category = attrs.get("category")
@@ -120,7 +120,8 @@ class DepositSerializer(serializers.ModelSerializer):
     financial_operation_tax = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     has_nfe_file = serializers.SerializerMethodField()
     has_invoice_file = serializers.SerializerMethodField()
-    has_transaction_statement_file = serializers.SerializerMethodField()
+    has_transaction_file = serializers.SerializerMethodField()
+    has_conversion_file = serializers.SerializerMethodField()
     company_code = serializers.CharField(source="company.code", read_only=True)
     company_label = serializers.CharField(source="company.label", read_only=True)
     currency_code = serializers.CharField(source="currency.code", read_only=True)
@@ -148,7 +149,8 @@ class DepositSerializer(serializers.ModelSerializer):
             "amount_brl",
             "has_nfe_file",
             "has_invoice_file",
-            "has_transaction_statement_file",
+            "has_transaction_file",
+            "has_conversion_file",
             "created_by",
             "created_at",
             "updated_at",
@@ -173,8 +175,12 @@ class DepositSerializer(serializers.ModelSerializer):
         return bool(obj.invoice_file)
 
     @staticmethod
-    def get_has_transaction_statement_file(obj):
-        return bool(obj.transaction_statement_file)
+    def get_has_transaction_file(obj):
+        return bool(obj.transaction_file)
+
+    @staticmethod
+    def get_has_conversion_file(obj):
+        return bool(obj.conversion_file)
 
     def validate(self, attrs):
         start = attrs.get("period_start")

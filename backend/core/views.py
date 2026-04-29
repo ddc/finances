@@ -210,17 +210,17 @@ class ExpenseViewSet(LoggingModelViewSet):
     def _save_files(instance, request):
         receipt = request.FILES.get("receipt_file")
         nfe = request.FILES.get("nfe_file")
-        payment_receipt = request.FILES.get("payment_receipt_file")
+        payment = request.FILES.get("payment_file")
         if receipt:
             instance.receipt_file = receipt.read()
             instance.receipt_filename = receipt.name
         if nfe:
             instance.nfe_file = nfe.read()
             instance.nfe_filename = nfe.name
-        if payment_receipt:
-            instance.payment_receipt_file = payment_receipt.read()
-            instance.payment_receipt_filename = payment_receipt.name
-        if receipt or nfe or payment_receipt:
+        if payment:
+            instance.payment_file = payment.read()
+            instance.payment_filename = payment.name
+        if receipt or nfe or payment:
             instance.save()
 
     def perform_create(self, serializer):
@@ -251,7 +251,8 @@ class DepositViewSet(LoggingModelViewSet):
     def _save_files(instance, request):
         nfe = request.FILES.get("nfe_file")
         invoice = request.FILES.get("invoice_file")
-        statement = request.FILES.get("transaction_statement_file")
+        statement = request.FILES.get("transaction_file")
+        conversion = request.FILES.get("conversion_file")
         if nfe:
             instance.nfe_file = nfe.read()
             instance.nfe_filename = nfe.name
@@ -259,9 +260,12 @@ class DepositViewSet(LoggingModelViewSet):
             instance.invoice_file = invoice.read()
             instance.invoice_filename = invoice.name
         if statement:
-            instance.transaction_statement_file = statement.read()
-            instance.transaction_statement_filename = statement.name
-        if nfe or invoice or statement:
+            instance.transaction_file = statement.read()
+            instance.transaction_filename = statement.name
+        if conversion:
+            instance.conversion_file = conversion.read()
+            instance.conversion_filename = conversion.name
+        if nfe or invoice or statement or conversion:
             instance.save()
 
     def perform_create(self, serializer):
@@ -372,9 +376,9 @@ class ExpenseFileView(APIView):
         elif file_type == "nfe":
             file_data = expense.nfe_file
             filename = expense.nfe_filename
-        elif file_type == "payment_receipt":
-            file_data = expense.payment_receipt_file
-            filename = expense.payment_receipt_filename
+        elif file_type == "payment":
+            file_data = expense.payment_file
+            filename = expense.payment_filename
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
         if not file_data:
@@ -394,9 +398,12 @@ class DepositFileView(APIView):
         elif file_type == "invoice":
             file_data = deposit.invoice_file
             filename = deposit.invoice_filename
-        elif file_type == "transaction_statement":
-            file_data = deposit.transaction_statement_file
-            filename = deposit.transaction_statement_filename
+        elif file_type == "transaction":
+            file_data = deposit.transaction_file
+            filename = deposit.transaction_filename
+        elif file_type == "conversion":
+            file_data = deposit.conversion_file
+            filename = deposit.conversion_filename
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
         if not file_data:

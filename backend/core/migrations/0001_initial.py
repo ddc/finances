@@ -155,11 +155,11 @@ class Migration(migrations.Migration):
                     models.CharField(blank=True, default="", max_length=255),
                 ),
                 (
-                    "transaction_statement_file",
+                    "transaction_file",
                     models.BinaryField(blank=True, null=True),
                 ),
                 (
-                    "transaction_statement_filename",
+                    "transaction_filename",
                     models.CharField(blank=True, default="", max_length=255),
                 ),
                 (
@@ -249,9 +249,9 @@ class Migration(migrations.Migration):
                     "nfe_filename",
                     models.CharField(blank=True, default="", max_length=255),
                 ),
-                ("payment_receipt_file", models.BinaryField(blank=True, null=True)),
+                ("payment_file", models.BinaryField(blank=True, null=True)),
                 (
-                    "payment_receipt_filename",
+                    "payment_filename",
                     models.CharField(blank=True, default="", max_length=255),
                 ),
                 (
