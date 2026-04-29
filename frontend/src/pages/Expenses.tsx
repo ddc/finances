@@ -300,7 +300,7 @@ export default function Expenses() {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
               {t("expenses.uploadNfe")}
-              <input type="file" accept=".pdf" hidden onChange={(e) => setNfeFile(e.target.files?.[0] || null)} />
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg" hidden onChange={(e) => setNfeFile(e.target.files?.[0] || null)} />
             </Button>
             {nfeFile && <Typography variant="body2">{nfeFile.name}</Typography>}
             {!nfeFile && editingId && rows.find((r) => r.id === editingId)?.has_nfe_file && (
@@ -312,7 +312,7 @@ export default function Expenses() {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
               {t("expenses.uploadReceipt")}
-              <input type="file" accept=".pdf" hidden onChange={(e) => setReceiptFile(e.target.files?.[0] || null)} />
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg" hidden onChange={(e) => setReceiptFile(e.target.files?.[0] || null)} />
             </Button>
             {receiptFile && <Typography variant="body2">{receiptFile.name}</Typography>}
             {!receiptFile && editingId && rows.find((r) => r.id === editingId)?.has_receipt_file && (
@@ -324,7 +324,7 @@ export default function Expenses() {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
               {t("expenses.uploadPayment")}
-              <input type="file" accept=".pdf" hidden onChange={(e) => setPaymentFile(e.target.files?.[0] || null)} />
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg" hidden onChange={(e) => setPaymentFile(e.target.files?.[0] || null)} />
             </Button>
             {paymentFile && <Typography variant="body2">{paymentFile.name}</Typography>}
             {!paymentFile && editingId && rows.find((r) => r.id === editingId)?.has_payment_file && (
