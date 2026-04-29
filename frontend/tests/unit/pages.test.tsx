@@ -230,6 +230,55 @@ describe("Expenses page", () => {
     openSpy.mockRestore();
   });
 
+  it("deletes an expense via deleteExpense when confirmed", async () => {
+    render(<Wrapper><Expenses /></Wrapper>);
+    await waitFor(() => expect(mockListExpenses).toHaveBeenCalled());
+    fireEvent.click(await screen.findByTitle("Delete"));
+    const confirm = await screen.findByRole("dialog");
+    fireEvent.click(within(confirm).getByText("Delete"));
+    await waitFor(() => expect(mockDeleteExpense).toHaveBeenCalledWith(EXPENSE_ROW.id));
+  });
+
+  it("submits uploaded receipt file to createExpense", async () => {
+    mockListExpenses.mockResolvedValue([]);
+    render(<Wrapper><Expenses /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Expense"));
+    fireEvent.click(screen.getByText("Add Expense"));
+    const dialog = await screen.findByRole("dialog");
+    const desc = within(dialog).getByRole("textbox", { name: /^Description/ }) as HTMLInputElement;
+    fireEvent.change(desc, { target: { value: "Receipt test" } });
+    const amount = within(dialog).getByRole("textbox", { name: /^Amount BRL/ }) as HTMLInputElement;
+    fireEvent.change(amount, { target: { value: "50.00" } });
+    fireEvent.blur(amount);
+    const uploadBtn = within(dialog).getByText("Upload Receipt");
+    const fileInput = uploadBtn.parentElement!.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], "receipt.png", { type: "image/png" });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.click(within(dialog).getByText("Save"));
+    await waitFor(() => expect(mockCreateExpense).toHaveBeenCalled());
+    expect(mockCreateExpense.mock.calls[0][1]).toBe(file);
+  });
+
+  it("submits uploaded NFE file to createExpense", async () => {
+    mockListExpenses.mockResolvedValue([]);
+    render(<Wrapper><Expenses /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Expense"));
+    fireEvent.click(screen.getByText("Add Expense"));
+    const dialog = await screen.findByRole("dialog");
+    const desc = within(dialog).getByRole("textbox", { name: /^Description/ }) as HTMLInputElement;
+    fireEvent.change(desc, { target: { value: "NFE test" } });
+    const amount = within(dialog).getByRole("textbox", { name: /^Amount BRL/ }) as HTMLInputElement;
+    fireEvent.change(amount, { target: { value: "50.00" } });
+    fireEvent.blur(amount);
+    const uploadBtn = within(dialog).getByText("Upload NFE");
+    const fileInput = uploadBtn.parentElement!.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File([new Uint8Array([0x25, 0x50, 0x44, 0x46])], "nfe.pdf", { type: "application/pdf" });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.click(within(dialog).getByText("Save"));
+    await waitFor(() => expect(mockCreateExpense).toHaveBeenCalled());
+    expect(mockCreateExpense.mock.calls[0][2]).toBe(file);
+  });
+
   it("submits uploaded payment receipt file to createExpense", async () => {
     mockListExpenses.mockResolvedValue([]);
     render(<Wrapper><Expenses /></Wrapper>);
@@ -474,6 +523,64 @@ describe("Deposits page", () => {
     expect(callArgs[4]).toBe(file);
   });
 
+  it("deletes a deposit via deleteDeposit when confirmed", async () => {
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => expect(mockListDeposits).toHaveBeenCalled());
+    fireEvent.click(await screen.findByTitle("Delete"));
+    const confirm = await screen.findByRole("dialog");
+    fireEvent.click(within(confirm).getByText("Delete"));
+    await waitFor(() => expect(mockDeleteDeposit).toHaveBeenCalledWith(DEPOSIT_ROW.id));
+  });
+
+  it("submits uploaded transaction file to createDeposit", async () => {
+    mockListDeposits.mockResolvedValue([]);
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Deposit"));
+    fireEvent.click(screen.getByText("Add Deposit"));
+    const dialog = await screen.findByRole("dialog");
+    const uploadBtn = within(dialog).getByText("Upload Transaction Statement");
+    const fileInput = uploadBtn.parentElement!.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File([new Uint8Array([0x25, 0x50, 0x44, 0x46])], "txn.pdf", { type: "application/pdf" });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    expect(within(dialog).getByText("txn.pdf")).toBeInTheDocument();
+    const amountForeign = within(dialog).getByRole("textbox", { name: /^Amount Foreign/ }) as HTMLInputElement;
+    fireEvent.change(amountForeign, { target: { value: "100.00" } });
+    fireEvent.blur(amountForeign);
+    const amountBrl = within(dialog).getByRole("textbox", { name: /^Amount BRL/ }) as HTMLInputElement;
+    fireEvent.change(amountBrl, { target: { value: "500.00" } });
+    fireEvent.blur(amountBrl);
+    fireEvent.click(within(dialog).getByText("Save"));
+    await waitFor(() => expect(mockCreateDeposit).toHaveBeenCalled());
+    const callArgs = mockCreateDeposit.mock.calls[0];
+    expect(callArgs[3]).toBe(file);
+  });
+
+  it("captures NFE upload selection in dialog", async () => {
+    mockListDeposits.mockResolvedValue([]);
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Deposit"));
+    fireEvent.click(screen.getByText("Add Deposit"));
+    const dialog = await screen.findByRole("dialog");
+    const uploadBtn = within(dialog).getByText("Upload NFE");
+    const fileInput = uploadBtn.parentElement!.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File([new Uint8Array([0x25, 0x50, 0x44, 0x46])], "nfe.pdf", { type: "application/pdf" });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    expect(within(dialog).getByText("nfe.pdf")).toBeInTheDocument();
+  });
+
+  it("captures Invoice upload selection in dialog", async () => {
+    mockListDeposits.mockResolvedValue([]);
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Deposit"));
+    fireEvent.click(screen.getByText("Add Deposit"));
+    const dialog = await screen.findByRole("dialog");
+    const uploadBtn = within(dialog).getByText("Upload Invoice");
+    const fileInput = uploadBtn.parentElement!.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File([new Uint8Array([0x25, 0x50, 0x44, 0x46])], "inv.pdf", { type: "application/pdf" });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    expect(within(dialog).getByText("inv.pdf")).toBeInTheDocument();
+  });
+
   it("edits a deposit with period_end before period_start, shows helper text and blocks save", async () => {
     mockListDeposits.mockResolvedValue([{ ...DEPOSIT_ROW, period_start: "2025-12-27", period_end: "2025-12-21" }]);
     render(<Wrapper><Deposits /></Wrapper>);
@@ -525,6 +632,36 @@ describe("Transfers page", () => {
     fireEvent.click(screen.getByText("Add Transfer"));
     const dialog = await screen.findByRole("dialog");
     await waitFor(() => expect(within(dialog).getAllByText("Bank").length).toBeGreaterThan(0));
+  });
+
+  it("opens edit dialog with prefilled form when Edit icon clicked", async () => {
+    render(<Wrapper><Transfers /></Wrapper>);
+    await waitFor(() => expect(mockListTransfers).toHaveBeenCalled());
+    fireEvent.click(await screen.findByTitle("Edit"));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Save")).toBeInTheDocument();
+  });
+
+  it("saves a valid transfer via createTransfer", async () => {
+    mockListTransfers.mockResolvedValue([]);
+    render(<Wrapper><Transfers /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Transfer"));
+    fireEvent.click(screen.getByText("Add Transfer"));
+    const dialog = await screen.findByRole("dialog");
+    const amount = within(dialog).getByRole("textbox", { name: /Amount BRL/ }) as HTMLInputElement;
+    fireEvent.change(amount, { target: { value: "1234.56" } });
+    fireEvent.blur(amount);
+    fireEvent.click(within(dialog).getByText("Save"));
+    await waitFor(() => expect(mockCreateTransfer).toHaveBeenCalled());
+  });
+
+  it("deletes a transfer via deleteTransfer when confirmed", async () => {
+    render(<Wrapper><Transfers /></Wrapper>);
+    await waitFor(() => expect(mockListTransfers).toHaveBeenCalled());
+    fireEvent.click(await screen.findByTitle("Delete"));
+    const confirm = await screen.findByRole("dialog");
+    fireEvent.click(within(confirm).getByText("Delete"));
+    await waitFor(() => expect(mockDeleteTransfer).toHaveBeenCalledWith(TRANSFER_ROW.id));
   });
 });
 
