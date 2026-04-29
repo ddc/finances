@@ -16,7 +16,6 @@ class TestTransferCRUD:
                 "deposit_date": "2026-01-02",
                 "company": str(company.id),
                 "invoice_number": "INV-001",
-                "invoice_issue_date": "2025-12-26",
                 "period_start": "2025-12-21",
                 "period_end": "2025-12-27",
                 "currency": str(currency.id),

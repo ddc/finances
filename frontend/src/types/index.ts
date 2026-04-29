@@ -64,7 +64,6 @@ export interface Deposit {
   company_code: string;
   company_label: string;
   invoice_number: string;
-  invoice_issue_date: string | null;
   period_start: string | null;
   period_end: string | null;
   currency: string;

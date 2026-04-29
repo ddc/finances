@@ -41,7 +41,6 @@ function buildPayload(form: DepositForm) {
     deposit_date: form.deposit_date,
     company: form.company,
     invoice_number: form.invoice_number || "",
-    invoice_issue_date: form.invoice_issue_date || null,
     period_start: form.period_start || null,
     period_end: form.period_end || null,
     currency: form.currency,
@@ -59,7 +58,6 @@ function depositToForm(d: Deposit) {
     deposit_date: d.deposit_date,
     company: d.company,
     invoice_number: d.invoice_number,
-    invoice_issue_date: d.invoice_issue_date || "",
     period_start: d.period_start || "",
     period_end: d.period_end || "",
     currency: d.currency,
@@ -75,7 +73,6 @@ const EMPTY_FORM = () => ({
   deposit_date: today(),
   company: "" as string,
   invoice_number: "",
-  invoice_issue_date: "",
   period_start: "",
   period_end: "",
   currency: "" as string,
@@ -104,7 +101,6 @@ function periodInvalid(start: string, end: string) {
 }
 
 const TOGGLEABLE_COLUMNS = [
-  "invoice_issue_date",
   "period_start",
   "period_end",
   "exchange_rate_effective",
@@ -292,7 +288,6 @@ export default function Deposits() {
 
   const columns: GridColDef[] = [
     { field: "deposit_date", headerName: t("deposits.depositDate"), flex: 0.9 },
-    { field: "invoice_issue_date", headerName: t("deposits.issueDate"), flex: 0.9 },
     { field: "period_start", headerName: t("deposits.periodStart"), flex: 0.9 },
     { field: "period_end", headerName: t("deposits.periodEnd"), flex: 0.9 },
     { field: "company_label", headerName: t("deposits.company"), flex: 1, valueGetter: (_value, row: Deposit) => companyName(row.company_code, row.company_label) },
@@ -447,11 +442,6 @@ export default function Deposits() {
           <TextField
             label={t("deposits.invoiceNumber")} value={form.invoice_number}
             onChange={(e) => setForm({ ...form, invoice_number: e.target.value })}
-          />
-          <DatePicker
-            label={t("deposits.issueDate")}
-            value={form.invoice_issue_date ? dayjs(form.invoice_issue_date) : null}
-            onChange={(v) => setForm({ ...form, invoice_issue_date: v ? v.format("YYYY-MM-DD") : "" })}
           />
           <DatePicker
             label={t("deposits.periodStart")}
