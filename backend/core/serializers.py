@@ -204,6 +204,7 @@ class TransferSerializer(serializers.ModelSerializer):
             "bank_code",
             "bank_label",
             "amount_brl",
+            "description",
             "has_transfer_file",
             "created_by",
             "created_at",

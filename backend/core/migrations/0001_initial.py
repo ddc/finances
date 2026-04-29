@@ -333,6 +333,7 @@ class Migration(migrations.Migration):
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 ("transfer_date", models.DateField()),
                 ("amount_brl", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("description", models.TextField(blank=True, default="")),
                 ("transfer_file", models.BinaryField(blank=True, null=True)),
                 (
                     "transfer_filename",

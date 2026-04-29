@@ -91,6 +91,7 @@ export interface Transfer {
   bank_code: string;
   bank_label: string;
   amount_brl: number;
+  description: string;
   has_transfer_file: boolean;
   created_by: string;
   created_at: string;

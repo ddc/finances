@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  FormControl, InputLabel, Select, MenuItem, IconButton,
+  TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
   Card, CardContent,
 } from "@mui/material";
 import { Add, Edit, Delete, Description } from "@mui/icons-material";
@@ -30,6 +30,7 @@ const EMPTY_FORM = () => ({
   transfer_date: today(),
   bank: "" as string,
   amount_brl: "",
+  description: "",
 });
 
 export default function Transfers() {
@@ -69,6 +70,7 @@ export default function Transfers() {
         transfer_date: transfer.transfer_date,
         bank: transfer.bank,
         amount_brl: String(transfer.amount_brl),
+        description: transfer.description || "",
       });
     } else {
       setEditingId(null);
@@ -87,6 +89,7 @@ export default function Transfers() {
       transfer_date: form.transfer_date,
       bank: form.bank,
       amount_brl: Number(form.amount_brl),
+      description: form.description,
     };
     if (editingId) {
       await updateTransfer(editingId, payload, transferFile || undefined);
@@ -115,6 +118,7 @@ export default function Transfers() {
     { field: "transfer_date", headerName: t("transfers.transferDate"), flex: 1 },
     { field: "bank_label", headerName: t("transfers.bank"), flex: 1, valueGetter: (_value, row: Transfer) => bankName(row.bank_code, row.bank_label) },
     { field: "amount_brl", headerName: t("transfers.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
+    { field: "description", headerName: t("transfers.description"), flex: 2 },
     {
       field: "actions",
       headerName: t("common.actions"),
@@ -254,6 +258,11 @@ export default function Transfers() {
             label={t("transfers.amountBrl")} value={form.amount_brl}
             onChange={(v) => setForm({ ...form, amount_brl: v })}
             required error={submitted && !form.amount_brl}
+          />
+          <TextField
+            label={t("transfers.description")} value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            multiline minRows={2}
           />
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
