@@ -51,7 +51,7 @@ export interface Expense {
   amount: number;
   has_receipt_file: boolean;
   has_nfe_file: boolean;
-  has_payment_receipt_file: boolean;
+  has_payment_file: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -77,7 +77,8 @@ export interface Deposit {
   amount_brl: number;
   has_nfe_file: boolean;
   has_invoice_file: boolean;
-  has_transaction_statement_file: boolean;
+  has_transaction_file: boolean;
+  has_conversion_file: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;

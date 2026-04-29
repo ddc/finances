@@ -47,7 +47,7 @@ export default function Expenses() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [nfeFile, setNfeFile] = useState<File | null>(null);
-  const [paymentReceiptFile, setPaymentReceiptFile] = useState<File | null>(null);
+  const [paymentFile, setPaymentFile] = useState<File | null>(null);
 
   useEffect(() => { listExpenseCategories().then(setCategories); }, []);
   useEffect(() => { listExpenseSubCategories().then(setSubCategories); }, []);
@@ -80,7 +80,7 @@ export default function Expenses() {
     setSubmitted(false);
     setReceiptFile(null);
     setNfeFile(null);
-    setPaymentReceiptFile(null);
+    setPaymentFile(null);
     setDialogOpen(true);
   };
 
@@ -97,9 +97,9 @@ export default function Expenses() {
       amount: Number(form.amount),
     };
     if (editingId) {
-      await updateExpense(editingId, payload, receiptFile || undefined, nfeFile || undefined, paymentReceiptFile || undefined);
+      await updateExpense(editingId, payload, receiptFile || undefined, nfeFile || undefined, paymentFile || undefined);
     } else {
-      await createExpense(payload, receiptFile || undefined, nfeFile || undefined, paymentReceiptFile || undefined);
+      await createExpense(payload, receiptFile || undefined, nfeFile || undefined, paymentFile || undefined);
     }
     setDialogOpen(false);
     load();
@@ -149,8 +149,8 @@ export default function Expenses() {
               <Receipt fontSize="small" color="success" />
             </IconButton>
           )}
-          {params.row.has_payment_receipt_file && (
-            <IconButton size="small" title={t("expenses.paymentReceiptFile")} onClick={() => window.open(`/api/v1/expenses/${params.row.id}/file/payment_receipt/`, "_blank")}>
+          {params.row.has_payment_file && (
+            <IconButton size="small" title={t("expenses.paymentFile")} onClick={() => window.open(`/api/v1/expenses/${params.row.id}/file/payment/`, "_blank")}>
               <AccountBalance fontSize="small" color="warning" />
             </IconButton>
           )}
@@ -323,11 +323,11 @@ export default function Expenses() {
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
-              {t("expenses.uploadPaymentReceipt")}
-              <input type="file" accept=".pdf" hidden onChange={(e) => setPaymentReceiptFile(e.target.files?.[0] || null)} />
+              {t("expenses.uploadPayment")}
+              <input type="file" accept=".pdf" hidden onChange={(e) => setPaymentFile(e.target.files?.[0] || null)} />
             </Button>
-            {paymentReceiptFile && <Typography variant="body2">{paymentReceiptFile.name}</Typography>}
-            {!paymentReceiptFile && editingId && rows.find((r) => r.id === editingId)?.has_payment_receipt_file && (
+            {paymentFile && <Typography variant="body2">{paymentFile.name}</Typography>}
+            {!paymentFile && editingId && rows.find((r) => r.id === editingId)?.has_payment_file && (
               <Typography variant="body2" color="text.secondary">
                 Current: Payment Receipt uploaded
               </Typography>

@@ -278,7 +278,7 @@ class TestExpenseFileUpload:
         assert response.status_code == 201
         assert response.data["has_nfe_file"] is True
 
-    def test_create_with_payment_receipt(self, admin_client, expense_category):
+    def test_create_with_payment(self, admin_client, expense_category):
         payment = io.BytesIO(b"%PDF-1.4 fake payment")
         payment.name = "payment.pdf"
         response = admin_client.post(
@@ -287,12 +287,12 @@ class TestExpenseFileUpload:
                 "expense_date": "2026-01-05",
                 "category": str(expense_category.id),
                 "amount": "100.00",
-                "payment_receipt_file": payment,
+                "payment_file": payment,
             },
             format="multipart",
         )
         assert response.status_code == 201
-        assert response.data["has_payment_receipt_file"] is True
+        assert response.data["has_payment_file"] is True
 
 
 class TestExpenseFileView:
@@ -320,15 +320,15 @@ class TestExpenseFileView:
         assert response.status_code == 200
         assert response["Content-Type"] == "application/pdf"
 
-    def test_download_payment_receipt(self, admin_client, admin_user, expense_category):
+    def test_download_payment(self, admin_client, admin_user, expense_category):
         expense = Expense.objects.create(
             expense_date="2026-01-05",
             category=expense_category,
             amount=100,
-            payment_receipt_file=b"%PDF-1.4 payment",
+            payment_file=b"%PDF-1.4 payment",
             created_by=admin_user,
         )
-        response = admin_client.get(f"/api/v1/expenses/{expense.id}/file/payment_receipt/")
+        response = admin_client.get(f"/api/v1/expenses/{expense.id}/file/payment/")
         assert response.status_code == 200
         assert response["Content-Type"] == "application/pdf"
 
@@ -416,13 +416,13 @@ class TestDepositViewSet:
         assert response.status_code == 200
         assert response.data["has_invoice_file"] is True
 
-    def test_create_with_transaction_statement_file(self, admin_client, currency, company):
+    def test_create_with_transaction_file(self, admin_client, currency, company):
         statement = io.BytesIO(b"%PDF statement")
         statement.name = "my_statement.pdf"
-        data = {**self._data(currency, company), "transaction_statement_file": statement}
+        data = {**self._data(currency, company), "transaction_file": statement}
         response = admin_client.post("/api/v1/deposits/", data, format="multipart")
         assert response.status_code == 201
-        assert response.data["has_transaction_statement_file"] is True
+        assert response.data["has_transaction_file"] is True
 
 
 # --- Deposit File Views ---
@@ -455,17 +455,17 @@ class TestDepositFileView:
         response = admin_client.get(f"/api/v1/deposits/{dep.id}/file/invoice/")
         assert response.status_code == 200
 
-    def test_download_transaction_statement(self, admin_client, admin_user, currency, company):
+    def test_download_transaction(self, admin_client, admin_user, currency, company):
         dep = Deposit.objects.create(
             deposit_date=date(2026, 1, 2),
             company=company,
             currency=currency,
             amount_foreign=Decimal("1115"),
             amount_brl=Decimal("5894"),
-            transaction_statement_file=b"%PDF statement",
+            transaction_file=b"%PDF statement",
             created_by=admin_user,
         )
-        response = admin_client.get(f"/api/v1/deposits/{dep.id}/file/transaction_statement/")
+        response = admin_client.get(f"/api/v1/deposits/{dep.id}/file/transaction/")
         assert response.status_code == 200
 
     def test_download_invalid_type(self, admin_client, deposit):

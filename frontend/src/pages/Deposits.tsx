@@ -4,7 +4,7 @@ import {
   TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
   Card, CardContent,
 } from "@mui/material";
-import { Add, Edit, Delete, Description, Receipt, Remove, AccountBalance } from "@mui/icons-material";
+import { Add, Edit, Delete, Description, Receipt, Remove, AccountBalance, SwapHoriz } from "@mui/icons-material";
 import { PieChart, Pie, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -206,6 +206,7 @@ export default function Deposits() {
   const [nfeFile, setNfeFile] = useState<File | null>(null);
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
   const [statementFile, setStatementFile] = useState<File | null>(null);
+  const [conversionFile, setConversionFile] = useState<File | null>(null);
   const [extraColsVisible, setExtraColsVisible] = useState(false);
 
   useEffect(() => { listCompanies().then(setCompanies); }, []);
@@ -231,6 +232,7 @@ export default function Deposits() {
     setNfeFile(null);
     setInvoiceFile(null);
     setStatementFile(null);
+    setConversionFile(null);
     setDialogOpen(true);
   };
 
@@ -245,8 +247,9 @@ export default function Deposits() {
     const nfe = nfeFile || undefined;
     const invoice = invoiceFile || undefined;
     const statement = statementFile || undefined;
-    if (editingId) await updateDeposit(editingId, payload, nfe, invoice, statement);
-    else await createDeposit(payload, nfe, invoice, statement);
+    const conversion = conversionFile || undefined;
+    if (editingId) await updateDeposit(editingId, payload, nfe, invoice, statement, conversion);
+    else await createDeposit(payload, nfe, invoice, statement, conversion);
     setDialogOpen(false);
     load();
   };
@@ -272,9 +275,14 @@ export default function Deposits() {
           <Receipt fontSize="small" color="success" />
         </IconButton>
       )}
-      {params.row.has_transaction_statement_file && (
-        <IconButton size="small" title={t("deposits.transactionStatementFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/transaction_statement/`, "_blank")}>
+      {params.row.has_transaction_file && (
+        <IconButton size="small" title={t("deposits.transactionFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/transaction/`, "_blank")}>
           <AccountBalance fontSize="small" color="warning" />
+        </IconButton>
+      )}
+      {params.row.has_conversion_file && (
+        <IconButton size="small" title={t("deposits.conversionFile")} onClick={() => window.open(`/api/v1/deposits/${params.row.id}/file/conversion/`, "_blank")}>
+          <SwapHoriz fontSize="small" color="primary" />
         </IconButton>
       )}
       {isAdmin && (
@@ -522,13 +530,25 @@ export default function Deposits() {
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
-              {t("deposits.uploadTransactionStatement")}
+              {t("deposits.uploadTransaction")}
               <input type="file" accept=".pdf" hidden onChange={(e) => setStatementFile(e.target.files?.[0] || null)} />
             </Button>
             {statementFile && <Typography variant="body2">{statementFile.name}</Typography>}
-            {!statementFile && editingId && rows.find((r) => r.id === editingId)?.has_transaction_statement_file && (
+            {!statementFile && editingId && rows.find((r) => r.id === editingId)?.has_transaction_file && (
               <Typography variant="body2" color="text.secondary">
                 Current: Transaction Statement uploaded
+              </Typography>
+            )}
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Button variant="outlined" component="label">
+              {t("deposits.uploadConversion")}
+              <input type="file" accept=".pdf" hidden onChange={(e) => setConversionFile(e.target.files?.[0] || null)} />
+            </Button>
+            {conversionFile && <Typography variant="body2">{conversionFile.name}</Typography>}
+            {!conversionFile && editingId && rows.find((r) => r.id === editingId)?.has_conversion_file && (
+              <Typography variant="body2" color="text.secondary">
+                Current: Conversion Statement uploaded
               </Typography>
             )}
           </Box>
