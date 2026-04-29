@@ -129,12 +129,12 @@ const DEPOSIT_ROW = {
   currency_code: "USD", currency_symbol: "$", exchange_rate: 5.28,
   exchange_rate_effective: 5.2834, operation_cost: 12.50, financial_operation_tax: 3.25,
   amount_foreign: 1115, amount_brl: 5894, has_nfe_file: true, has_invoice_file: true, has_transaction_file: true,
-  has_conversion_file: false,
+  has_conversion_file: true,
   created_by: "admin", created_at: "2026-01-02", updated_at: "2026-01-02",
 };
 
 const TRANSFER_ROW = {
-  id: "t1", transfer_date: "2026-01-02", deposit: "d1", bank: "b1",
+  id: "t1", transfer_date: "2026-01-02", bank: "b1",
   bank_code: "SANTANDER", bank_label: "Santander", amount_brl: 5890,
   has_transfer_file: true, created_by: "admin", created_at: "2026-01-02",
   updated_at: "2026-01-02",
@@ -420,6 +420,60 @@ describe("Deposits page", () => {
     expect(within(dialog).getByText("Upload Transaction Statement")).toBeInTheDocument();
   });
 
+  it("renders Conversion Statement icon for row with has_conversion_file=true", async () => {
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => expect(mockListDeposits).toHaveBeenCalled());
+    expect(await screen.findByTitle("Conversion Statement")).toBeInTheDocument();
+  });
+
+  it("shows Conversion Statement upload button in dialog", async () => {
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Deposit"));
+    fireEvent.click(screen.getByText("Add Deposit"));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Upload Conversion Statement")).toBeInTheDocument();
+  });
+
+  it("opens conversion file URL when Conversion Statement icon is clicked", async () => {
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+    render(<Wrapper><Deposits /></Wrapper>);
+    const icon = await screen.findByTitle("Conversion Statement");
+    fireEvent.click(icon);
+    expect(openSpy).toHaveBeenCalledWith(`/api/v1/deposits/${DEPOSIT_ROW.id}/file/conversion/`, "_blank");
+    openSpy.mockRestore();
+  });
+
+  it("shows 'Current: Conversion Statement uploaded' indicator on edit", async () => {
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => expect(mockListDeposits).toHaveBeenCalled());
+    fireEvent.click(screen.getByTitle("Edit"));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Current: Conversion Statement uploaded")).toBeInTheDocument();
+  });
+
+  it("submits uploaded conversion file to createDeposit", async () => {
+    mockListDeposits.mockResolvedValue([]);
+    render(<Wrapper><Deposits /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Deposit"));
+    fireEvent.click(screen.getByText("Add Deposit"));
+    const dialog = await screen.findByRole("dialog");
+    const uploadBtn = within(dialog).getByText("Upload Conversion Statement");
+    const fileInput = uploadBtn.parentElement!.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], "conversion.png", { type: "image/png" });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    expect(within(dialog).getByText("conversion.png")).toBeInTheDocument();
+    const amountForeign = within(dialog).getByRole("textbox", { name: /^Amount Foreign/ }) as HTMLInputElement;
+    fireEvent.change(amountForeign, { target: { value: "100.00" } });
+    fireEvent.blur(amountForeign);
+    const amountBrl = within(dialog).getByRole("textbox", { name: /^Amount BRL/ }) as HTMLInputElement;
+    fireEvent.change(amountBrl, { target: { value: "500.00" } });
+    fireEvent.blur(amountBrl);
+    fireEvent.click(within(dialog).getByText("Save"));
+    await waitFor(() => expect(mockCreateDeposit).toHaveBeenCalled());
+    const callArgs = mockCreateDeposit.mock.calls[0];
+    expect(callArgs[4]).toBe(file);
+  });
+
   it("edits a deposit with period_end before period_start, shows helper text and blocks save", async () => {
     mockListDeposits.mockResolvedValue([{ ...DEPOSIT_ROW, period_start: "2025-12-27", period_end: "2025-12-21" }]);
     render(<Wrapper><Deposits /></Wrapper>);
@@ -463,6 +517,14 @@ describe("Transfers page", () => {
     mockListTransfers.mockResolvedValue([]);
     render(<Wrapper><Transfers /></Wrapper>);
     await waitFor(() => expect(screen.getByText("Add Transfer")).toBeInTheDocument());
+  });
+
+  it("renders Bank field label in dialog", async () => {
+    render(<Wrapper><Transfers /></Wrapper>);
+    await waitFor(() => screen.getByText("Add Transfer"));
+    fireEvent.click(screen.getByText("Add Transfer"));
+    const dialog = await screen.findByRole("dialog");
+    await waitFor(() => expect(within(dialog).getAllByText("Bank").length).toBeGreaterThan(0));
   });
 });
 

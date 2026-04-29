@@ -65,7 +65,7 @@ class DepositAdmin(admin.ModelAdmin):
 
 @admin.register(Transfer)
 class TransferAdmin(admin.ModelAdmin):
-    list_display = ("bank", "transfer_date", "amount_brl", "deposit", "created_at")
+    list_display = ("bank", "transfer_date", "amount_brl", "created_at")
     list_filter = ("bank",)
 
 

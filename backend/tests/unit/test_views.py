@@ -481,24 +481,22 @@ class TestDepositFileView:
 
 
 class TestTransferViewSet:
-    def test_create(self, admin_client, deposit, bank):
+    def test_create(self, admin_client, bank):
         response = admin_client.post(
             "/api/v1/transfers/",
             {
                 "transfer_date": "2026-01-02",
-                "deposit": str(deposit.id),
                 "bank": str(bank.id),
                 "amount_brl": "5890.00",
             },
         )
         assert response.status_code == 201
 
-    def test_list_with_filters(self, admin_client, deposit, bank):
+    def test_list_with_filters(self, admin_client, bank):
         admin_client.post(
             "/api/v1/transfers/",
             {
                 "transfer_date": "2026-01-02",
-                "deposit": str(deposit.id),
                 "bank": str(bank.id),
                 "amount_brl": "5890.00",
             },
@@ -507,12 +505,11 @@ class TestTransferViewSet:
         assert response.status_code == 200
         assert len(response.data) == 1
 
-    def test_update(self, admin_client, deposit, bank):
+    def test_update(self, admin_client, bank):
         create = admin_client.post(
             "/api/v1/transfers/",
             {
                 "transfer_date": "2026-01-02",
-                "deposit": str(deposit.id),
                 "bank": str(bank.id),
                 "amount_brl": "5890.00",
             },
@@ -521,19 +518,17 @@ class TestTransferViewSet:
             f"/api/v1/transfers/{create.data['id']}/",
             {
                 "transfer_date": "2026-01-03",
-                "deposit": str(deposit.id),
                 "bank": str(bank.id),
                 "amount_brl": "5900.00",
             },
         )
         assert response.status_code == 200
 
-    def test_delete(self, admin_client, deposit, bank):
+    def test_delete(self, admin_client, bank):
         create = admin_client.post(
             "/api/v1/transfers/",
             {
                 "transfer_date": "2026-01-02",
-                "deposit": str(deposit.id),
                 "bank": str(bank.id),
                 "amount_brl": "5890.00",
             },
@@ -541,14 +536,13 @@ class TestTransferViewSet:
         response = admin_client.delete(f"/api/v1/transfers/{create.data['id']}/")
         assert response.status_code == 204
 
-    def test_create_with_file(self, admin_client, deposit, bank):
+    def test_create_with_file(self, admin_client, bank):
         f = io.BytesIO(b"%PDF transfer")
         f.name = "my_transfer.pdf"
         response = admin_client.post(
             "/api/v1/transfers/",
             {
                 "transfer_date": "2026-01-02",
-                "deposit": str(deposit.id),
                 "bank": str(bank.id),
                 "amount_brl": "5890.00",
                 "transfer_file": f,
@@ -563,10 +557,9 @@ class TestTransferViewSet:
 
 
 class TestTransferFileView:
-    def test_download(self, admin_client, admin_user, deposit, bank):
+    def test_download(self, admin_client, admin_user, bank):
         transfer = Transfer.objects.create(
             transfer_date=date(2026, 1, 2),
-            deposit=deposit,
             bank=bank,
             amount_brl=Decimal("5890"),
             transfer_file=b"%PDF transfer",
@@ -576,10 +569,9 @@ class TestTransferFileView:
         assert response.status_code == 200
         assert response["Content-Type"] == "application/pdf"
 
-    def test_download_404(self, admin_client, admin_user, deposit, bank):
+    def test_download_404(self, admin_client, admin_user, bank):
         transfer = Transfer.objects.create(
             transfer_date=date(2026, 1, 2),
-            deposit=deposit,
             bank=bank,
             amount_brl=Decimal("5890"),
             created_by=admin_user,

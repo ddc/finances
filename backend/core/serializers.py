@@ -200,7 +200,6 @@ class TransferSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "transfer_date",
-            "deposit",
             "bank",
             "bank_code",
             "bank_label",

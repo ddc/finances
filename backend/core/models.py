@@ -128,7 +128,6 @@ class Deposit(BaseModel):
 
 class Transfer(BaseModel):
     transfer_date = models.DateField()
-    deposit = models.ForeignKey(Deposit, on_delete=models.CASCADE, related_name="transfers")
     bank = models.ForeignKey(Bank, on_delete=models.PROTECT, related_name="transfers")
     amount_brl = models.DecimalField(max_digits=10, decimal_places=2)
     transfer_file = models.BinaryField(null=True, blank=True)
