@@ -96,14 +96,13 @@ class Expense(BaseModel):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="expenses")
 
     def __str__(self):
-        return str(self.category) + " - R$" + str(self.amount)
+        return f"{self.category} - R${self.amount}"
 
 
 class Deposit(BaseModel):
     deposit_date = models.DateField()
     company = models.ForeignKey(Company, on_delete=models.PROTECT, related_name="deposits")
     invoice_number = models.CharField(max_length=50, blank=True, default="")
-    invoice_issue_date = models.DateField(null=True, blank=True)
     period_start = models.DateField(null=True, blank=True)
     period_end = models.DateField(null=True, blank=True)
     currency = models.ForeignKey(Currency, on_delete=models.PROTECT, related_name="deposits")
@@ -122,7 +121,7 @@ class Deposit(BaseModel):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="deposits")
 
     def __str__(self):
-        return self.invoice_number + " - " + str(self.currency.code) + " " + str(self.amount_foreign)
+        return f"{self.invoice_number} - {self.currency.code} {self.amount_foreign}"
 
 
 class Transfer(BaseModel):
@@ -135,7 +134,7 @@ class Transfer(BaseModel):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="transfers")
 
     def __str__(self):
-        return str(self.bank) + " - R$" + str(self.amount_brl)
+        return f"{self.bank} - R${self.amount_brl}"
 
 
 class NfeSample(BaseModel):

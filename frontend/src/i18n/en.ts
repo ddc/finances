@@ -92,7 +92,6 @@ export default {
     addDeposit: "Add Deposit",
     editDeposit: "Edit Deposit",
     depositDate: "Deposit Date",
-    issueDate: "Issue Date",
     invoiceNumber: "Invoice #",
     periodStart: "Period Start",
     periodEnd: "Period End",

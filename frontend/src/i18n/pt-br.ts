@@ -92,7 +92,6 @@ export default {
     addDeposit: "Adicionar Depósito",
     editDeposit: "Editar Depósito",
     depositDate: "Data do Depósito",
-    issueDate: "Data de Emissão",
     invoiceNumber: "Nº Fatura",
     periodStart: "Período Inicial",
     periodEnd: "Período Final",

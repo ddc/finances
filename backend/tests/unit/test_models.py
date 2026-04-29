@@ -55,7 +55,6 @@ class TestDeposit:
             deposit_date=date(2026, 1, 2),
             company=company,
             invoice_number="INV-ne3wdd4-2026-1",
-            invoice_issue_date=date(2025, 12, 26),
             period_start=date(2025, 12, 21),
             period_end=date(2025, 12, 27),
             currency=currency,

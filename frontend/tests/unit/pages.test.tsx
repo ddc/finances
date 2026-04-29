@@ -124,7 +124,7 @@ const EXPENSE_ROW = {
 
 const DEPOSIT_ROW = {
   id: "d1", deposit_date: "2026-01-02", company: "co1", company_code: "DEEL",
-  company_label: "Deel", invoice_number: "INV-001", invoice_issue_date: "2025-12-26",
+  company_label: "Deel", invoice_number: "INV-001",
   period_start: "2025-12-21", period_end: "2025-12-27", currency: "cu1",
   currency_code: "USD", currency_symbol: "$", exchange_rate: 5.28,
   exchange_rate_effective: 5.2834, operation_cost: 12.50, financial_operation_tax: 3.25,
