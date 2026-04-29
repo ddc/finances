@@ -137,7 +137,6 @@ export default {
     transferDate: "Transfer Date",
     bank: "Bank",
     amountBrl: "Amount BRL",
-    deposit: "Deposit",
     total: "Total BRL",
     transferFile: "Receipt",
     uploadTransfer: "Upload Receipt",

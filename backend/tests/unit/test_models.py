@@ -68,39 +68,18 @@ class TestDeposit:
 
 
 class TestTransfer:
-    def test_create_transfer_linked_to_deposit(self, admin_user, currency, company, bank):
-        deposit = Deposit.objects.create(
-            deposit_date=date(2026, 1, 2),
-            company=company,
-            invoice_number="INV-53",
-            currency=currency,
-            amount_foreign=Decimal("1115.00"),
-            amount_brl=Decimal("5890.00"),
-            created_by=admin_user,
-        )
+    def test_create_transfer(self, admin_user, bank):
         transfer = Transfer.objects.create(
             transfer_date=date(2026, 1, 2),
-            deposit=deposit,
             bank=bank,
             amount_brl=Decimal("5890.00"),
             created_by=admin_user,
         )
-        assert transfer.deposit == deposit
         assert transfer.bank == bank
 
-    def test_transfer_str(self, admin_user, currency, company, bank):
-        deposit = Deposit.objects.create(
-            deposit_date=date(2026, 1, 2),
-            company=company,
-            invoice_number="INV-53",
-            currency=currency,
-            amount_foreign=Decimal("1115.00"),
-            amount_brl=Decimal("5890.00"),
-            created_by=admin_user,
-        )
+    def test_transfer_str(self, admin_user, bank):
         transfer = Transfer.objects.create(
             transfer_date=date(2026, 1, 2),
-            deposit=deposit,
             bank=bank,
             amount_brl=Decimal("5890.00"),
             created_by=admin_user,

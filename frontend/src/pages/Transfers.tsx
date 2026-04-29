@@ -14,13 +14,12 @@ import CurrencyField from "../components/CurrencyField";
 import StyledDataGrid from "../components/StyledDataGrid";
 import { useAuth } from "../hooks/useAuth";
 import { listTransfers, createTransfer, updateTransfer, deleteTransfer } from "../api/transfers";
-import { listDeposits } from "../api/deposits";
 import { listBanks } from "../api/lookups";
 import DataGridExport from "../components/DataGridExport";
 import { MonthFilter, YearFilter } from "../components/PageFilters";
 import DeleteDialog from "../components/DeleteDialog";
 import PageHeader from "../components/PageHeader";
-import type { Transfer, Deposit, BankOption } from "../types";
+import type { Transfer, BankOption } from "../types";
 import CurrencyFlag from "../components/CurrencyFlag";
 import { sortOptionsOtherLast } from "../utils/i18nHelpers";
 
@@ -29,7 +28,6 @@ const DYNAMIC_COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#f97316", "#f59e0b", "
 const today = () => new Date().toISOString().split("T")[0];
 const EMPTY_FORM = () => ({
   transfer_date: today(),
-  deposit: "",
   bank: "" as string,
   amount_brl: "",
 });
@@ -41,7 +39,6 @@ export default function Transfers() {
 
   const { isAdmin } = useAuth();
   const [rows, setRows] = useState<Transfer[]>([]);
-  const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [banks, setBanks] = useState<BankOption[]>([]);
   const [yearFilter, setYearFilter] = useState(String(new Date().getFullYear()));
   const [monthFilter, setMonthFilter] = useState("");
@@ -64,27 +61,12 @@ export default function Transfers() {
   }, [yearFilter, monthFilter, bankFilter]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { listDeposits().then(setDeposits); }, []);
-
-  const companyName = (code: string, fallback: string) => {
-    const key = "deposits.companies." + code;
-    const translated = t(key);
-    return translated === key ? fallback : translated;
-  };
-
-  const depositLabel = (id: string) => {
-    const d = deposits.find((dep) => dep.id === id);
-    if (!d) return id;
-    const company = companyName(d.company_code, d.company_label);
-    return company + " - " + d.currency_code + " " + formatNumber(Number(d.amount_foreign)) + " - BRL " + formatNumber(Number(d.amount_brl)) + " - " + d.deposit_date;
-  };
 
   const handleOpen = (transfer?: Transfer) => {
     if (transfer) {
       setEditingId(transfer.id);
       setForm({
         transfer_date: transfer.transfer_date,
-        deposit: transfer.deposit,
         bank: transfer.bank,
         amount_brl: String(transfer.amount_brl),
       });
@@ -100,10 +82,9 @@ export default function Transfers() {
 
   const handleSave = async () => {
     setSubmitted(true);
-    if (!form.transfer_date || !form.deposit || !form.bank || !form.amount_brl) return;
+    if (!form.transfer_date || !form.bank || !form.amount_brl) return;
     const payload = {
       transfer_date: form.transfer_date,
-      deposit: form.deposit,
       bank: form.bank,
       amount_brl: Number(form.amount_brl),
     };
@@ -134,12 +115,6 @@ export default function Transfers() {
     { field: "transfer_date", headerName: t("transfers.transferDate"), flex: 1 },
     { field: "bank_label", headerName: t("transfers.bank"), flex: 1, valueGetter: (_value, row: Transfer) => bankName(row.bank_code, row.bank_label) },
     { field: "amount_brl", headerName: t("transfers.amountBrl"), flex: 1, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
-    {
-      field: "deposit",
-      headerName: t("transfers.deposit"),
-      flex: 2,
-      valueGetter: (value: string) => depositLabel(value),
-    },
     {
       field: "actions",
       headerName: t("common.actions"),
@@ -267,14 +242,6 @@ export default function Transfers() {
             onChange={(v) => setForm({ ...form, transfer_date: v ? v.format("YYYY-MM-DD") : "" })}
             slotProps={{ textField: { required: true, error: submitted && !form.transfer_date } }}
           />
-          <FormControl fullWidth required error={submitted && !form.deposit}>
-            <InputLabel>{t("transfers.deposit")}</InputLabel>
-            <Select value={form.deposit} label={t("transfers.deposit")} onChange={(e) => setForm({ ...form, deposit: e.target.value })}>
-              {deposits.map((d) => (
-                <MenuItem key={d.id} value={d.id}>{depositLabel(d.id)}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
           <FormControl fullWidth required error={submitted && !form.bank}>
             <InputLabel>{t("transfers.bank")}</InputLabel>
             <Select value={form.bank} label={t("transfers.bank")} onChange={(e) => setForm({ ...form, bank: e.target.value })}>

@@ -113,20 +113,18 @@ class TestDepositSerializer:
 
 
 class TestTransferSerializer:
-    def test_valid_transfer(self, deposit, bank):
+    def test_valid_transfer(self, bank):
         data = {
             "transfer_date": "2026-01-02",
-            "deposit": str(deposit.id),
             "bank": str(bank.id),
             "amount_brl": "5890.00",
         }
         serializer = TransferSerializer(data=data)
         assert serializer.is_valid(), serializer.errors
 
-    def test_has_transfer_file_flag(self, deposit, bank, viewer_user):
+    def test_has_transfer_file_flag(self, bank, viewer_user):
         transfer = Transfer.objects.create(
             transfer_date=date(2026, 1, 2),
-            deposit=deposit,
             bank=bank,
             amount_brl=Decimal("5890.00"),
             created_by=viewer_user,

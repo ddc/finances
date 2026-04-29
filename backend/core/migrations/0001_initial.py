@@ -354,14 +354,6 @@ class Migration(migrations.Migration):
                         to=settings.AUTH_USER_MODEL,
                     ),
                 ),
-                (
-                    "deposit",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="transfers",
-                        to="core.deposit",
-                    ),
-                ),
             ],
             options={
                 "abstract": False,

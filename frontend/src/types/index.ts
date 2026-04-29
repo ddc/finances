@@ -87,7 +87,6 @@ export interface Deposit {
 export interface Transfer {
   id: string;
   transfer_date: string;
-  deposit: string;
   bank: string;
   bank_code: string;
   bank_label: string;
