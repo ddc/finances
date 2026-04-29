@@ -136,8 +136,8 @@ const DEPOSIT_ROW = {
 const TRANSFER_ROW = {
   id: "t1", transfer_date: "2026-01-02", bank: "b1",
   bank_code: "SANTANDER", bank_label: "Santander", amount_brl: 5890,
-  has_transfer_file: true, created_by: "admin", created_at: "2026-01-02",
-  updated_at: "2026-01-02",
+  description: "", has_transfer_file: true, created_by: "admin",
+  created_at: "2026-01-02", updated_at: "2026-01-02",
 };
 
 const NFE_ROW = {

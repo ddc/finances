@@ -137,6 +137,7 @@ export default {
     transferDate: "Data da Transferência",
     bank: "Banco",
     amountBrl: "Valor em BRL",
+    description: "Descrição",
     total: "Total BRL",
     transferFile: "Comprovante de Transferência",
     uploadTransfer: "Anexar Comprovante de Transferência",

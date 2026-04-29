@@ -130,6 +130,7 @@ class Transfer(BaseModel):
     transfer_date = models.DateField()
     bank = models.ForeignKey(Bank, on_delete=models.PROTECT, related_name="transfers")
     amount_brl = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField(blank=True, default="")
     transfer_file = models.BinaryField(null=True, blank=True)
     transfer_filename = models.CharField(max_length=255, blank=True, default="")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="transfers")
