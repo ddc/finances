@@ -507,7 +507,7 @@ export default function Deposits() {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
               {t("deposits.uploadNfe")}
-              <input type="file" accept=".pdf" hidden onChange={(e) => setNfeFile(e.target.files?.[0] || null)} />
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg" hidden onChange={(e) => setNfeFile(e.target.files?.[0] || null)} />
             </Button>
             {nfeFile && <Typography variant="body2">{nfeFile.name}</Typography>}
             {!nfeFile && editingId && rows.find((r) => r.id === editingId)?.has_nfe_file && (
@@ -519,7 +519,7 @@ export default function Deposits() {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
               {t("deposits.uploadInvoice")}
-              <input type="file" accept=".pdf" hidden onChange={(e) => setInvoiceFile(e.target.files?.[0] || null)} />
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg" hidden onChange={(e) => setInvoiceFile(e.target.files?.[0] || null)} />
             </Button>
             {invoiceFile && <Typography variant="body2">{invoiceFile.name}</Typography>}
             {!invoiceFile && editingId && rows.find((r) => r.id === editingId)?.has_invoice_file && (
@@ -531,7 +531,7 @@ export default function Deposits() {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
               {t("deposits.uploadTransaction")}
-              <input type="file" accept=".pdf" hidden onChange={(e) => setStatementFile(e.target.files?.[0] || null)} />
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg" hidden onChange={(e) => setStatementFile(e.target.files?.[0] || null)} />
             </Button>
             {statementFile && <Typography variant="body2">{statementFile.name}</Typography>}
             {!statementFile && editingId && rows.find((r) => r.id === editingId)?.has_transaction_file && (
@@ -543,7 +543,7 @@ export default function Deposits() {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
               {t("deposits.uploadConversion")}
-              <input type="file" accept=".pdf" hidden onChange={(e) => setConversionFile(e.target.files?.[0] || null)} />
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg" hidden onChange={(e) => setConversionFile(e.target.files?.[0] || null)} />
             </Button>
             {conversionFile && <Typography variant="body2">{conversionFile.name}</Typography>}
             {!conversionFile && editingId && rows.find((r) => r.id === editingId)?.has_conversion_file && (

@@ -291,7 +291,7 @@ export default function Transfers() {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button variant="outlined" component="label">
               {t("transfers.uploadTransfer")}
-              <input type="file" accept=".pdf" hidden onChange={(e) => setTransferFile(e.target.files?.[0] || null)} />
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg" hidden onChange={(e) => setTransferFile(e.target.files?.[0] || null)} />
             </Button>
             {transferFile && <Typography variant="body2">{transferFile.name}</Typography>}
             {!transferFile && editingId && rows.find((r) => r.id === editingId)?.has_transfer_file && (

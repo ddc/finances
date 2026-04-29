@@ -358,8 +358,18 @@ class NfeSampleViewSet(LoggingModelViewSet):
         return self._filter_by_year_month(super().get_queryset(), "created_at")
 
 
-def _pdf_response(file_data, filename):
-    response = HttpResponse(bytes(file_data), content_type="application/pdf")
+_CONTENT_TYPES = {
+    "pdf": "application/pdf",
+    "png": "image/png",
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+}
+
+
+def _file_response(file_data, filename):
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "pdf"
+    content_type = _CONTENT_TYPES.get(ext, "application/octet-stream")
+    response = HttpResponse(bytes(file_data), content_type=content_type)
     response["Content-Disposition"] = 'inline; filename="' + filename + '"'
     return response
 
@@ -383,7 +393,7 @@ class ExpenseFileView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         if not file_data:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        return _pdf_response(file_data, filename or str(pk) + "_" + file_type + ".pdf")
+        return _file_response(file_data, filename or str(pk) + "_" + file_type + ".pdf")
 
 
 class DepositFileView(APIView):
@@ -408,7 +418,7 @@ class DepositFileView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         if not file_data:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        return _pdf_response(file_data, filename or str(pk) + "_" + file_type + ".pdf")
+        return _file_response(file_data, filename or str(pk) + "_" + file_type + ".pdf")
 
 
 class TransferFileView(APIView):
@@ -419,4 +429,4 @@ class TransferFileView(APIView):
         transfer = Transfer.objects.get(pk=pk)
         if not transfer.transfer_file:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        return _pdf_response(transfer.transfer_file, transfer.transfer_filename or str(pk) + "_transfer.pdf")
+        return _file_response(transfer.transfer_file, transfer.transfer_filename or str(pk) + "_transfer.pdf")
