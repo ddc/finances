@@ -18,13 +18,12 @@ class AppSettings(BaseSettings):
         default="USD:US Dollar:$,EUR:Euro:\u20ac,GBP:British Pound:\u00a3,CAD:Canadian Dollar:C$,AUD:Australian Dollar:A$"
     )
     SEED_CATEGORIES: str = Field(
-        default="TAXES:Taxes,HEALTH_INSURANCE:Health Insurance,ACCOUNTING:Accounting,OTHER:Other"
+        default="OFFICE:Office,ACCOUNTING:Accounting,TAXES:Taxes,HEALTHCARE_PLAN:Healthcare Plan,OTHER:Other"
     )
     SEED_SUB_CATEGORIES: str = Field(
-        default="TAXES:TFE:TFE,TAXES:IRRF:IRRF,TAXES:INSS:INSS,"
-        "HEALTH_INSURANCE:MEDICAL:Medical,HEALTH_INSURANCE:DENTAL:Dental"
+        default="OFFICE:RENT:Rent,ACCOUNTING:ACCOUNTANT:Accountant,TAXES:TFE:TFE,HEALTHCARE_PLAN:MEDICAL:Medical,HEALTHCARE_PLAN:DENTAL:Dental"
     )
-    SEED_BANKS: str = Field(default="OTHER:Other")
+    SEED_BANKS: str = Field(default="BANK_OF_AMERICA:Bank of America")
     SEED_COMPANIES: str = Field(default="OTHER:Other")
 
     # Database

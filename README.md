@@ -38,6 +38,7 @@
 - [Timezone Handling](#timezone-handling)
 - [API Endpoints](#api-endpoints)
 - [Setup](#setup)
+- [PTAX Exchange Rates](#ptax-exchange-rates)
 - [Development](#development)
 - [Running Tests](#running-tests)
 - [Deployment](#deployment)
@@ -211,6 +212,25 @@ docker compose exec backend uv run --frozen --no-sync python manage.py createsup
 
 Expense categories, currencies, companies, and banks can be added, edited, or removed via the Django admin panel at
 `/admin/`. The frontend dropdowns update automatically from the database — no code changes needed.
+
+## PTAX Exchange Rates
+
+Exchange rates are fetched from the Banco Central do Brasil (BCB) Olinda PTAX OData service:
+
+```
+PTAX_API_URL=https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata
+```
+
+`PTAX_API_URL` **must be a BCB-Olinda-compatible OData URL.** The fetcher in `backend/core/services/ptax.py` hardcodes
+the OData function paths (`CotacaoDolarPeriodo`, `CotacaoMoedaPeriodo`), query parameters (`@di`, `@df`, `$format`,
+`$top`, `$orderby`), the `MM-DD-YYYY` date format, and the response shape (`value[].cotacaoCompra`,
+`cotacaoVenda`, `dataHoraCotacao`). Pointing it at any other provider will fail to parse.
+
+`PTAX_CACHE_TTL_SECONDS` controls how long fetched rates are cached in memory (per-currency).
+
+> **Note:** PTAX is the official daily reference rate published by BCB (calculated 4× per day, frozen after the
+> ~13:10 BRT closing PTAX). Banks' intraday commercial rates are *not* PTAX — track those manually via the
+> `exchange_rate_effective` field on a Deposit if you need the rate the bank actually applied.
 
 ## Development
 

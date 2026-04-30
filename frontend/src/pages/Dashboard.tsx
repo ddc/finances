@@ -235,8 +235,8 @@ export default function Dashboard() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
-                    <YAxis />
-                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} />
+                    <YAxis tickFormatter={(value) => Number(value).toLocaleString(numberLocale)} />
+                    <RechartsTooltip cursor={false} contentStyle={{ backgroundColor: "rgba(55,65,81,0.95)", border: "none", borderRadius: 8, color: "#fff" }} formatter={(value) => "R$ " + Number(value).toLocaleString(numberLocale, { minimumFractionDigits: 2 })} />
                     <Legend />
                     <Area type="monotone" dataKey={t("dashboard.income")} stroke="#22c55e" fillOpacity={1} fill="url(#colorIncome)" />
                     <Area type="monotone" dataKey={t("dashboard.expenses")} stroke="#ef4444" fillOpacity={1} fill="url(#colorExpenses)" />
@@ -420,7 +420,7 @@ export default function Dashboard() {
                 {data.recent_activity.slice(col * 10, (col + 1) * 10).map((item) => (
                   <ListItem key={item.type + "-" + item.date + "-" + item.description}>
                     <ListItemText
-                      primary={item.description + " — R$ " + Number(item.amount_brl).toFixed(2)}
+                      primary={item.description + " — R$ " + Number(item.amount_brl).toLocaleString(numberLocale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       secondary={t("common.types." + item.type) + " • " + item.date}
                     />
                   </ListItem>

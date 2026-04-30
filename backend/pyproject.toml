@@ -1,6 +1,6 @@
 [project]
 name = "finances"
-version = "1.0.19"
+version = "1.0.20"
 description = "Personal finance management app"
 license = { text = "MIT" }
 readme = "README.md"

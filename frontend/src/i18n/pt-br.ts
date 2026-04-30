@@ -81,9 +81,10 @@ export default {
     uploadPayment: "Anexar Comprovante de Pagamento",
     subCategory: "Sub-Categoria",
     categories: {
-      TAXES: "Impostos",
-      HEALTH_INSURANCE: "Plano de Saúde",
+      OFFICE: "Escritório",
       ACCOUNTING: "Contabilidade",
+      TAXES: "Impostos",
+      HEALTHCARE_PLAN: "Plano de Saúde",
       OTHER: "Outros",
     },
   },
