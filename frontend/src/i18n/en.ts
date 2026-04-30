@@ -81,9 +81,10 @@ export default {
     uploadPayment: "Upload Payment Receipt",
     subCategory: "Sub-Category",
     categories: {
-      TAXES: "Taxes",
-      HEALTH_INSURANCE: "Health Insurance",
+      OFFICE: "Office",
       ACCOUNTING: "Accounting",
+      TAXES: "Taxes",
+      HEALTHCARE_PLAN: "Healthcare Plan",
       OTHER: "Other",
     },
   },
