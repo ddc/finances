@@ -100,6 +100,7 @@ export default {
     exchangeRate: "Taxa de Câmbio",
     exchangeRateEffective: "Valor Efetivo Total (VET)",
     exchangeRateEffectiveShort: "VET",
+    spread: "Spread",
     operationCost: "Custo Operacional",
     financialOperationTax: "Imposto Operações Financeiras (IOF)",
     financialOperationTaxShort: "IOF",

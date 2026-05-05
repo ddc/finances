@@ -100,6 +100,7 @@ export default {
     exchangeRate: "Exchange Rate",
     exchangeRateEffective: "Effective Exchange Rate",
     exchangeRateEffectiveShort: "Effective Ex. Rate",
+    spread: "Spread",
     operationCost: "Operation Cost",
     financialOperationTax: "Financial Operation Tax",
     financialOperationTaxShort: "Financial Oper. Tax",
