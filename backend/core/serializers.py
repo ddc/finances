@@ -116,6 +116,7 @@ class DepositSerializer(serializers.ModelSerializer):
     invoice_number = serializers.CharField(required=False, allow_blank=True)
     exchange_rate = serializers.DecimalField(max_digits=10, decimal_places=4, required=False, allow_null=True)
     exchange_rate_effective = serializers.DecimalField(max_digits=10, decimal_places=4, required=False, allow_null=True)
+    spread = serializers.DecimalField(max_digits=10, decimal_places=4, required=False, allow_null=True)
     operation_cost = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     financial_operation_tax = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     has_nfe_file = serializers.SerializerMethodField()
@@ -143,6 +144,7 @@ class DepositSerializer(serializers.ModelSerializer):
             "currency_symbol",
             "exchange_rate",
             "exchange_rate_effective",
+            "spread",
             "operation_cost",
             "financial_operation_tax",
             "amount_foreign",

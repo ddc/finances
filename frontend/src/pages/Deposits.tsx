@@ -46,6 +46,7 @@ function buildPayload(form: DepositForm) {
     currency: form.currency,
     exchange_rate: optNum(form.exchange_rate),
     exchange_rate_effective: optNum(form.exchange_rate_effective),
+    spread: optNum(form.spread),
     operation_cost: optNum(form.operation_cost),
     financial_operation_tax: optNum(form.financial_operation_tax),
     amount_foreign: Number(form.amount_foreign),
@@ -63,6 +64,7 @@ function depositToForm(d: Deposit) {
     currency: d.currency,
     exchange_rate: optStr(d.exchange_rate),
     exchange_rate_effective: optStr(d.exchange_rate_effective),
+    spread: optStr(d.spread),
     operation_cost: optStr(d.operation_cost),
     financial_operation_tax: optStr(d.financial_operation_tax),
     amount_foreign: String(d.amount_foreign),
@@ -78,6 +80,7 @@ const EMPTY_FORM = () => ({
   currency: "" as string,
   exchange_rate: "",
   exchange_rate_effective: "",
+  spread: "",
   operation_cost: "",
   financial_operation_tax: "",
   amount_foreign: "",
@@ -104,6 +107,7 @@ const TOGGLEABLE_COLUMNS = [
   "period_start",
   "period_end",
   "exchange_rate_effective",
+  "spread",
   "operation_cost",
   "financial_operation_tax",
 ];
@@ -303,6 +307,7 @@ export default function Deposits() {
     { field: "currency_code", headerName: t("deposits.currency"), flex: 0.6 },
     { field: "exchange_rate", headerName: t("deposits.exchangeRate"), flex: 1, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 4) },
     { field: "exchange_rate_effective", headerName: t("deposits.exchangeRateEffectiveShort"), flex: 1.1, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 4) },
+    { field: "spread", headerName: t("deposits.spread"), flex: 1, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 4) },
     { field: "financial_operation_tax", headerName: t("deposits.financialOperationTaxShort"), flex: 1, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 2) },
     { field: "operation_cost", headerName: t("deposits.operationCost"), flex: 1.2, type: "number", valueFormatter: (value: number) => formatOptional(value, numberLocale, 2) },
     { field: "amount_foreign", headerName: t("deposits.amountForeign"), flex: 1.2, type: "number", valueFormatter: (value: number) => formatNumber(Number(value)) },
@@ -484,6 +489,11 @@ export default function Deposits() {
           <CurrencyField
             label={t("deposits.exchangeRateEffective")} value={form.exchange_rate_effective}
             onChange={(v) => setForm({ ...form, exchange_rate_effective: v })}
+            decimalPlaces={4}
+          />
+          <CurrencyField
+            label={t("deposits.spread")} value={form.spread}
+            onChange={(v) => setForm({ ...form, spread: v })}
             decimalPlaces={4}
           />
           <CurrencyField

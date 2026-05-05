@@ -71,6 +71,7 @@ export interface Deposit {
   currency_symbol: string;
   exchange_rate: number | null;
   exchange_rate_effective: number | null;
+  spread: number | null;
   operation_cost: number | null;
   financial_operation_tax: number | null;
   amount_foreign: number;

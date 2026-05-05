@@ -108,6 +108,7 @@ class Deposit(BaseModel):
     currency = models.ForeignKey(Currency, on_delete=models.PROTECT, related_name="deposits")
     exchange_rate = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
     exchange_rate_effective = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
+    spread = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
     operation_cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     financial_operation_tax = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     amount_foreign = models.DecimalField(max_digits=10, decimal_places=2)

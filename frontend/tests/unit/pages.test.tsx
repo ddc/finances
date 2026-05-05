@@ -127,7 +127,7 @@ const DEPOSIT_ROW = {
   company_label: "Deel", invoice_number: "INV-001",
   period_start: "2025-12-21", period_end: "2025-12-27", currency: "cu1",
   currency_code: "USD", currency_symbol: "$", exchange_rate: 5.28,
-  exchange_rate_effective: 5.2834, operation_cost: 12.50, financial_operation_tax: 3.25,
+  exchange_rate_effective: 5.2834, spread: null, operation_cost: 12.50, financial_operation_tax: 3.25,
   amount_foreign: 1115, amount_brl: 5894, has_nfe_file: true, has_invoice_file: true, has_transaction_file: true,
   has_conversion_file: true,
   created_by: "admin", created_at: "2026-01-02", updated_at: "2026-01-02",
@@ -389,7 +389,7 @@ describe("Deposits page", () => {
   });
 
   it("renders with deposit missing new optional fields", async () => {
-    mockListDeposits.mockResolvedValue([{ ...DEPOSIT_ROW, exchange_rate_effective: null, operation_cost: null, financial_operation_tax: null, exchange_rate: null }]);
+    mockListDeposits.mockResolvedValue([{ ...DEPOSIT_ROW, exchange_rate_effective: null, spread: null, operation_cost: null, financial_operation_tax: null, exchange_rate: null }]);
     render(<Wrapper><Deposits /></Wrapper>);
     await waitFor(() => expect(screen.getByText(/Total BRL/)).toBeInTheDocument());
   });
