@@ -2,7 +2,7 @@ name: finances-local-db
 
 services:
   finances_database:
-    image: postgres:18.3
+    image: postgres:latest
     container_name: finances_database
     hostname: postgres
     restart: always

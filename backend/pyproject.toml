@@ -1,6 +1,6 @@
 [project]
 name = "finances"
-version = "1.0.21"
+version = "1.0.22"
 description = "Personal finance management app"
 license = { text = "MIT" }
 readme = "README.md"
@@ -13,18 +13,18 @@ dependencies = [
   "djangorestframework>=3.17.1",
   "gunicorn>=26.0.0",
   "psycopg2-binary>=2.9.12",
-  "pydantic_settings>=2.14.0",
+  "pydantic_settings>=2.14.1",
   "pythonLogs>=7.0.1",
-  "requests>=2.33.1",
-  "uuid-utils>=0.14.1",
+  "requests>=2.34.2",
+  "uuid-utils>=0.16.0",
 ]
 
 [dependency-groups]
 dev = [
-  "coverage>=7.13.5",
-  "poethepoet>=0.45.0",
+  "coverage>=7.14.0",
+  "poethepoet>=0.46.0",
   "pytest-django>=4.12.0",
-  "ruff>=0.15.12",
+  "ruff>=0.15.14",
   "testcontainers[postgres]>=4.14.2",
 ]
 
