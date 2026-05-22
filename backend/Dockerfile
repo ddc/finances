@@ -1,4 +1,4 @@
-ARG PYTHON_IMAGE=python:3.14.4-alpine3.23
+ARG PYTHON_IMAGE=python:3.14.5-alpine3.23
 FROM ${PYTHON_IMAGE} AS python-base
 
 LABEL Description="Finances Backend"
