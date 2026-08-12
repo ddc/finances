@@ -49,7 +49,8 @@ RUN set -ex && \
     mkdir -p "${WORKDIR}/staticfiles" && \
     chown -R appuser:appuser "${WORKDIR}" "${LOG_DIRECTORY}"
 
-USER appuser
+# appuser user id
+USER 1000:1000
 
 EXPOSE 8000
 
