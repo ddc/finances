@@ -1,5 +1,5 @@
 ARG BUN_IMAGE=oven/bun:1.3.14-alpine
-ARG NGINX_IMAGE=nginx:1.31.0-alpine3.23-slim
+ARG NGINX_IMAGE=nginx:1.31.3-alpine3.24-slim
 
 FROM ${BUN_IMAGE} AS build
 
@@ -16,5 +16,6 @@ RUN chown -R nginx:nginx /var/cache/nginx /var/log/nginx /etc/nginx/conf.d && \
     mkdir -p /app/logs && chown nginx:nginx /app/logs
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-USER nginx
+# nginx user id
+USER 101:101
 EXPOSE 8443
