@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "1.0.22",
+  "version": "1.0.23",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -47,7 +47,7 @@
     "eslint-plugin-react-refresh": "latest",
     "globals": "latest",
     "jsdom": "latest",
-    "typescript": "latest",
+    "typescript": "^6.0.3",
     "typescript-eslint": "latest",
     "vite": "latest",
     "vitest": "latest"

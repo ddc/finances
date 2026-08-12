@@ -1,31 +1,31 @@
 [project]
 name = "finances"
-version = "1.0.22"
+version = "1.0.23"
 description = "Personal finance management app"
 license = { text = "MIT" }
 readme = "README.md"
 authors = [
   { name = "Daniel Costa", email = "daniel@ddcsoftwares.com" },
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.14.7"
 dependencies = [
-  "django>=6.0.5",
-  "djangorestframework>=3.17.1",
+  "django>=6.1",
+  "djangorestframework>=3.18.0",
   "gunicorn>=26.0.0",
   "psycopg2-binary>=2.9.12",
-  "pydantic_settings>=2.14.1",
+  "pydantic_settings>=2.15.0",
   "pythonLogs>=7.0.1",
   "requests>=2.34.2",
-  "uuid-utils>=0.16.0",
+  "uuid-utils>=0.17.0",
 ]
 
 [dependency-groups]
 dev = [
-  "coverage>=7.14.0",
-  "poethepoet>=0.46.0",
-  "pytest-django>=4.12.0",
-  "ruff>=0.15.14",
-  "testcontainers[postgres]>=4.14.2",
+  "coverage>=7.15.4",
+  "poethepoet>=0.48.0",
+  "pytest-django>=4.14.0",
+  "ruff>=0.16.2",
+  "testcontainers[postgres]>=4.15.0",
 ]
 
 [tool.poe.tasks]
@@ -33,11 +33,19 @@ dev = [
 linter-backend.shell = "uv run ruff check --fix . && uv run ruff format ."
 profile-backend = "uv run python -m cProfile -o cprofile_unit.prof -m pytest tests/unit"
 profile-backend-integration = "uv run python -m cProfile -o cprofile_integration.prof -m pytest tests/integration"
-test-backend.shell = "uv run coverage run -m pytest tests/unit && uv run coverage report && mkdir -p ../coverage-reports && uv run coverage xml"
-test-backend-integration = "uv run pytest tests/integration"
+test-backend-unit.sequence = [
+  { shell = "uv run coverage erase" },
+  { shell = "uv run coverage run --append -m pytest tests/unit" },
+  { shell = "uv run coverage report" },
+  { shell = "mkdir -p ../coverage-reports && uv run coverage xml" },
+]
+test-backend-integration.sequence = [
+  { shell = "uv run coverage run --append -m pytest tests/integration" },
+  { shell = "uv run coverage report" },
+]
 test-backend-docker = "uv run pytest tests/docker"
 hadolint-backend.shell = "docker run --rm -i -v $(pwd)/../.hadolint.yml:/.config/hadolint.yml:ro hadolint/hadolint < Dockerfile"
-update-backend.shell = "uv run ruff check --fix . && uv run ruff format . && uv lock --upgrade && uv sync --all-extras --all-groups"
+update-backend.shell = "uv lock --upgrade && uv sync --all-extras --all-groups"
 migration-backend = "uv run --frozen python manage.py migrate"
 # --- Frontend ---
 linter-frontend.shell = "cd ../frontend && bun run lint"
@@ -48,7 +56,15 @@ update-frontend.shell = "cd ../frontend && bun update && bun run build"
 # --- All ---
 linter.sequence = ["linter-backend", "linter-frontend"]
 updatedev.sequence = ["update-backend", "sync-version", "update-frontend"]
-tests.sequence = ["linter-backend", "linter-frontend", "hadolint-backend", "test-backend-docker", "test-backend", "test-backend-integration", "test-frontend", "test-frontend-integration"]
+tests.sequence = [
+  "linter-backend", "linter-frontend", "hadolint-backend", "test-backend-docker",
+  { shell = "uv run coverage erase" },
+  { shell = "uv run coverage run --append -m pytest tests/unit" },
+  { shell = "uv run coverage run --append -m pytest tests/integration" },
+  { shell = "uv run coverage report" },
+  { shell = "mkdir -p ../coverage-reports && uv run coverage xml" },
+  "test-frontend", "test-frontend-integration",
+]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.unit.test_settings"
