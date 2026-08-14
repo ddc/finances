@@ -49,7 +49,10 @@ class TestDockerfileStructure:
     def test_multistage_build(self, project_root):
         content = (project_root / "backend" / "Dockerfile").read_text()
         assert "AS python-base" in content, "Missing python-base stage"
-        assert "FROM python-base AS final" in content, "Missing final stage"
+        assert "AS final" in content, "Missing final stage"
+        assert "COPY --from=python-base" in content, (
+            "Final stage must copy the venv from python-base, not inherit its toolchain"
+        )
 
 
 class TestDockerBuild:
@@ -67,6 +70,15 @@ class TestDockerSmoke:
         )
         assert result.returncode == 0
         assert "3.14" in result.stdout
+
+    def test_no_build_toolchain(self, docker_build, docker_bin):
+        result = subprocess.run(
+            [docker_bin, "run", "--rm", "--entrypoint", "sh", docker_build, "-c", "command -v gcc cc make || true"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        assert not result.stdout.strip(), f"Build toolchain leaked into final image:\n{result.stdout}"
 
     def test_uv_available(self, docker_build, docker_bin):
         result = subprocess.run(
