@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # Build stage: compiles psycopg2 against libpq and resolves the virtualenv
 # ---------------------------------------------------------------------------
-ARG PYTHON_IMAGE
+ARG PYTHON_IMAGE=python:3.14.7-alpine3.24
 FROM ${PYTHON_IMAGE} AS python-base
 
 LABEL Description="Finances Backend"
