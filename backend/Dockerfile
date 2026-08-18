@@ -1,5 +1,32 @@
-ARG PYTHON_IMAGE=python:3.14.5-alpine3.23
+# ---------------------------------------------------------------------------
+# Build stage: compiles psycopg2 against libpq and resolves the virtualenv
+# ---------------------------------------------------------------------------
+ARG PYTHON_IMAGE=python:3.14.7-alpine3.24
 FROM ${PYTHON_IMAGE} AS python-base
+
+LABEL Description="Finances Backend"
+
+ENV WORKDIR=/app \
+    TZ="UTC" \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+
+WORKDIR ${WORKDIR}
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+
+RUN apk upgrade --no-cache && apk add --no-cache ca-certificates gcc musl-dev postgresql-dev
+
+COPY pyproject.toml uv.lock ${WORKDIR}/
+
+RUN set -ex && \
+    uv sync --frozen --no-dev && \
+    uv cache clean
+
+# ---------------------------------------------------------------------------
+# Final stage: clean base with only the libpq runtime, no compiler or headers
+# ---------------------------------------------------------------------------
+FROM ${PYTHON_IMAGE} AS final
 
 LABEL Description="Finances Backend"
 
@@ -16,24 +43,14 @@ ENV LOG_DIRECTORY="${LOG_DIRECTORY}" \
     UV_SYSTEM_PYTHON=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
-    PATH="/home/appuser/.local/bin:$PATH"
+    UV_CACHE_DIR=/tmp/uv-cache
 
 WORKDIR ${WORKDIR}
 
-RUN set -ex && \
-    apk update && \
-    apk upgrade --no-cache && \
-    apk add --no-cache ca-certificates curl postgresql-libs && \
-    curl --proto '=https' --tlsv1.3 -LsSf https://astral.sh/uv/install.sh | sh && \
-    addgroup -g 1000 appuser && \
-    adduser -u 1000 -G appuser -h /home/appuser -D appuser && \
-    mv /root/.local /home/appuser/.local && \
-    chown -R appuser:appuser /home/appuser/.local
+RUN apk upgrade --no-cache && apk add --no-cache ca-certificates postgresql-libs
 
-FROM python-base AS final
-
-RUN apk update && apk upgrade --no-cache
-
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+COPY --from=python-base --chown=65534:65534 ${WORKDIR}/.venv ${WORKDIR}/.venv
 COPY --chmod=555 manage.py ${WORKDIR}/
 COPY --chmod=555 finances ${WORKDIR}/finances
 COPY --chmod=555 core ${WORKDIR}/core
@@ -41,15 +58,12 @@ COPY --chmod=555 pyproject.toml ${WORKDIR}/
 COPY --chmod=555 uv.lock ${WORKDIR}/
 
 RUN set -ex && \
-    mkdir -p "${LOG_DIRECTORY}" && \
-    apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev && \
-    uv sync --frozen --no-dev && \
-    apk del .build-deps && \
-    uv cache clean && \
-    mkdir -p "${WORKDIR}/staticfiles" && \
-    chown -R appuser:appuser "${WORKDIR}" "${LOG_DIRECTORY}"
+    ${WORKDIR}/.venv/bin/python -c "import django, psycopg2; print('venv OK', django.get_version())" && \
+    mkdir -p "${LOG_DIRECTORY}" "${WORKDIR}/staticfiles" && \
+    chown -R 65534:65534 "${LOG_DIRECTORY}" "${WORKDIR}/staticfiles"
 
-USER appuser
+# 65534:65534 is nobody:nobody in alpine. Numeric so the host can resolve it (DL3066)
+USER 65534:65534
 
 EXPOSE 8000
 

@@ -6,7 +6,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       args:
-        - PYTHON_IMAGE=${PYTHON_IMAGE:-python:3.14.5-alpine3.23}
+        - PYTHON_IMAGE=${PYTHON_IMAGE:?set PYTHON_IMAGE in .env}
         - LOG_DIRECTORY=${LOG_DIRECTORY}
     container_name: finances_backend
     logging:
@@ -44,8 +44,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - BUN_IMAGE=${BUN_IMAGE:-oven/bun:1.3.14-alpine}
-        - NGINX_IMAGE=${NGINX_IMAGE:-nginx:1.31.0-alpine3.23-slim}
+        - BUN_IMAGE=${BUN_IMAGE:?set BUN_IMAGE in .env}
+        - NGINX_IMAGE=${NGINX_IMAGE:?set NGINX_IMAGE in .env}
         - LOG_DIRECTORY=${LOG_DIRECTORY}
     container_name: finances_frontend
     logging:
