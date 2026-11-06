@@ -23,6 +23,9 @@ sudo chmod 755 "$PROJECT_DIR/utilities"/*.sh
 # fix nginx logs dir ownership (nginx container runs as UID 101)
 sudo chown 101:101 "$PROJECT_DIR/frontend/logs"
 
+# fix backend logs dir ownership (backend container runs as UID 65534/nobody)
+sudo chown 65534:65534 "$PROJECT_DIR/backend/logs"
+
 # start containers
 #./utilities/start.sh
 
