@@ -213,13 +213,13 @@ export default function Deposits() {
   const [conversionFile, setConversionFile] = useState<File | null>(null);
   const [extraColsVisible, setExtraColsVisible] = useState(false);
 
-  useEffect(() => { listCompanies().then(setCompanies); }, []);
+  useEffect(() => { void listCompanies().then(setCompanies); }, []);
   useEffect(() => {
-    listCurrencies().then((list) => setCurrencies(sortByCurrencyOrder(list)));
+    void listCurrencies().then((list) => setCurrencies(sortByCurrencyOrder(list)));
   }, []);
 
   const load = useCallback(() => {
-    listDeposits(buildFilterParams({ year: yearFilter, month: monthFilter })).then(setRows);
+    void listDeposits(buildFilterParams({ year: yearFilter, month: monthFilter })).then(setRows);
   }, [yearFilter, monthFilter]);
 
   useEffect(() => { load(); }, [load]);

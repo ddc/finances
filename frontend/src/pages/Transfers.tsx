@@ -51,14 +51,14 @@ export default function Transfers() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [transferFile, setTransferFile] = useState<File | null>(null);
 
-  useEffect(() => { listBanks().then(setBanks); }, []);
+  useEffect(() => { void listBanks().then(setBanks); }, []);
 
   const load = useCallback(() => {
     const params: Record<string, string> = {};
     if (yearFilter) params.year = yearFilter;
     if (monthFilter) params.month = monthFilter;
     if (bankFilter) params.bank = bankFilter;
-    listTransfers(params).then(setRows);
+    void listTransfers(params).then(setRows);
   }, [yearFilter, monthFilter, bankFilter]);
 
   useEffect(() => { load(); }, [load]);

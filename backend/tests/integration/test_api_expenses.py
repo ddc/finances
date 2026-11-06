@@ -105,7 +105,7 @@ class TestExpenseFileUpload:
         response = admin_client.get(f"{FILE_URL}/{expense_id}/file/receipt/")
         assert response.status_code == 200
         assert response["Content-Type"] == "application/pdf"
-        assert pdf_content == response.content
+        assert response.content == pdf_content
 
     def test_download_nonexistent_file_returns_404(self, admin_client, expense_category):
         data = {"expense_date": "2026-01-05", "category": str(expense_category.id), "amount": "100.00"}
