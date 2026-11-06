@@ -61,7 +61,7 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    listCurrencies().then((list) => {
+    void listCurrencies().then((list) => {
       const sorted = sortByCurrencyOrder(list);
       setCurrencies(sorted);
     });
@@ -69,10 +69,10 @@ export default function Dashboard() {
 
   const fetchData = useCallback(() => {
     const params = buildFilterParams(year, month);
-    getDashboard(year || undefined, month || undefined, currency).then(setData);
-    listExpenses(params).then(setExpenses);
-    listDeposits(params).then(setDeposits);
-    listTransfers(params).then(setTransfers);
+    void getDashboard(year || undefined, month || undefined, currency).then(setData);
+    void listExpenses(params).then(setExpenses);
+    void listDeposits(params).then(setDeposits);
+    void listTransfers(params).then(setTransfers);
   }, [year, month, currency]);
 
   useEffect(() => { fetchData(); }, [fetchData]);

@@ -35,7 +35,7 @@ export default function NfeSamples() {
     const params: Record<string, string> = {};
     if (yearFilter) params.year = yearFilter;
     if (monthFilter) params.month = monthFilter;
-    listNfeSamples(params).then(setRows);
+    void listNfeSamples(params).then(setRows);
   }, [yearFilter, monthFilter]);
 
   useEffect(() => { load(); }, [load]);

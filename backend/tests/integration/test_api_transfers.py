@@ -81,7 +81,7 @@ class TestTransferFileUpload:
         response = admin_client.get(f"{TRANSFER_URL}/{transfer_id}/file/")
         assert response.status_code == 200
         assert response["Content-Type"] == "application/pdf"
-        assert pdf_content == response.content
+        assert response.content == pdf_content
 
     def test_download_nonexistent_file_returns_404(self, admin_client, bank):
         data = {

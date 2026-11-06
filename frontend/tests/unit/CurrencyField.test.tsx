@@ -21,37 +21,23 @@ describe("CurrencyField", () => {
     expect(input.value).toBe("5,894.49");
   });
 
-  it("handles empty value on blur", () => {
+  it.each([
+    { name: "empty value", typed: "", expected: "" },
+    { name: "en-US input with commas", typed: "1,000.50", expected: "1000.50" },
+    { name: "invalid input", typed: "abc", expected: "abc" },
+  ])("emits normalized value on blur for $name", ({ typed, expected }) => {
     const onChange = vi.fn();
     render(<CurrencyField label="Amount" value="" onChange={onChange} />);
     const input = screen.getByLabelText("Amount") as HTMLInputElement;
-    fireEvent.change(input, { target: { value: "" } });
+    fireEvent.change(input, { target: { value: typed } });
     fireEvent.blur(input);
-    expect(onChange).toHaveBeenCalledWith("");
-  });
-
-  it("strips commas for en-US input on blur", () => {
-    const onChange = vi.fn();
-    render(<CurrencyField label="Amount" value="" onChange={onChange} />);
-    const input = screen.getByLabelText("Amount") as HTMLInputElement;
-    fireEvent.change(input, { target: { value: "1,000.50" } });
-    fireEvent.blur(input);
-    expect(onChange).toHaveBeenCalledWith("1000.50");
+    expect(onChange).toHaveBeenCalledWith(expected);
   });
 
   it("supports custom decimal places", () => {
     render(<CurrencyField label="Rate" value="5.2834" onChange={vi.fn()} decimalPlaces={4} />);
     const input = screen.getByLabelText("Rate") as HTMLInputElement;
     expect(input.value).toBe("5.2834");
-  });
-
-  it("handles invalid input gracefully", () => {
-    const onChange = vi.fn();
-    render(<CurrencyField label="Amount" value="" onChange={onChange} />);
-    const input = screen.getByLabelText("Amount") as HTMLInputElement;
-    fireEvent.change(input, { target: { value: "abc" } });
-    fireEvent.blur(input);
-    expect(onChange).toHaveBeenCalledWith("abc");
   });
 
   it("shows required and error props", () => {

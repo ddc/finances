@@ -49,15 +49,15 @@ export default function Expenses() {
   const [nfeFile, setNfeFile] = useState<File | null>(null);
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
 
-  useEffect(() => { listExpenseCategories().then(setCategories); }, []);
-  useEffect(() => { listExpenseSubCategories().then(setSubCategories); }, []);
+  useEffect(() => { void listExpenseCategories().then(setCategories); }, []);
+  useEffect(() => { void listExpenseSubCategories().then(setSubCategories); }, []);
 
   const load = useCallback(() => {
     const params: Record<string, string> = {};
     if (yearFilter) params.year = yearFilter;
     if (monthFilter) params.month = monthFilter;
     if (categoryFilter) params.category = categoryFilter;
-    listExpenses(params).then(setRows);
+    void listExpenses(params).then(setRows);
   }, [yearFilter, monthFilter, categoryFilter]);
 
   useEffect(() => { load(); }, [load]);

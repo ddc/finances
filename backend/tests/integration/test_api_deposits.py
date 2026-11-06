@@ -87,7 +87,7 @@ class TestDepositFileUpload:
         response = admin_client.get(f"{FILE_URL}/{deposit_id}/file/nfe/")
         assert response.status_code == 200
         assert response["Content-Type"] == "application/pdf"
-        assert pdf_content == response.content
+        assert response.content == pdf_content
 
     def test_download_nonexistent_file_returns_404(self, admin_client, currency, company):
         data = _valid_deposit(currency, company)
