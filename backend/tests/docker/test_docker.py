@@ -69,7 +69,7 @@ class TestDockerSmoke:
             timeout=30,
         )
         assert result.returncode == 0
-        assert "3.14" in result.stdout
+        assert "3.15" in result.stdout
 
     def test_no_build_toolchain(self, docker_build, docker_bin):
         result = subprocess.run(
