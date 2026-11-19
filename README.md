@@ -17,10 +17,10 @@
     <a href="https://github.com/ddc/finances/actions/workflows/workflow.yml"><img src="https://img.shields.io/github/actions/workflow/status/ddc/finances/workflow.yml?style=plastic&logo=github&logoColor=white&label=CI%2FCD%20Pipeline" alt="CI/CD Pipeline"/></a>
     <a href="https://actions-badge.atrox.dev/ddc/finances/goto?ref=main"><img src="https://img.shields.io/endpoint.svg?url=https%3A//actions-badge.atrox.dev/ddc/finances/badge?ref=main&label=build&logo=github&style=plastic" alt="Build Status"/></a>
     <br>
-    <a href="https://www.python.org/downloads"><img src="https://img.shields.io/badge/python-3.14-blue.svg?style=plastic&logo=python&logoColor=3776AB" alt="Python"/></a>
+    <a href="https://www.python.org/downloads"><img src="https://img.shields.io/badge/python-3.15-blue.svg?style=plastic&logo=python&logoColor=3776AB" alt="Python"/></a>
     <a href="https://www.djangoproject.com"><img src="https://img.shields.io/badge/Django-6.0-092E20.svg?style=plastic&logo=django&logoColor=white" alt="Django"/></a>
     <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61DAFB.svg?style=plastic&logo=react&logoColor=white" alt="React"/></a>
-    <a href="https://bun.sh"><img src="https://img.shields.io/badge/Bun-1.3-fbf0df.svg?style=plastic&logo=bun&logoColor=white" alt="Bun"/></a>
+    <a href="https://bun.sh"><img src="https://img.shields.io/badge/Bun-1.4-fbf0df.svg?style=plastic&logo=bun&logoColor=white" alt="Bun"/></a>
     <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json&style=plastic" alt="uv"/></a>
     <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=plastic" alt="Ruff"/></a>
     <br>
