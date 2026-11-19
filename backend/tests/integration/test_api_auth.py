@@ -1,5 +1,6 @@
 import pytest
 from tests.conftest import TEST_USER_PASSWORD
+lazy from rest_framework.test import APIClient
 
 pytestmark = [pytest.mark.django_db, pytest.mark.integration]
 
@@ -8,7 +9,6 @@ BASE_URL = "/api/v1/auth"
 
 class TestLogin:
     def test_login_success(self, admin_user):
-        from rest_framework.test import APIClient
 
         client = APIClient()
         response = client.post(f"{BASE_URL}/login/", {"username": "admin", "password": TEST_USER_PASSWORD})
@@ -17,7 +17,6 @@ class TestLogin:
         assert "auth_token" in response.cookies
 
     def test_login_invalid_credentials(self):
-        from rest_framework.test import APIClient
 
         client = APIClient()
         response = client.post(f"{BASE_URL}/login/", {"username": "wrong", "password": TEST_USER_PASSWORD + "-invalid"})

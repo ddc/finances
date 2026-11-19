@@ -6,6 +6,8 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from tests.conftest import TEST_USER_PASSWORD
 from unittest.mock import MagicMock, patch
+lazy from core.models import Company, Currency, Deposit, Expense, ExpenseCategory
+lazy from core.services import ptax
 
 pytestmark = pytest.mark.django_db
 
@@ -13,7 +15,6 @@ pytestmark = pytest.mark.django_db
 class TestPtaxService:
     @staticmethod
     def setup_method():
-        from core.services import ptax
 
         ptax._cache.clear()
 
@@ -53,7 +54,6 @@ class TestDashboardService:
         assert data["recent_activity"] == []
 
     def test_dashboard_data_with_records(self):
-        from core.models import Company, Currency, Deposit, Expense, ExpenseCategory
 
         user = User.objects.create_user(username="testuser", password=TEST_USER_PASSWORD)
         cat = ExpenseCategory.objects.create(code="TAXES", label="Taxes")

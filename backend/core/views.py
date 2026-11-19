@@ -358,12 +358,14 @@ class NfeSampleViewSet(LoggingModelViewSet):
         return self._filter_by_year_month(super().get_queryset(), "created_at")
 
 
-_CONTENT_TYPES = {
-    "pdf": "application/pdf",
-    "png": "image/png",
-    "jpg": "image/jpeg",
-    "jpeg": "image/jpeg",
-}
+_CONTENT_TYPES = frozendict(
+    {
+        "pdf": "application/pdf",
+        "png": "image/png",
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+    }
+)
 
 
 def _file_response(file_data, filename):

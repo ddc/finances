@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import patch
+lazy from decimal import Decimal
 
 pytestmark = [pytest.mark.django_db, pytest.mark.integration]
 
@@ -44,6 +45,5 @@ class TestDashboard:
         )
         response = admin_client.get("/api/v1/dashboard/?year=2026")
         assert response.status_code == 200
-        from decimal import Decimal
 
         assert Decimal(str(response.data["summary"]["total_income_brl"])) == Decimal("5894.49")
