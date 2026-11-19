@@ -2,6 +2,7 @@ import pytest
 from core.models import Deposit, Expense, Transfer
 from datetime import date
 from decimal import Decimal
+lazy from core.models import NfeSample
 
 pytestmark = pytest.mark.django_db
 
@@ -102,13 +103,11 @@ class TestLookupModels:
 
 class TestNfeSample:
     def test_nfe_sample_str(self, admin_user):
-        from core.models import NfeSample
 
         nfe = NfeSample.objects.create(description="Test NFE", body="Body text", created_by=admin_user)
         assert "Test NFE" in str(nfe)
 
     def test_nfe_sample_str_no_description(self, admin_user):
-        from core.models import NfeSample
 
         nfe = NfeSample.objects.create(description="", body="Body text", created_by=admin_user)
         assert "NFE Sample" in str(nfe)

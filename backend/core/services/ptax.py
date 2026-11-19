@@ -1,20 +1,22 @@
-import requests
 import time
 from datetime import datetime, timedelta
 from decimal import Decimal
 from django.conf import settings
 from typing import Any
+lazy import requests
 
 # Per-currency cache: { "USD": {"compra": ..., "venda": ..., "fetched_at": ...}, ... }
 _cache: dict[str, dict[str, Any]] = {}
 
-CURRENCY_CODES = {
-    "USD": "USD",
-    "EUR": "EUR",
-    "GBP": "GBP",
-    "CAD": "CAD",
-    "AUD": "AUD",
-}
+CURRENCY_CODES = frozendict(
+    {
+        "USD": "USD",
+        "EUR": "EUR",
+        "GBP": "GBP",
+        "CAD": "CAD",
+        "AUD": "AUD",
+    }
+)
 
 
 def get_ptax_rate(currency: str = "USD"):
