@@ -1,5 +1,5 @@
-ARG BUN_IMAGE=oven/bun:1.4.4-alpine
-ARG NGINX_IMAGE=nginx:1.31.8-alpine3.24-slim
+ARG BUN_IMAGE=oven/bun:1.4.5-alpine
+ARG NGINX_IMAGE=nginx:1.31.9-alpine3.24-slim
 
 FROM ${BUN_IMAGE} AS build
 
